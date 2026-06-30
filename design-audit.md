@@ -96,6 +96,7 @@ index.html
 - 移动端关闭大面积 `backdrop-filter` 和 Aurora 动画，保留静态 liquid glass 观感。
 - Aurora 背景组件已支持视频主背景：当 `backgroundMedia.enabled` 为 `true` 且存在视频源时，视频层接管大面积光场，CSS Aurora 降为轻量兜底；当前无视频素材时保持 CSS 背景，不发起缺失资源请求。
 - `prefers-reduced-motion: reduce` 下不会渲染视频层。
+- 仓库新增 `public/tools/aurora-studio.html`，可直接在浏览器内生成同风格 `webm` 循环和 `png` 封面，避免当前环境下依赖 ffmpeg 或额外安装工具。
 
 ## 验证记录
 
@@ -112,3 +113,4 @@ index.html
 2. 将三张项目卡片替换为真实作品，并补充真实链接或详情页。
 3. 添加 `public/media/aurora-loop.webm`、`aurora-loop.mp4`、`aurora-poster.jpg` 后，将 `src/App.tsx` 中 `auroraMedia.enabled` 改为 `true`。
 4. 若要继续加强 shadcn/ui 体系，可下一步抽出 `ProjectCard`、`GlassPanel` 等本地组件。
+5. 现阶段建议先用 `public/tools/aurora-studio.html` 产出第一版 `aurora-loop.webm` 和 `aurora-poster.png`，确认视觉节奏后再决定是否补一份 `mp4` 回退源。

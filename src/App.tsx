@@ -48,27 +48,33 @@ const navItems = [
   { href: "#contact", label: "Contact", id: "contact" },
 ];
 
-const auroraMedia = {
-  enabled: false,
-  poster: "/media/aurora-poster.jpg",
-  sources: [
-    { src: "/media/aurora-loop.webm", type: "video/webm" },
-    { src: "/media/aurora-loop.mp4", type: "video/mp4" },
-  ],
-};
-
 export function App() {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(() => {
+    const stored = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return stored === "dark" || (!stored && prefersDark);
+  });
   const [activeSection, setActiveSection] = useState("work");
   const prefersReducedMotion = useReducedMotion();
   const pointerFrame = useRef<number | null>(null);
   const year = useMemo(() => new Date().getFullYear(), []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setDark(stored === "dark" || (!stored && prefersDark));
-  }, []);
+  const auroraMedia = useMemo(
+    () => ({
+      enabled: true,
+      poster: dark
+        ? "/media/aurora-dark-poster.png"
+        : "/media/aurora-light-poster.png",
+      sources: [
+        {
+          src: dark
+            ? "/media/aurora-dark-loop.webm"
+            : "/media/aurora-light-loop.webm",
+          type: "video/webm",
+        },
+      ],
+    }),
+    [dark]
+  );
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);

@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Aurora Studio</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #071013;
+        --panel: rgba(12, 22, 28, 0.68);
+        --panel-strong: rgba(18, 30, 36, 0.88);
+        --line: rgba(226, 241, 236, 0.14);
+        --text: #eff6f2;
+        --muted: rgba(239, 246, 242, 0.68);
+        --teal: #8bd6d4;
+        --glacier: #b8e2e5;
+        --orchid: #b89bd5;
+        --warm: #d6c59e;
+        --shadow: 0 22px 64px rgba(0, 0, 0, 0.34);
+        --radius: 24px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top, rgba(139, 214, 212, 0.12), transparent 30%),
+          linear-gradient(180deg, #091116, var(--bg));
+        color: var(--text);
+        font: 14px/1.45 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      .studio-shell {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 24px 0 32px;
+      }
+
+      .studio-header,
+      .studio-panel,
+      .canvas-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 28%),
+          var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px) saturate(1.18);
+      }
+
+      .studio-header,
+      .studio-panel {
+        padding: 20px;
+      }
+
+      .studio-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 20px;
+      }
+
+      .eyebrow,
+      label,
+      .stat-label {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 12px;
+        font-size: clamp(34px, 5vw, 64px);
+        line-height: 0.96;
+        font-weight: 650;
+      }
+
+      .header-copy p,
+      .status {
+        max-width: 720px;
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .studio-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+        gap: 20px;
+      }
+
+      .canvas-card {
+        padding: 18px;
+        min-height: 680px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 24%),
+          var(--panel-strong);
+      }
+
+      .canvas-frame {
+        height: 100%;
+        min-height: 600px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.24);
+      }
+
+      canvas {
+        width: min(100%, 860px);
+        aspect-ratio: 16 / 9;
+        display: block;
+        border-radius: 20px;
+        box-shadow: 0 28px 72px rgba(0, 0, 0, 0.4);
+        background: #0d151a;
+      }
+
+      .studio-panel {
+        display: grid;
+        gap: 18px;
+        align-content: start;
+      }
+
+      .control-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field-wide {
+        grid-column: 1 / -1;
+      }
+
+      select,
+      input {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 0 14px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        outline: none;
+      }
+
+      input[type="range"] {
+        padding: 0;
+      }
+
+      .field-note {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button {
+        min-height: 44px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        padding: 0 16px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 42%),
+          rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 42%),
+          linear-gradient(180deg, rgba(184, 226, 229, 0.92), rgba(104, 162, 176, 0.88));
+        color: #081114;
+      }
+
+      button:disabled {
+        opacity: 0.56;
+        cursor: progress;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stat {
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 18px;
+      }
+
+      .downloads {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .downloads a {
+        color: var(--glacier);
+        text-decoration: none;
+        word-break: break-all;
+      }
+
+      @media (max-width: 960px) {
+        .studio-header,
+        .studio-grid {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .canvas-card {
+          min-height: auto;
+        }
+
+        .canvas-frame {
+          min-height: 420px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .studio-shell {
+          width: min(100% - 20px, 1180px);
+          padding-top: 14px;
+        }
+
+        .studio-header,
+        .studio-panel,
+        .canvas-card {
+          padding: 16px;
+          border-radius: 20px;
+          backdrop-filter: none;
+        }
+
+        .control-grid,
+        .stats {
+          grid-template-columns: 1fr;
+        }
+
+        .canvas-frame {
+          min-height: 320px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="studio-shell">
+      <section class="studio-header">
+        <div class="header-copy">
+          <p class="eyebrow">Aurora media generator</p>
+          <h1>在浏览器里直接做出同风格背景循环。</h1>
+          <p>
+            这个工具会用 Canvas 实时预览当前 aurora 语言，并通过
+            <code>MediaRecorder</code> 导出可直接放进
+            <code>public/media/</code> 的循环视频。默认输出 `webm`，封面图输出 `png`。
+          </p>
+        </div>
+        <p class="status" id="status">预览中。导出前先确认浏览器允许下载文件。</p>
+      </section>
+
+      <section class="studio-grid">
+        <div class="canvas-card">
+          <div class="canvas-frame">
+            <canvas id="aurora-canvas" width="1600" height="900"></canvas>
+          </div>
+        </div>
+
+        <aside class="studio-panel">
+          <div class="control-grid">
+            <div class="field">
+              <label for="preset">尺寸</label>
+              <select id="preset">
+                <option value="3840x2160">3840 × 2160 · 4K</option>
+                <option value="1920x1080">1920 × 1080</option>
+                <option value="1600x900" selected>1600 × 900</option>
+                <option value="1280x720">1280 × 720</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="theme">主题</label>
+              <select id="theme">
+                <option value="dark" selected>Dark</option>
+                <option value="light">Light</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="duration">时长（秒）</label>
+              <input id="duration" type="number" min="4" max="16" step="1" value="10" />
+            </div>
+
+            <div class="field">
+              <label for="fps">帧率</label>
+              <select id="fps">
+                <option value="24">24 fps</option>
+                <option value="30" selected>30 fps</option>
+                <option value="60">60 fps</option>
+                <option value="120">120 fps</option>
+              </select>
+            </div>
+
+            <div class="field field-wide">
+              <label for="drift">流动强度</label>
+              <input id="drift" type="range" min="0.6" max="1.5" step="0.05" value="1" />
+              <span class="field-note">控制一个周期内的位移幅度，不改变周期本身。当前工具里一个周期始终等于时长输入值。</span>
+            </div>
+
+            <div class="field field-wide">
+              <label for="bloom">光晕强度</label>
+              <input id="bloom" type="range" min="0.5" max="1.5" step="0.05" value="1" />
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button id="save-poster">导出封面</button>
+            <button id="record-webm" class="primary">导出 WebM 循环</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-label">Mime</span>
+              <strong id="mime-value">-</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Frame</span>
+              <strong id="frame-value">1600×900</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Loop</span>
+              <strong id="loop-value">10s</strong>
+            </div>
+          </div>
+
+          <div class="downloads" id="downloads">
+            <strong>导出记录</strong>
+            <span class="field-note">视频建议命名为 `aurora-loop.webm`，封面建议命名为 `aurora-poster.png`。</span>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const canvas = document.getElementById("aurora-canvas");
+      const ctx = canvas.getContext("2d");
+      const presetInput = document.getElementById("preset");
+      const themeInput = document.getElementById("theme");
+      const durationInput = document.getElementById("duration");
+      const fpsInput = document.getElementById("fps");
+      const driftInput = document.getElementById("drift");
+      const bloomInput = document.getElementById("bloom");
+      const savePosterButton = document.getElementById("save-poster");
+      const recordWebmButton = document.getElementById("record-webm");
+      const statusNode = document.getElementById("status");
+      const mimeValueNode = document.getElementById("mime-value");
+      const frameValueNode = document.getElementById("frame-value");
+      const loopValueNode = document.getElementById("loop-value");
+      const downloadsNode = document.getElementById("downloads");
+
+      const themes = {
+        dark: {
+          bgA: "#091116",
+          bgB: "#132026",
+          haze: "rgba(139, 214, 212, 0.18)",
+          stripes: "rgba(255, 255, 255, 0.12)",
+          layers: ["#8bd6d4", "#b8e2e5", "#b89bd5", "#d6c59e"],
+          flare: "rgba(255, 255, 255, 0.18)"
+        },
+        light: {
+          bgA: "#eef1ed",
+          bgB: "#dfe7e3",
+          haze: "rgba(255, 255, 255, 0.18)",
+          stripes: "rgba(255, 255, 255, 0.54)",
+          layers: ["#2f666b", "#b8e2e5", "#80659a", "#d9c6a3"],
+          flare: "rgba(255, 255, 255, 0.32)"
+        }
+      };
+
+      let previewToken = 0;
+      let recording = false;
+
+      function getSettings() {
+        const [width, height] = presetInput.value.split("x").map(Number);
+        return {
+          width,
+          height,
+          theme: themes[themeInput.value] || themes.dark,
+          duration: Math.max(4, Number(durationInput.value) || 10),
+          fps: Number(fpsInput.value) || 30,
+          drift: Number(driftInput.value) || 1,
+          bloom: Number(bloomInput.value) || 1
+        };
+      }
+
+      function applyCanvasSize() {
+        const settings = getSettings();
+        canvas.width = settings.width;
+        canvas.height = settings.height;
+        frameValueNode.textContent = presetInput.value;
+        loopValueNode.textContent = `${settings.duration}s`;
+      }
+
+      function drawLayer(progress, index, settings) {
+        const { width, height, drift, bloom, theme } = settings;
+        const baseY = height * (0.18 + index * 0.21);
+        const wave = height * (0.052 + index * 0.012) * bloom;
+        const phase = progress * Math.PI * 2;
+        const primaryHarmonic = index + 1;
+        const secondaryHarmonic = index + 2;
+        const layerOffset =
+          Math.sin(phase * primaryHarmonic) * drift * 0.88 +
+          Math.cos(phase * secondaryHarmonic) * drift * 0.32;
+        const grad = ctx.createLinearGradient(0, 0, width, height);
+        grad.addColorStop(0, theme.layers[index % theme.layers.length] + "00");
+        grad.addColorStop(0.24, theme.layers[index % theme.layers.length] + "aa");
+        grad.addColorStop(0.52, theme.layers[(index + 1) % theme.layers.length] + "88");
+        grad.addColorStop(1, theme.layers[(index + 2) % theme.layers.length] + "00");
+
+        ctx.save();
+        ctx.filter = `blur(${Math.round(34 + index * 10)}px) saturate(${1.08 + index * 0.08})`;
+        ctx.globalAlpha = 0.26 + index * 0.1;
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(-width * 0.12, height + 40);
+
+        for (let x = -width * 0.12; x <= width * 1.12; x += width / 7) {
+          const normalized = x / width;
+          const y =
+            baseY +
+            Math.sin(normalized * Math.PI * (1.38 + index * 0.24) + layerOffset) * wave +
+            Math.cos(normalized * Math.PI * 2.6 - layerOffset * 0.76) * wave * 0.24;
+          ctx.quadraticCurveTo(x, y, x + width / 10, y + wave * 0.18);
+        }
+
+        ctx.lineTo(width * 1.12, height + 40);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawFrame(elapsedMs, durationMs, settings) {
+        const { width, height, theme, bloom } = settings;
+        const progress = (elapsedMs % durationMs) / durationMs;
+        const phase = progress * Math.PI * 2;
+        const bg = ctx.createLinearGradient(0, 0, width, height);
+        bg.addColorStop(0, theme.bgA);
+        bg.addColorStop(1, theme.bgB);
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, width, height);
+
+        const haze = ctx.createRadialGradient(
+          width * (0.28 + Math.sin(phase) * 0.032),
+          height * (0.24 + Math.cos(phase) * 0.032),
+          0,
+          width * 0.3,
+          height * 0.32,
+          width * 0.54
+        );
+        haze.addColorStop(0, theme.haze);
+        haze.addColorStop(1, "transparent");
+        ctx.fillStyle = haze;
+        ctx.fillRect(0, 0, width, height);
+
+        drawLayer(progress, 0, settings);
+        drawLayer((progress + 0.11) % 1, 1, settings);
+        drawLayer((progress + 0.23) % 1, 2, settings);
+
+        ctx.save();
+        ctx.globalCompositeOperation = "soft-light";
+        ctx.globalAlpha = 0.36 * bloom;
+        const stripeCenterA = 0.47 + Math.sin(phase) * 0.07;
+        const stripeCenterB = 0.52 + Math.cos(phase) * 0.06;
+        const stripe = ctx.createLinearGradient(
+          width * stripeCenterA,
+          0,
+          width * stripeCenterB,
+          height
+        );
+        stripe.addColorStop(0, "transparent");
+        stripe.addColorStop(0.34, theme.stripes);
+        stripe.addColorStop(0.52, "transparent");
+        stripe.addColorStop(0.72, theme.flare);
+        stripe.addColorStop(1, "transparent");
+        ctx.fillStyle = stripe;
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+      }
+
+      function updateStatus(message) {
+        statusNode.textContent = message;
+      }
+
+      function addDownload(name, blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = name;
+        link.textContent = `${name} · ${(blob.size / 1024 / 1024).toFixed(2)} MB`;
+        downloadsNode.appendChild(link);
+        link.click();
+      }
+
+      function getSupportedMimeType() {
+        const options = [
+          "video/webm;codecs=vp9",
+          "video/webm;codecs=vp8",
+          "video/webm"
+        ];
+
+        return options.find((item) => window.MediaRecorder && MediaRecorder.isTypeSupported(item)) || "";
+      }
+
+      function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function startPreview() {
+        previewToken += 1;
+        const token = previewToken;
+        applyCanvasSize();
+
+        const settings = getSettings();
+        const durationMs = settings.duration * 1000;
+        const start = performance.now();
+
+        function tick(now) {
+          if (token !== previewToken || recording) {
+            return;
+          }
+
+          drawFrame(now - start, durationMs, settings);
+          requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      async function exportPoster() {
+        applyCanvasSize();
+        const settings = getSettings();
+        drawFrame(0, settings.duration * 1000, settings);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+
+        if (!blob) {
+          updateStatus("封面导出失败，浏览器没有返回图片数据。");
+          return;
+        }
+
+        addDownload("aurora-poster.png", blob);
+        updateStatus("封面已导出。把它放到 public/media/ 下即可。");
+      }
+
+      async function exportWebm() {
+        if (!window.MediaRecorder) {
+          updateStatus("当前浏览器不支持 MediaRecorder，无法直接导出视频。");
+          return;
+        }
+
+        const mimeType = getSupportedMimeType();
+        mimeValueNode.textContent = mimeType || "unsupported";
+
+        if (!mimeType) {
+          updateStatus("当前浏览器不支持可用的 WebM 编码。建议换到最新版 Chrome。");
+          return;
+        }
+
+        recording = true;
+        recordWebmButton.disabled = true;
+        savePosterButton.disabled = true;
+        applyCanvasSize();
+
+        const settings = getSettings();
+        const durationMs = settings.duration * 1000;
+        const stream = canvas.captureStream(0);
+        const videoTrack = stream.getVideoTracks()[0];
+        const recorder = new MediaRecorder(stream, {
+          mimeType,
+          videoBitsPerSecond: Math.round(
+            settings.width * settings.height * (settings.fps / 30) * 5.4
+          )
+        });
+        const chunks = [];
+
+        recorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            chunks.push(event.data);
+          }
+        };
+
+        recorder.start();
+        updateStatus("正在逐帧导出 WebM。请保持这个标签页处于前台。");
+
+        const motionFrames = Math.max(2, Math.round(settings.duration * settings.fps));
+        const frameDelay = 1000 / settings.fps;
+
+        for (let frame = 0; frame < motionFrames; frame += 1) {
+          drawFrame((frame / motionFrames) * durationMs, durationMs, settings);
+          if (typeof videoTrack.requestFrame === "function") {
+            videoTrack.requestFrame();
+          }
+          await wait(frameDelay);
+        }
+
+        drawFrame(0, durationMs, settings);
+        if (typeof videoTrack.requestFrame === "function") {
+          videoTrack.requestFrame();
+        }
+        await wait(frameDelay);
+
+        await new Promise((resolve) => {
+          recorder.onstop = resolve;
+          if (typeof videoTrack.stop === "function") {
+            videoTrack.stop();
+          }
+          recorder.stop();
+        });
+
+        const blob = new Blob(chunks, { type: mimeType });
+        addDownload("aurora-loop.webm", blob);
+        updateStatus("WebM 已导出。当前版本使用逐帧闭环采样，首尾帧完全一致。");
+
+        recording = false;
+        recordWebmButton.disabled = false;
+        savePosterButton.disabled = false;
+        startPreview();
+      }
+
+      presetInput.addEventListener("change", startPreview);
+      themeInput.addEventListener("change", startPreview);
+      durationInput.addEventListener("change", startPreview);
+      fpsInput.addEventListener("change", startPreview);
+      driftInput.addEventListener("input", startPreview);
+      bloomInput.addEventListener("input", startPreview);
+      savePosterButton.addEventListener("click", exportPoster);
+      recordWebmButton.addEventListener("click", exportWebm);
+
+      mimeValueNode.textContent = getSupportedMimeType() || "unsupported";
+      startPreview();
+    </script>
+  </body>
+</html>

@@ -16,7 +16,6 @@ type AuroraMedia = {
 
 interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
   children: ReactNode;
-  showRadialGradient?: boolean;
   intensity?: "quiet" | "hero";
   backgroundMedia?: AuroraMedia;
 }
@@ -24,7 +23,6 @@ interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
 export const AuroraBackground = ({
   className,
   children,
-  showRadialGradient = true,
   intensity = "hero",
   backgroundMedia,
   ...props
@@ -46,9 +44,22 @@ export const AuroraBackground = ({
     () => backgroundMedia?.sources?.filter((source) => source.src && source.type) ?? [],
     [backgroundMedia?.sources]
   );
+  const mediaSignature = useMemo(
+    () =>
+      [
+        backgroundMedia?.poster ?? "",
+        ...sources.map((source) => `${source.type}:${source.src}`),
+      ].join("|"),
+    [backgroundMedia?.poster, sources]
+  );
 
   const shouldUseVideo =
     backgroundMedia?.enabled === true && sources.length > 0 && !reduceMotion;
+
+  useEffect(() => {
+    setVideoReady(false);
+    setVideoFailed(false);
+  }, [mediaSignature, shouldUseVideo]);
 
   return (
     <div
@@ -60,14 +71,12 @@ export const AuroraBackground = ({
       {...props}
     >
       <div
-        className={cn(
-          "aurora-field",
-          shouldUseVideo && videoReady && !videoFailed && "aurora-field-has-video"
-        )}
+        className="aurora-field"
         aria-hidden="true"
       >
         {shouldUseVideo && (
           <video
+            key={mediaSignature}
             className={cn("aurora-video", videoReady && !videoFailed && "is-ready")}
             autoPlay
             muted
@@ -86,12 +95,6 @@ export const AuroraBackground = ({
             ))}
           </video>
         )}
-        <div
-          className={cn(
-            "aurora-layer",
-            showRadialGradient && "aurora-layer-masked"
-          )}
-        />
       </div>
       <div className="aurora-content">{children}</div>
     </div>

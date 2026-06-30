@@ -48,6 +48,15 @@ const navItems = [
   { href: "#contact", label: "Contact", id: "contact" },
 ];
 
+const auroraMedia = {
+  enabled: false,
+  poster: "/media/aurora-poster.jpg",
+  sources: [
+    { src: "/media/aurora-loop.webm", type: "video/webm" },
+    { src: "/media/aurora-loop.mp4", type: "video/mp4" },
+  ],
+};
+
 export function App() {
   const [dark, setDark] = useState(false);
   const [activeSection, setActiveSection] = useState("work");
@@ -148,6 +157,7 @@ export function App() {
   return (
     <AuroraBackground
       className="site-stage"
+      backgroundMedia={auroraMedia}
       onPointerMove={onPointerMove}
     >
       <div className="site-shell">

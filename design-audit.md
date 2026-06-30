@@ -16,6 +16,7 @@ index.html
           -> components/ui/liquid-glass-button.tsx
           -> lib/utils.ts
       -> src/index.css
+  -> public/media/README.md
 ```
 
 ## 核心文件
@@ -31,6 +32,7 @@ index.html
 | `components/ui/aurora-background.tsx` | shadcn 路径下的可复用 Aurora 背景容器 | 核心 |
 | `components/ui/liquid-glass-button.tsx` | 本地 Liquid Glass 交互组件，用于导航、CTA、主题按钮和联系入口 | 核心 |
 | `lib/utils.ts` | shadcn 风格 `cn()` 工具，被 Aurora 组件使用 | 核心 |
+| `public/media/README.md` | 视频背景资源规格与启用说明 | 支撑 |
 | `components.json` | shadcn/ui 配置，记录组件、utils、ui、lib 别名 | 核心 |
 | `vite.config.ts` | Vite React 插件、相对 `base`、`@` 别名 | 核心 |
 | `tailwind.config.js` | Tailwind 扫描范围、暗色模式、Aurora 动画配置 | 核心 |
@@ -92,6 +94,8 @@ index.html
 - 指针响应不再进入 React state，而是通过 `requestAnimationFrame` 直接写 CSS 变量，避免鼠标移动导致整页重渲染。
 - SVG displacement filter 已从滚动区移除，大面积面板改为轻量 blur、渐变、内阴影模拟。
 - 移动端关闭大面积 `backdrop-filter` 和 Aurora 动画，保留静态 liquid glass 观感。
+- Aurora 背景组件已支持视频主背景：当 `backgroundMedia.enabled` 为 `true` 且存在视频源时，视频层接管大面积光场，CSS Aurora 降为轻量兜底；当前无视频素材时保持 CSS 背景，不发起缺失资源请求。
+- `prefers-reduced-motion: reduce` 下不会渲染视频层。
 
 ## 验证记录
 
@@ -100,9 +104,11 @@ index.html
 - 视觉截图检查覆盖了亮色首屏、暗色首屏、移动首屏与作品卡片区域；修正了移动端主题按钮因旧 `span` 隐藏规则导致材质层消失的问题。
 - 浏览器控制台检查无运行时错误。
 - 性能优化后再次运行 `npm.cmd run build` 通过。后续一次 DevTools 截图复查被当前环境审批器拦截，未继续绕过。
+- 视频背景架构改造后再次运行 `npm.cmd run build` 通过。
 
 ## 后续建议
 
 1. 把 `hello@example.com`、GitHub、LinkedIn 替换成真实信息。
 2. 将三张项目卡片替换为真实作品，并补充真实链接或详情页。
-3. 若要继续加强 shadcn/ui 体系，可下一步抽出 `Button`、`ProjectCard`、`GlassPanel` 等本地组件。
+3. 添加 `public/media/aurora-loop.webm`、`aurora-loop.mp4`、`aurora-poster.jpg` 后，将 `src/App.tsx` 中 `auroraMedia.enabled` 改为 `true`。
+4. 若要继续加强 shadcn/ui 体系，可下一步抽出 `ProjectCard`、`GlassPanel` 等本地组件。

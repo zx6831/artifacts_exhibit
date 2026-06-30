@@ -1,12 +1,24 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useMemo, useState } from "react";
+
+type AuroraVideoSource = {
+  src: string;
+  type: string;
+};
+
+type AuroraMedia = {
+  enabled?: boolean;
+  poster?: string;
+  sources?: AuroraVideoSource[];
+};
 
 interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
   children: ReactNode;
   showRadialGradient?: boolean;
   intensity?: "quiet" | "hero";
+  backgroundMedia?: AuroraMedia;
 }
 
 export const AuroraBackground = ({
@@ -14,8 +26,30 @@ export const AuroraBackground = ({
   children,
   showRadialGradient = true,
   intensity = "hero",
+  backgroundMedia,
   ...props
 }: AuroraBackgroundProps) => {
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setReduceMotion(query.matches);
+
+    updatePreference();
+    query.addEventListener("change", updatePreference);
+    return () => query.removeEventListener("change", updatePreference);
+  }, []);
+
+  const sources = useMemo(
+    () => backgroundMedia?.sources?.filter((source) => source.src && source.type) ?? [],
+    [backgroundMedia?.sources]
+  );
+
+  const shouldUseVideo =
+    backgroundMedia?.enabled === true && sources.length > 0 && !reduceMotion;
+
   return (
     <div
       className={cn(
@@ -25,7 +59,33 @@ export const AuroraBackground = ({
       )}
       {...props}
     >
-      <div className="aurora-field" aria-hidden="true">
+      <div
+        className={cn(
+          "aurora-field",
+          shouldUseVideo && videoReady && !videoFailed && "aurora-field-has-video"
+        )}
+        aria-hidden="true"
+      >
+        {shouldUseVideo && (
+          <video
+            className={cn("aurora-video", videoReady && !videoFailed && "is-ready")}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={backgroundMedia?.poster}
+            onCanPlay={() => setVideoReady(true)}
+            onError={() => {
+              setVideoReady(false);
+              setVideoFailed(true);
+            }}
+          >
+            {sources.map((source) => (
+              <source key={`${source.type}:${source.src}`} src={source.src} type={source.type} />
+            ))}
+          </video>
+        )}
         <div
           className={cn(
             "aurora-layer",

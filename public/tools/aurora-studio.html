@@ -350,6 +350,12 @@
               <label for="bloom">光晕强度</label>
               <input id="bloom" type="range" min="0.5" max="1.5" step="0.05" value="1" />
             </div>
+
+            <div class="field field-wide">
+              <label for="neutral">偏白程度</label>
+              <input id="neutral" type="range" min="0.8" max="1.6" step="0.05" value="1.15" />
+              <span class="field-note">只影响导出素材本身。数值越高，light 模式越偏白、越少发青。</span>
+            </div>
           </div>
 
           <div class="button-row">
@@ -389,6 +395,7 @@
       const fpsInput = document.getElementById("fps");
       const driftInput = document.getElementById("drift");
       const bloomInput = document.getElementById("bloom");
+      const neutralInput = document.getElementById("neutral");
       const savePosterButton = document.getElementById("save-poster");
       const recordWebmButton = document.getElementById("record-webm");
       const statusNode = document.getElementById("status");
@@ -424,11 +431,13 @@
         return {
           width,
           height,
+          mode: themeInput.value,
           theme: themes[themeInput.value] || themes.dark,
           duration: Math.max(4, Number(durationInput.value) || 10),
           fps: Number(fpsInput.value) || 30,
           drift: Number(driftInput.value) || 1,
-          bloom: Number(bloomInput.value) || 1
+          bloom: Number(bloomInput.value) || 1,
+          neutral: Number(neutralInput.value) || 1.15
         };
       }
 
@@ -479,7 +488,7 @@
       }
 
       function drawFrame(elapsedMs, durationMs, settings) {
-        const { width, height, theme, bloom } = settings;
+        const { width, height, theme, bloom, mode, neutral } = settings;
         const progress = (elapsedMs % durationMs) / durationMs;
         const phase = progress * Math.PI * 2;
         const bg = ctx.createLinearGradient(0, 0, width, height);
@@ -526,6 +535,18 @@
         ctx.fillStyle = stripe;
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
+
+        if (mode === "light") {
+          const whiteVeil = ctx.createLinearGradient(0, 0, 0, height);
+          whiteVeil.addColorStop(0, `rgba(255, 255, 255, ${0.12 * neutral})`);
+          whiteVeil.addColorStop(0.46, `rgba(255, 255, 255, ${0.06 * neutral})`);
+          whiteVeil.addColorStop(1, `rgba(255, 255, 255, ${0.08 * neutral})`);
+          ctx.save();
+          ctx.globalCompositeOperation = "screen";
+          ctx.fillStyle = whiteVeil;
+          ctx.fillRect(0, 0, width, height);
+          ctx.restore();
+        }
       }
 
       function updateStatus(message) {
@@ -673,6 +694,7 @@
       fpsInput.addEventListener("change", startPreview);
       driftInput.addEventListener("input", startPreview);
       bloomInput.addEventListener("input", startPreview);
+      neutralInput.addEventListener("input", startPreview);
       savePosterButton.addEventListener("click", exportPoster);
       recordWebmButton.addEventListener("click", exportWebm);
 

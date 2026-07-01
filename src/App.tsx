@@ -1,62 +1,127 @@
 import {
   ArrowDown,
+  ArrowUpRight,
+  BriefcaseBusiness,
   ExternalLink,
   Github,
+  House,
   Linkedin,
   Mail,
   Moon,
-  MousePointer2,
   Sun,
+  UserRound,
+  Waypoints,
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { PointerEvent } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LiquidGlassButton } from "@/components/ui/liquid-glass-button";
+import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 
 const projects = [
   {
+    year: "2026",
     discipline: "Editorial system",
     title: "Signal Atlas",
-    copy: "把研究型内容整理成安静、可浏览、节奏明确的网页系统，保留研究本身的呼吸。",
-    material: "signal",
+    copy:
+      "A research archive translated into a readable longform system with calmer pacing, stronger hierarchy, and cleaner scanning on every viewport.",
+    materialClass: "plate-signal",
+    scope: "Content model, responsive type, reading flow",
   },
   {
+    year: "2025",
     discipline: "Interactive archive",
     title: "Afterimage Room",
-    copy: "用裁切、悬停和短文案建立带有展览感的作品浏览方式，让作品像被装入灯箱。",
-    material: "afterimage",
+    copy:
+      "An exhibition-like browsing experience built around image rhythm, hover timing, and compact labels that do not interrupt the work.",
+    materialClass: "plate-afterimage",
+    scope: "Hover choreography, archive browsing, visual pacing",
   },
   {
+    year: "2025",
     discipline: "Interface system",
     title: "Plain Frame",
-    copy: "面向个人品牌站的轻量前端框架，优先保证版式、可维护性和真实上线状态。",
-    material: "frame",
+    copy:
+      "A lightweight frontend framework for personal sites that prioritizes maintainability, resilient layout, and a clear visual grammar.",
+    materialClass: "plate-frame",
+    scope: "Design system, Vite workflow, maintainable UI",
+  },
+];
+
+const methods = [
+  {
+    title: "Define the visual thesis first",
+    copy:
+      "The page should leave one clear memory. Layout, motion, and component density follow that decision instead of competing with it.",
+  },
+  {
+    title: "Reduce into a reusable language",
+    copy:
+      "Headlines, cards, navigation, and calls to action should feel made from the same material rather than assembled from unrelated fragments.",
+  },
+  {
+    title: "Validate inside a real browser",
+    copy:
+      "Scroll behavior, section state, motion, and theme switching only count once they hold up in an actual responsive interface.",
   },
 ];
 
 const capabilities = [
-  "视觉方向",
-  "React 实现",
-  "动效节奏",
-  "设计系统整理",
+  "Visual direction",
+  "React implementation",
+  "Motion tuning",
+  "System cleanup",
 ];
 
+const studioProfile = {
+  name: "Lin Studio",
+  role: "Visual frontend / Portfolio systems",
+  location: "Shanghai / Remote",
+  availability: "Open for selected commissions",
+  response: "Replies within 48 hours",
+  email: "hello@example.com",
+  github: "https://github.com/",
+  linkedin: "https://www.linkedin.com/",
+};
+
+const featuredProject = {
+  label: "Featured case",
+  title: "Signal Atlas",
+  summary:
+    "A longform editorial interface designed to keep dense content calm. The priority is pacing: type rhythm, modular density, and an entry point that feels deliberate instead of overloaded.",
+  tags: ["Editorial UI", "Responsive type", "Archive rhythm"],
+  metrics: [
+    { label: "Format", value: "Longform system" },
+    { label: "Stack", value: "React / Motion / CSS" },
+    { label: "Focus", value: "Reading flow" },
+  ],
+};
+
 const navItems = [
-  { href: "#work", label: "Projects", id: "work" },
-  { href: "#profile", label: "Profile", id: "profile" },
-  { href: "#contact", label: "Contact", id: "contact" },
+  { href: "#top", label: "Home", id: "top", icon: House },
+  { href: "#method", label: "Method", id: "method", icon: Waypoints },
+  { href: "#work", label: "Projects", id: "work", icon: BriefcaseBusiness },
+  { href: "#profile", label: "Profile", id: "profile", icon: UserRound },
+  { href: "#contact", label: "Contact", id: "contact", icon: Mail },
 ];
 
 export function App() {
   const [dark, setDark] = useState(() => {
-    const stored = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return stored === "dark" || (!stored && prefersDark);
+
+    try {
+      const stored = localStorage.getItem("theme");
+      return stored === "dark" || (!stored && prefersDark);
+    } catch {
+      return prefersDark;
+    }
   });
-  const [activeSection, setActiveSection] = useState("work");
+  const [activeSection, setActiveSection] = useState("top");
   const prefersReducedMotion = useReducedMotion();
   const pointerFrame = useRef<number | null>(null);
+  const pendingNavTarget = useRef<string | null>(null);
+  const pendingNavTimeout = useRef<number | null>(null);
   const year = useMemo(() => new Date().getFullYear(), []);
   const auroraMedia = useMemo(
     () => ({
@@ -76,9 +141,13 @@ export function App() {
     [dark]
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
-    localStorage.setItem("theme", dark ? "dark" : "light");
+    try {
+      localStorage.setItem("theme", dark ? "dark" : "light");
+    } catch {
+      // Ignore storage failures in restricted browser contexts.
+    }
   }, [dark]);
 
   useEffect(() => {
@@ -116,6 +185,20 @@ export function App() {
 
     const navObserver = new IntersectionObserver(
       (entries) => {
+        const pendingTarget = pendingNavTarget.current;
+        if (pendingTarget) {
+          const pendingEntry = entries.find(
+            (entry) => entry.target.id === pendingTarget && entry.isIntersecting
+          );
+
+          if (pendingEntry) {
+            setActiveSection(pendingTarget);
+            pendingNavTarget.current = null;
+          }
+
+          return;
+        }
+
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
@@ -124,7 +207,7 @@ export function App() {
           setActiveSection(visible.target.id);
         }
       },
-      { threshold: [0.24, 0.48, 0.72], rootMargin: "-24% 0px -48% 0px" }
+      { threshold: [0.24, 0.45, 0.72], rootMargin: "-22% 0px -52% 0px" }
     );
 
     sections.forEach((section) => navObserver.observe(section));
@@ -135,6 +218,10 @@ export function App() {
     return () => {
       if (pointerFrame.current !== null) {
         window.cancelAnimationFrame(pointerFrame.current);
+      }
+
+      if (pendingNavTimeout.current !== null) {
+        window.clearTimeout(pendingNavTimeout.current);
       }
     };
   }, []);
@@ -160,124 +247,248 @@ export function App() {
     });
   };
 
+  const handleNavNavigate = (id: string, href: string) => {
+    const target = document.querySelector<HTMLElement>(href);
+    if (!target) {
+      return;
+    }
+
+    pendingNavTarget.current = id;
+    setActiveSection(id);
+
+    if (pendingNavTimeout.current !== null) {
+      window.clearTimeout(pendingNavTimeout.current);
+    }
+
+    pendingNavTimeout.current = window.setTimeout(() => {
+      pendingNavTarget.current = null;
+      pendingNavTimeout.current = null;
+    }, prefersReducedMotion ? 120 : 1200);
+
+    target.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <AuroraBackground
       className="site-stage"
       backgroundMedia={auroraMedia}
       onPointerMove={onPointerMove}
     >
-      <div className="site-shell">
-        <header className="site-header glass-chrome">
-          <a className="brand" href="#top" aria-label="返回首页">
-            <span className="brand-mark" aria-hidden="true" />
-            <span>Lin Studio</span>
-          </a>
+      <div className="site-top-controls">
+        <div className="site-top-controls__nav">
+          <TubelightNavBar
+            items={navItems}
+            activeId={activeSection}
+            className="site-floating-nav"
+            onNavigate={handleNavNavigate}
+          />
+        </div>
 
-          <nav className="site-nav" aria-label="主导航">
-            {navItems.map((item) => (
-              <LiquidGlassButton
-                key={item.id}
-                href={item.href}
-                variant="nav"
-                isActive={activeSection === item.id}
-                aria-current={activeSection === item.id ? "page" : undefined}
-              >
-                {item.label}
-              </LiquidGlassButton>
-            ))}
-          </nav>
-
+        <div className="site-top-controls__theme">
           <LiquidGlassButton
-            className="theme-toggle"
+            className="site-theme-toggle"
             variant="icon"
             type="button"
-            aria-label="切换明暗主题"
+            aria-label="Toggle theme"
             aria-pressed={dark}
             onClick={() => setDark((value) => !value)}
           >
             {dark ? <Sun size={16} /> : <Moon size={16} />}
             <span>Theme</span>
           </LiquidGlassButton>
-        </header>
+        </div>
+      </div>
 
-        <main id="top">
-          <section className="hero section">
+      <div className="site-shell">
+
+        <main>
+          <section className="hero section" id="top">
             <motion.div
               className="hero-copy"
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             >
-              <p className="eyebrow">Portfolio for designed interfaces</p>
-              <h1>把作品放进一块会呼吸的光学玻璃。</h1>
+              <div className="hero-topline">
+                <a className="brand" href="#top" aria-label="Back to top">
+                  <span className="brand-mark" aria-hidden="true" />
+                  <span>{studioProfile.name}</span>
+                </a>
+                <span className="hero-topline-note">Portfolio for designed interfaces</span>
+              </div>
+              <h1>Make the navigation feel as intentional as the work below it.</h1>
               <p className="hero-text">
-                我做面向个人品牌与小型产品的视觉型前端：先确定气质，再把版式、动效和组件收束成稳定可上线的网页。
+                This portfolio pairs a glass-built interface language with a
+                tubelight navigation bar that stays fixed, scrolls cleanly to
+                each section, and follows the reader as the page moves.
               </p>
+
               <div className="hero-actions">
                 <LiquidGlassButton variant="primary" href="#work">
-                  查看作品
+                  View projects
                   <ArrowDown size={16} />
                 </LiquidGlassButton>
-                <LiquidGlassButton variant="ghost" href="mailto:hello@example.com">
-                  写信联系
+                <LiquidGlassButton
+                  variant="ghost"
+                  href={`mailto:${studioProfile.email}`}
+                >
+                  Start a conversation
                   <Mail size={16} />
                 </LiquidGlassButton>
+              </div>
+
+              <div className="hero-facts reveal" aria-label="Studio facts">
+                <div className="glass-plate fact-pill">
+                  <span className="fact-label">Role</span>
+                  <strong>{studioProfile.role}</strong>
+                </div>
+                <div className="glass-plate fact-pill">
+                  <span className="fact-label">Base</span>
+                  <strong>{studioProfile.location}</strong>
+                </div>
+                <div className="glass-plate fact-pill">
+                  <span className="fact-label">Status</span>
+                  <strong>{studioProfile.availability}</strong>
+                </div>
               </div>
             </motion.div>
 
             <motion.aside
               className="optical-stage glass-panel"
-              aria-label="作品集视觉摘要"
+              aria-label="Featured interface preview"
               initial={{ opacity: 0, scale: 0.96, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.9,
+                delay: 0.08,
+                ease: [0.22, 1, 0.36, 1],
+              }}
             >
-              <div className="lens-orbit" aria-hidden="true">
-                <span />
-                <span />
-                <span />
+              <div className="preview-topline">
+                <span>{featuredProject.label}</span>
+                <span>{featuredProject.metrics[1].value}</span>
               </div>
-              <div className="hero-lens glass-plate">
-                <span className="lens-label">Live surface</span>
-                <strong>Optical portfolio</strong>
-                <p>鼠标经过时，背景光场以很低的幅度响应，像在移动一块薄玻璃。</p>
+
+              <div className="preview-media" aria-hidden="true">
+                <div className="preview-browser">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <div className="preview-layout">
+                  <div className="preview-sidebar">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="preview-canvas">
+                    <div className="preview-heading">
+                      <span />
+                      <span />
+                    </div>
+                    <div className="preview-chart">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                    <div className="preview-columns">
+                      <div className="preview-card preview-card-wide">
+                        <span />
+                        <span />
+                      </div>
+                      <div className="preview-card">
+                        <span />
+                        <span />
+                      </div>
+                      <div className="preview-card">
+                        <span />
+                        <span />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="stage-meta">
-                <span>
-                  <MousePointer2 size={14} />
-                  responsive light field
-                </span>
-                <span>React / shadcn path / Aurora</span>
+
+              <div className="preview-summary">
+                <div className="preview-copy">
+                  <h3>{featuredProject.title}</h3>
+                  <p>{featuredProject.summary}</p>
+                </div>
+
+                <div className="preview-tags" aria-label="Project tags">
+                  {featuredProject.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="preview-footer">
+                <div className="preview-metrics">
+                  {featuredProject.metrics.map((metric) => (
+                    <div key={metric.label}>
+                      <span>{metric.label}</span>
+                      <strong>{metric.value}</strong>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.aside>
           </section>
 
-          <section className="intro-strip reveal" aria-label="作品集说明">
-            <p>每个页面都应该留下一个明确的视觉记忆点，然后把其余部分做得足够克制。</p>
+          <section className="intro-strip reveal" aria-label="Studio note">
+            <div className="intro-grid">
+              <p>
+                The signature move on this page is the tubelight navigation:
+                calm by default, bright only where the reader is, and precise in
+                both click and scroll state.
+              </p>
+              <span>
+                Fixed at the top. Smooth anchor scroll. Automatic section sync.
+              </span>
+            </div>
+          </section>
+
+          <section className="section method-section" id="method">
+            <div className="section-heading reveal">
+              <p className="eyebrow">Method</p>
+              <h2>Navigation should read like orientation, not decoration.</h2>
+            </div>
+
+            <div className="method-grid">
+              {methods.map((method) => (
+                <article key={method.title} className="method-card glass-panel reveal">
+                  <h3>{method.title}</h3>
+                  <p>{method.copy}</p>
+                </article>
+              ))}
+            </div>
           </section>
 
           <section className="section work-section" id="work">
             <div className="section-heading reveal">
-              <p className="eyebrow">Selected projects</p>
-              <h2>三组作品，分别展示叙事、陈列和系统化能力。</h2>
+              <p className="eyebrow">Projects</p>
+              <h2>Three interface systems tuned for reading, browsing, and recall.</h2>
             </div>
 
             <div className="project-grid">
               {projects.map((project) => (
-                <article
-                  className="project-card glass-panel reveal"
-                  key={project.title}
-                >
-                  <div
-                    className={`project-plate glass-plate plate-${project.material}`}
-                    aria-hidden="true"
-                  >
+                <article key={project.title} className="project-card glass-panel reveal">
+                  <div className={`project-plate ${project.materialClass}`} aria-hidden="true">
                     <span />
                     <span />
                   </div>
-                  <p className="card-kicker">{project.discipline}</p>
+                  <p className="card-kicker">
+                    {project.year} / {project.discipline}
+                  </p>
                   <h3>{project.title}</h3>
                   <p className="card-copy">{project.copy}</p>
+                  <div className="project-meta">
+                    <span>{project.scope}</span>
+                    <ArrowUpRight size={14} />
+                  </div>
                 </article>
               ))}
             </div>
@@ -286,51 +497,60 @@ export function App() {
           <section className="section profile-section" id="profile">
             <div className="section-heading reveal">
               <p className="eyebrow">Profile</p>
-              <h2>我偏爱那些能同时被观看与被使用的东西。</h2>
+              <h2>A small studio practice focused on distinctive frontend systems.</h2>
             </div>
 
             <div className="profile-grid">
-              <p className="profile-text glass-panel reveal">
-                我的工作方式从气质开始，但不会停在概念。页面如何进入、文本如何停顿、交互如何回应，最终都要通过实现验证。对我来说，设计感不是装饰密度，而是每个选择都能被解释。
+              <p className="profile-text reveal">
+                The work sits between art direction and production UI. The goal
+                is not to add more effects. It is to choose one memorable visual
+                gesture, support it with clear structure, and ship something
+                that still feels precise once it is responsive, themed, and
+                scroll-tested.
               </p>
-              <div className="capability-list reveal" aria-label="能力范围">
-                {capabilities.map((item) => (
-                  <span className="glass-plate" key={item}>
-                    {item}
-                  </span>
-                ))}
+
+              <div className="profile-side">
+                <div className="capability-list reveal" aria-label="Capabilities">
+                  {capabilities.map((capability) => (
+                    <span key={capability}>{capability}</span>
+                  ))}
+                </div>
+
+                <div className="availability-card glass-panel reveal">
+                  <strong>{studioProfile.availability}</strong>
+                  <p>{studioProfile.response}</p>
+                </div>
               </div>
             </div>
           </section>
 
           <section className="section contact-section" id="contact">
-            <div className="contact-card glass-panel reveal">
+            <div className="contact-card reveal">
               <p className="eyebrow">Contact</p>
-              <h2>如果你也在做值得被认真呈现的东西，可以联系我。</h2>
-              <div className="contact-links" aria-label="联系方式">
-                <LiquidGlassButton href="mailto:hello@example.com" variant="ghost">
+              <h2>Need a portfolio, archive, or product page with stronger presence?</h2>
+
+              <div className="contact-summary">
+                <p>{studioProfile.role}</p>
+                <p>{studioProfile.location}</p>
+                <p>{studioProfile.response}</p>
+              </div>
+
+              <div className="contact-links">
+                <LiquidGlassButton variant="primary" href={`mailto:${studioProfile.email}`}>
+                  Email
                   <Mail size={16} />
-                  hello@example.com
                 </LiquidGlassButton>
-                <LiquidGlassButton
-                  href="https://github.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  variant="ghost"
-                >
-                  <Github size={16} />
+                <LiquidGlassButton variant="ghost" href={studioProfile.github}>
                   GitHub
-                  <ExternalLink size={14} />
+                  <Github size={16} />
                 </LiquidGlassButton>
-                <LiquidGlassButton
-                  href="https://www.linkedin.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  variant="ghost"
-                >
-                  <Linkedin size={16} />
+                <LiquidGlassButton variant="ghost" href={studioProfile.linkedin}>
                   LinkedIn
-                  <ExternalLink size={14} />
+                  <Linkedin size={16} />
+                </LiquidGlassButton>
+                <LiquidGlassButton variant="ghost" href="#work">
+                  Revisit projects
+                  <ExternalLink size={16} />
                 </LiquidGlassButton>
               </div>
             </div>
@@ -338,8 +558,8 @@ export function App() {
         </main>
 
         <footer className="site-footer">
-          <p>© {year} Lin Studio</p>
-          <p>Designed surfaces, shipped carefully.</p>
+          <p>{studioProfile.name}</p>
+          <p>{year}</p>
         </footer>
       </div>
     </AuroraBackground>

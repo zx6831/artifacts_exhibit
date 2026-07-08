@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 type AuroraVideoSource = {
   src: string;
@@ -30,6 +30,9 @@ export const AuroraBackground = ({
   const [videoReady, setVideoReady] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [compactViewport, setCompactViewport] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const resumeVideoTimeout = useRef<number | null>(null);
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -38,6 +41,15 @@ export const AuroraBackground = ({
     updatePreference();
     query.addEventListener("change", updatePreference);
     return () => query.removeEventListener("change", updatePreference);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 900px)");
+    const updateViewport = () => setCompactViewport(query.matches);
+
+    updateViewport();
+    query.addEventListener("change", updateViewport);
+    return () => query.removeEventListener("change", updateViewport);
   }, []);
 
   const sources = useMemo(
@@ -54,12 +66,47 @@ export const AuroraBackground = ({
   );
 
   const shouldUseVideo =
-    backgroundMedia?.enabled === true && sources.length > 0 && !reduceMotion;
+    backgroundMedia?.enabled === true &&
+    sources.length > 0 &&
+    !reduceMotion &&
+    !compactViewport;
 
   useEffect(() => {
     setVideoReady(false);
     setVideoFailed(false);
   }, [mediaSignature, shouldUseVideo]);
+
+  useEffect(() => {
+    if (!shouldUseVideo) {
+      return;
+    }
+
+    const resumeVideo = () => {
+      resumeVideoTimeout.current = null;
+
+      videoRef.current?.play().catch(() => undefined);
+    };
+
+    const pauseVideoDuringScroll = () => {
+      if (resumeVideoTimeout.current !== null) {
+        window.clearTimeout(resumeVideoTimeout.current);
+      }
+
+      videoRef.current?.pause();
+      resumeVideoTimeout.current = window.setTimeout(resumeVideo, 180);
+    };
+
+    window.addEventListener("scroll", pauseVideoDuringScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", pauseVideoDuringScroll);
+
+      if (resumeVideoTimeout.current !== null) {
+        window.clearTimeout(resumeVideoTimeout.current);
+        resumeVideoTimeout.current = null;
+      }
+    };
+  }, [shouldUseVideo]);
 
   return (
     <div
@@ -76,6 +123,7 @@ export const AuroraBackground = ({
       >
         {shouldUseVideo && (
           <video
+            ref={videoRef}
             key={mediaSignature}
             className={cn("aurora-video", videoReady && !videoFailed && "is-ready")}
             autoPlay

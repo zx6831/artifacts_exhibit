@@ -161,7 +161,6 @@
 /* Candidate portfolio iteration */
 .candidate-site { --font-display: "Noto Sans SC", "Microsoft YaHei", sans-serif; }
 .candidate-old-nav { width:calc(100% - 32px); max-width:none; }
-.candidate-old-nav .site-top-controls__theme { position:fixed; top:0; right:0; }
 .candidate-shell { width:min(calc(100% - 32px),1180px); margin:auto; padding:112px 0 40px; }
 .candidate-header { position:fixed; z-index:50; top:16px; left:50%; transform:translateX(-50%); width:min(calc(100% - 32px),1180px); min-height:64px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:8px 10px 8px 20px; border-radius:8px; background:var(--glass-chrome-bg); backdrop-filter:blur(16px); }
 .candidate-brand { display:flex; flex-direction:column; color:var(--color-text); text-decoration:none; line-height:1.2; }
@@ -267,7 +266,7 @@
     transform: translateX(-50%);
     z-index: 50;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(44px, 1fr) auto minmax(44px, 1fr);
     align-items: start;
     pointer-events: none;
   }
@@ -1673,12 +1672,14 @@
     }
 
     .site-floating-nav {
-      width: calc(100vw - 76px);
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .site-top-controls {
       top: 8px;
-      width: calc(100% - 24px);
+      width: calc(100% - max(24px, env(safe-area-inset-left) + env(safe-area-inset-right)));
       grid-template-columns: minmax(0, 1fr) auto;
       column-gap: var(--space-12);
       transform: translateX(-50%);
@@ -1693,6 +1694,14 @@
 
     .site-top-controls__theme {
       grid-column: 2;
+      min-width: 44px;
+    }
+
+    .site-theme-toggle {
+      width: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
     }
 
     .tubelight-nav-shell,
@@ -1710,7 +1719,7 @@
       min-width: 0;
       flex: 1 1 0;
       padding: 0;
-      min-height: 42px;
+      min-height: 44px;
       overflow: hidden;
     }
 

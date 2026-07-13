@@ -1,742 +1,137 @@
-import {
-  ArrowUpRight,
-  AudioLines,
-  BriefcaseBusiness,
-  ExternalLink,
-  Github,
-  House,
-  Mail,
-  Moon,
-  Server,
-  Sun,
-  UserRound,
-  Waypoints,
-} from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Bot, BrainCircuit, BriefcaseBusiness, Download, ExternalLink, Github, House, Mail, Moon, Orbit, Search, Sun, UserRound, Wrench } from "lucide-react";
 import type { CSSProperties, PointerEvent } from "react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LiquidGlassButton } from "@/components/ui/liquid-glass-button";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 
-const projects = [
-  {
-    year: "2026",
-    discipline: "Full-stack product",
-    title: "v2t",
-    copy:
-      "A classroom lecture processing pipeline that turns uploaded video or audio into cleaned transcripts and structured exam key-points in Markdown.",
-    materialClass: "plate-signal",
-    scope: "Python API, Next.js 16 frontend, SSE streaming",
-    emphasis: "Live project",
-    href: "https://v2t.206831.xyz",
-  },
-  {
-    year: "Ongoing",
-    discipline: "More selected work",
-    title: "Additional projects",
-    copy:
-      "This portfolio is still being expanded. More finished projects and experiments will be added here as the archive is organized and written up properly.",
-    materialClass: "plate-afterimage",
-    scope: "In preparation",
-    emphasis: "Portfolio update",
-    href: "#contact",
-  },
-  {
-    year: "Now",
-    discipline: "Open-source profile",
-    title: "GitHub work",
-    copy:
-      "Code, experiments, and smaller utilities live on GitHub. Until each project gets its own case study page, the profile works as the broader index of active work.",
-    materialClass: "plate-frame",
-    scope: "Repositories, commits, and experiments",
-    emphasis: "GitHub profile",
-    href: "https://github.com/zx6831",
-  },
-];
-
-const methods = [
-  {
-    step: "01",
-    title: "Build practical tools",
-    copy:
-      "Projects start from a real workflow problem, then get shaped into something that reduces manual steps and makes the result easier to use.",
-  },
-  {
-    step: "02",
-    title: "Keep the interface readable",
-    copy:
-      "Even when the underlying system is technical, the UI should explain state clearly, surface progress, and stay usable during longer-running tasks.",
-  },
-  {
-    step: "03",
-    title: "Write up the system honestly",
-    copy:
-      "A portfolio entry should show what the project actually does, what stack it uses, and what tradeoffs shaped the implementation.",
-  },
-];
-
-const capabilities = [
-  {
-    title: "Full-stack implementation",
-    note: "I build across frontend, backend, and integration layers instead of treating the interface and the system as separate worlds.",
-  },
-  {
-    title: "Workflow design",
-    note: "The strongest projects are usually about reducing friction in a repeated task, not just adding features to a screen.",
-  },
-  {
-    title: "AI-assisted tooling",
-    note: "Recent work includes speech recognition, LLM summarization, and interfaces that make these capabilities usable in practice.",
-  },
-  {
-    title: "Case-study writing",
-    note: "I am still expanding this portfolio, with current work being gradually rewritten into clearer public-facing project pages.",
-  },
-];
-
-const studioProfile = {
-  name: "WZX",
-  role: "Personal portfolio / Full-stack builder",
-  location: "China / Remote",
-  availability: "Open to collaboration and feedback",
-  response: "Replies by email",
+const profile = {
+  name: "姓名",
+  title: "大模型应用工程师",
   email: "wzx6831@gmail.com",
   github: "https://github.com/zx6831",
-  projectUrl: "https://v2t.206831.xyz",
 };
 
-const featuredProject = {
-  label: "Featured project",
-  title: "v2t",
-  summary:
-    "v2t turns classroom lecture recordings into cleaner study material. Upload a file, run transcription and cleanup, then generate a structured Markdown summary through a DeepSeek-compatible API.",
-  tags: ["FunASR", "Next.js 16", "Python API", "Markdown summary"],
-  metrics: [
-    { label: "Input", value: "Video / Audio" },
-    { label: "Stack", value: "Python / Next.js / SSE" },
-    { label: "Output", value: "Transcript + key points" },
-  ],
-};
-
-const sectionNotes = {
-  method: "A small personal workflow for turning technical experiments into usable products and then into readable portfolio entries.",
-  work: "v2t is one shipped project inside a broader body of work that is still being documented.",
-  profile:
-    "This is a personal portfolio first: one real project is live now, and more case studies will be added as they are prepared properly.",
-};
-
-const navItems = [
-  { href: "#top", label: "Home", id: "top", icon: House },
-  { href: "#method", label: "Process", id: "method", icon: Waypoints },
-  { href: "#work", label: "Work", id: "work", icon: BriefcaseBusiness },
-  { href: "#profile", label: "Studio", id: "profile", icon: UserRound },
-  { href: "#contact", label: "Contact", id: "contact", icon: Mail },
+const projects = [
+  { id: "molecule", icon: Orbit, type: "生成式 AI · 计算生物学", title: "面向特定生物靶点的生成式分子设计与虚拟筛选平台", short: "将靶点条件、分子生成与虚拟筛选串联为可追踪的候选分子发现流程。", stack: ["生成模型", "虚拟筛选", "Python", "任务编排"], role: "负责模块与量化结果待补充", challenge: "如何把生成质量、靶点约束和筛选效率放进一条可复现的工程流水线。" },
+  { id: "translation", icon: Bot, type: "多智能体 · RAG", title: "多智能体协同的检索增强跨语种互译与一致性校验系统", short: "通过检索增强与多智能体协作，完成翻译、核验和一致性修订闭环。", stack: ["Multi-Agent", "RAG", "跨语种检索", "一致性校验"], role: "负责模块与评测数据待补充", challenge: "在跨语种信息损失与模型幻觉之间建立可检查、可回溯的校验机制。" },
+  { id: "v2t", icon: BrainCircuit, type: "ASR · LLM · 全栈", title: "基于 ASR-LLM 协同架构的课程视频转写与考点结构化摘要系统", short: "把课程音视频转为清洗后的文本与结构化 Markdown 考点，支持长任务进度反馈。", stack: ["FunASR", "Next.js 16", "Python API", "SSE"], role: "全栈设计与实现", challenge: "长音视频任务的稳定处理、进度可见性，以及转写结果到学习材料的可靠转换。", live: "https://v2t.206831.xyz" },
 ];
 
-const revealOrder = (order: number): CSSProperties =>
-  ({
-    "--reveal-order": order,
-  }) as CSSProperties;
+const navItems = [
+  { href: "/#top", label: "首页", id: "top", icon: House },
+  { href: "/#work", label: "项目", id: "work", icon: BriefcaseBusiness },
+  { href: "/#skills", label: "能力", id: "skills", icon: Wrench },
+  { href: "/#about", label: "关于", id: "about", icon: UserRound },
+];
 
-const usePrefersReducedMotion = () => {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+function useTheme() {
+  const [dark, setDark] = useState(() => localStorage.getItem("theme") !== "light");
+  useEffect(() => { document.documentElement.classList.toggle("dark", dark); localStorage.setItem("theme", dark ? "dark" : "light"); }, [dark]);
+  return [dark, setDark] as const;
+}
 
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const updatePreference = () => setPrefersReducedMotion(query.matches);
-
-    updatePreference();
-    query.addEventListener("change", updatePreference);
-    return () => query.removeEventListener("change", updatePreference);
-  }, []);
-
-  return prefersReducedMotion;
-};
-
-export function App() {
-  const [dark, setDark] = useState(() => {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    try {
-      const stored = localStorage.getItem("theme");
-      return stored === "dark" || (!stored && prefersDark);
-    } catch {
-      return prefersDark;
-    }
-  });
-  const [activeSection, setActiveSection] = useState("top");
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const pointerFrame = useRef<number | null>(null);
-  const navFrame = useRef<number | null>(null);
-  const navSettleTimeout = useRef<number | null>(null);
+function Shell({ children, dark, setDark }: { children: React.ReactNode; dark: boolean; setDark: (v: boolean) => void }) {
+  const frame = useRef<number | null>(null);
+  const [activeId, setActiveId] = useState(() => location.hash.slice(1) || "top");
   const pendingNavTarget = useRef<string | null>(null);
-  const pendingNavTimeout = useRef<number | null>(null);
-  const activeSectionRef = useRef("top");
-  const year = useMemo(() => new Date().getFullYear(), []);
-  const auroraMedia = useMemo(
-    () => ({
-      enabled: true,
-      poster: dark
-        ? "/media/aurora-dark-poster.png"
-        : "/media/aurora-light-poster.png",
-      sources: [
-        {
-          src: dark
-            ? "/media/aurora-dark-loop.webm"
-            : "/media/aurora-light-loop.webm",
-          type: "video/webm",
-        },
-      ],
-    }),
-    [dark]
-  );
-
-  useLayoutEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    try {
-      localStorage.setItem("theme", dark ? "dark" : "light");
-    } catch {
-      // Ignore storage failures in restricted browser contexts.
-    }
-  }, [dark]);
+  const pendingNavTimer = useRef<number | null>(null);
+  const move = (event: PointerEvent<HTMLDivElement>) => {
+    const el = event.currentTarget, b = el.getBoundingClientRect();
+    if (frame.current) cancelAnimationFrame(frame.current);
+    frame.current = requestAnimationFrame(() => { el.style.setProperty("--pointer-x", (((event.clientX-b.left)/b.width)*100).toFixed(1)); el.style.setProperty("--pointer-y", (((event.clientY-b.top)/b.height)*100).toFixed(1)); });
+  };
+  const media = useMemo(() => ({ enabled: true, poster: dark ? "/media/aurora-dark-poster.png" : "/media/aurora-light-poster.png", sources: [{ src: dark ? "/media/aurora-dark-loop.webm" : "/media/aurora-light-loop.webm", type: "video/webm" }] }), [dark]);
 
   useEffect(() => {
-    const revealScopes = document.querySelectorAll<HTMLElement>("[data-reveal-scope]");
-
-    if (!("IntersectionObserver" in window)) {
-      revealScopes.forEach((scope) => scope.classList.add("is-visible"));
-      return;
-    }
-
-    revealScopes.forEach((scope) => {
-      scope.querySelectorAll<HTMLElement>(".reveal").forEach((item, index) => {
-        item.style.setProperty("--reveal-order", String(index));
-      });
-    });
-
-    const revealObserver = new IntersectionObserver(
-      (entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) {
-            return;
-          }
-
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.14, rootMargin: "0px 0px -12% 0px" }
-    );
-
-    revealScopes.forEach((scope) => revealObserver.observe(scope));
-    return () => revealObserver.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const sections = navItems
-      .map((item) => document.getElementById(item.id))
-      .filter((section): section is HTMLElement => section !== null);
-
-    if (sections.length === 0) {
-      return;
-    }
-
-    const setSection = (id: string) => {
-      if (activeSectionRef.current === id) {
-        return;
-      }
-
-      activeSectionRef.current = id;
-      setActiveSection(id);
-    };
-
-    const updateActiveSection = () => {
-      const pageBottom =
-        window.scrollY + window.innerHeight >=
-        document.documentElement.scrollHeight - 2;
-      const pendingTarget = pendingNavTarget.current;
-
-      if (pendingTarget) {
-        const target = document.getElementById(pendingTarget);
-        const targetRect = target?.getBoundingClientRect();
-        const targetReached =
-          !targetRect ||
-          Math.abs(targetRect.top - 112) <= 18 ||
-          (pageBottom && target === sections[sections.length - 1]);
-
-        setSection(pendingTarget);
-
-        if (targetReached) {
+    if (new URLSearchParams(location.search).size) return;
+    const sections = navItems.map(item => document.getElementById(item.id)).filter((section): section is HTMLElement => section !== null);
+    if (!sections.length) return;
+    let scrollFrame: number | null = null;
+    const update = () => {
+      scrollFrame = null;
+      const pending = pendingNavTarget.current;
+      if (pending) {
+        const target = document.getElementById(pending);
+        const reached = target && Math.abs(target.getBoundingClientRect().top - 90) <= 20;
+        const reachedBottom = pending === sections[sections.length - 1].id && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4;
+        if (reached || reachedBottom) {
           pendingNavTarget.current = null;
-
-          if (pendingNavTimeout.current !== null) {
-            window.clearTimeout(pendingNavTimeout.current);
-            pendingNavTimeout.current = null;
+          if (pendingNavTimer.current !== null) {
+            clearTimeout(pendingNavTimer.current);
+            pendingNavTimer.current = null;
           }
+        } else {
+          setActiveId(pending);
+          return;
         }
-
+      }
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) {
+        setActiveId(sections[sections.length - 1].id);
         return;
       }
-
-      if (pageBottom) {
-        setSection(sections[sections.length - 1].id);
-        return;
-      }
-
-      const probeY = Math.min(window.innerHeight * 0.42, 360);
-      let current = sections[0];
-
+      const probe = Math.min(window.innerHeight * .32, 260);
+      let current = sections[0].id;
       for (const section of sections) {
-        const rect = section.getBoundingClientRect();
-
-        if (rect.top <= probeY) {
-          current = section;
-        }
-
-        if (rect.top <= probeY && rect.bottom > probeY) {
-          current = section;
-          break;
-        }
+        if (section.getBoundingClientRect().top <= probe) current = section.id;
       }
-
-      setSection(current.id);
+      setActiveId(current);
     };
-
     const requestUpdate = () => {
-      if (navFrame.current !== null) {
-        if (navSettleTimeout.current !== null) {
-          window.clearTimeout(navSettleTimeout.current);
-        }
-
-        navSettleTimeout.current = window.setTimeout(updateActiveSection, 90);
-        return;
-      }
-
-      navFrame.current = window.requestAnimationFrame(() => {
-        updateActiveSection();
-        navFrame.current = null;
-      });
-
-      if (navSettleTimeout.current !== null) {
-        window.clearTimeout(navSettleTimeout.current);
-      }
-
-      navSettleTimeout.current = window.setTimeout(() => {
-        updateActiveSection();
-        navSettleTimeout.current = null;
-      }, 90);
+      if (scrollFrame === null) scrollFrame = requestAnimationFrame(update);
     };
-
-    updateActiveSection();
+    update();
     window.addEventListener("scroll", requestUpdate, { passive: true });
-    window.addEventListener("scrollend", updateActiveSection);
     window.addEventListener("resize", requestUpdate);
-    window.addEventListener("load", requestUpdate);
-
     return () => {
       window.removeEventListener("scroll", requestUpdate);
-      window.removeEventListener("scrollend", updateActiveSection);
       window.removeEventListener("resize", requestUpdate);
-      window.removeEventListener("load", requestUpdate);
-
-      if (navFrame.current !== null) {
-        window.cancelAnimationFrame(navFrame.current);
-        navFrame.current = null;
-      }
-
-      if (navSettleTimeout.current !== null) {
-        window.clearTimeout(navSettleTimeout.current);
-        navSettleTimeout.current = null;
-      }
-
-      if (pendingNavTimeout.current !== null) {
-        window.clearTimeout(pendingNavTimeout.current);
-        pendingNavTimeout.current = null;
-      }
+      if (scrollFrame !== null) cancelAnimationFrame(scrollFrame);
+      if (pendingNavTimer.current !== null) clearTimeout(pendingNavTimer.current);
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (pointerFrame.current !== null) {
-        window.cancelAnimationFrame(pointerFrame.current);
-      }
-
-      if (navFrame.current !== null) {
-        window.cancelAnimationFrame(navFrame.current);
-      }
-
-      if (navSettleTimeout.current !== null) {
-        window.clearTimeout(navSettleTimeout.current);
-      }
-
-      if (pendingNavTimeout.current !== null) {
-        window.clearTimeout(pendingNavTimeout.current);
-      }
-    };
-  }, []);
-
-  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (prefersReducedMotion) {
+  const navigate = (id: string) => {
+    const hasPageQuery = new URLSearchParams(location.search).size > 0;
+    if (hasPageQuery) {
+      location.href = `/#${id}`;
       return;
     }
-
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - bounds.left) / bounds.width) * 100;
-    const y = ((event.clientY - bounds.top) / bounds.height) * 100;
-    const target = event.currentTarget;
-
-    if (pointerFrame.current !== null) {
-      window.cancelAnimationFrame(pointerFrame.current);
-    }
-
-    pointerFrame.current = window.requestAnimationFrame(() => {
-      target.style.setProperty("--pointer-x", x.toFixed(2));
-      target.style.setProperty("--pointer-y", y.toFixed(2));
-      pointerFrame.current = null;
-    });
-  };
-
-  const handleNavNavigate = (id: string, href: string) => {
-    const target = document.querySelector<HTMLElement>(href);
-    if (!target) {
-      return;
-    }
-
+    const target = document.getElementById(id);
+    if (!target) return;
     pendingNavTarget.current = id;
-    activeSectionRef.current = id;
-    setActiveSection(id);
-
-    if (pendingNavTimeout.current !== null) {
-      window.clearTimeout(pendingNavTimeout.current);
-    }
-
-    pendingNavTimeout.current = window.setTimeout(() => {
+    if (pendingNavTimer.current !== null) clearTimeout(pendingNavTimer.current);
+    pendingNavTimer.current = window.setTimeout(() => {
       pendingNavTarget.current = null;
-      pendingNavTimeout.current = null;
-    }, prefersReducedMotion ? 120 : 1400);
-
-    target.scrollIntoView({
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-      block: "start",
-    });
+      pendingNavTimer.current = null;
+    }, 1600);
+    setActiveId(id);
+    history.replaceState(null, "", id === "top" ? location.pathname : `#${id}`);
+    target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   };
 
-  return (
-    <AuroraBackground
-      className="site-stage"
-      backgroundMedia={auroraMedia}
-      onPointerMove={onPointerMove}
-    >
-      <div className="site-top-controls">
-        <div className="site-top-controls__nav">
-          <TubelightNavBar
-            items={navItems}
-            activeId={activeSection}
-            className="site-floating-nav"
-            onNavigate={handleNavNavigate}
-          />
-        </div>
-
-        <div className="site-top-controls__theme">
-          <LiquidGlassButton
-            className="site-theme-toggle"
-            variant="icon"
-            type="button"
-            aria-label="Toggle theme"
-            aria-pressed={dark}
-            onClick={() => setDark((value) => !value)}
-          >
-            {dark ? <Sun size={16} /> : <Moon size={16} />}
-            <span>Theme</span>
-          </LiquidGlassButton>
-        </div>
-      </div>
-
-      <div className="site-shell">
-
-        <main>
-          <section className="hero section" id="top" data-reveal-scope>
-            <div className="hero-copy">
-              <div className="hero-topline reveal" style={revealOrder(0)}>
-                <a className="brand" href="#top" aria-label="Back to top">
-                  <span className="brand-mark" aria-hidden="true" />
-                  <span>{studioProfile.name}</span>
-                </a>
-                <span className="hero-topline-note">Video-to-text learning workflow</span>
-              </div>
-              <div className="hero-intro reveal" style={revealOrder(1)}>
-                <p className="hero-kicker">
-                  Personal projects across full-stack product work, AI-assisted tooling, and practical workflow design.
-                </p>
-                <p className="hero-side-note">
-                  v2t is the first featured case here, with additional projects being organized into clearer portfolio entries.
-                </p>
-              </div>
-              <h1 className="reveal" style={revealOrder(2)}>
-                WZX builds useful software.
-              </h1>
-              <p className="hero-text reveal" style={revealOrder(3)}>
-                This is a personal portfolio focused on implementation-heavy
-                projects. Current work includes `v2t`, a lecture
-                video-to-text pipeline, alongside other projects that are still
-                being written up into full case studies.
-              </p>
-
-              <div className="hero-actions reveal" style={revealOrder(4)}>
-                <LiquidGlassButton variant="primary" href={studioProfile.projectUrl}>
-                  Open v2t
-                  <ExternalLink size={16} />
-                </LiquidGlassButton>
-                <LiquidGlassButton
-                  variant="ghost"
-                  href={`mailto:${studioProfile.email}`}
-                >
-                  Email me
-                  <Mail size={16} />
-                </LiquidGlassButton>
-              </div>
-
-              <div
-                className="hero-facts reveal"
-                aria-label="Studio facts"
-                style={revealOrder(5)}
-              >
-                <div className="glass-plate fact-pill">
-                  <span className="fact-label">Site</span>
-                  <strong>{studioProfile.role}</strong>
-                </div>
-                <div className="glass-plate fact-pill">
-                  <span className="fact-label">Featured</span>
-                  <strong>v2t</strong>
-                </div>
-                <div className="glass-plate fact-pill">
-                  <span className="fact-label">Contact</span>
-                  <strong>{studioProfile.email}</strong>
-                </div>
-              </div>
-            </div>
-
-            <aside
-              className="optical-stage glass-panel reveal"
-              aria-label="Featured interface preview"
-              style={revealOrder(6)}
-            >
-              <div className="preview-topline">
-                <span>{featuredProject.label}</span>
-                <span>{featuredProject.metrics[1].value}</span>
-              </div>
-
-              <div className="preview-media" aria-hidden="true">
-                <div className="preview-browser">
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <div className="preview-layout">
-                  <div className="preview-sidebar">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <div className="preview-canvas">
-                    <div className="preview-heading">
-                      <span />
-                      <span />
-                    </div>
-                    <div className="preview-chart">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    <div className="preview-columns">
-                      <div className="preview-card preview-card-wide">
-                        <span />
-                        <span />
-                      </div>
-                      <div className="preview-card">
-                        <span />
-                        <span />
-                      </div>
-                      <div className="preview-card">
-                        <span />
-                        <span />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="preview-summary">
-                <div className="preview-copy">
-                  <h3>{featuredProject.title}</h3>
-                  <p>{featuredProject.summary}</p>
-                </div>
-
-                <div className="preview-tags" aria-label="Project tags">
-                  {featuredProject.tags.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="preview-footer">
-                <div className="preview-metrics">
-                  {featuredProject.metrics.map((metric) => (
-                    <div key={metric.label}>
-                      <span>{metric.label}</span>
-                      <strong>{metric.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </aside>
-          </section>
-
-          <section
-            className="intro-strip reveal"
-            aria-label="Studio note"
-            data-reveal-scope
-            style={revealOrder(0)}
-          >
-            <div className="intro-grid">
-              <p className="reveal" style={revealOrder(1)}>
-                The goal of this portfolio is to show real working systems,
-                not just polished surfaces. Each entry should make the problem,
-                stack, and outcome legible at a glance.
-              </p>
-              <span className="reveal" style={revealOrder(2)}>
-                v2t is live now; more projects will follow as they are properly
-                documented and added.
-              </span>
-            </div>
-          </section>
-
-          <section className="section method-section" id="method" data-reveal-scope>
-            <div className="section-heading reveal">
-              <div>
-                <p className="eyebrow">Process</p>
-                <h2>How I approach project work before it becomes a portfolio case study.</h2>
-              </div>
-              <p className="section-note">{sectionNotes.method}</p>
-            </div>
-
-            <div className="method-grid">
-              {methods.map((method) => (
-                <article key={method.title} className="method-card glass-panel reveal">
-                  <span className="method-card-step">{method.step}</span>
-                  <h3>{method.title}</h3>
-                  <p className="method-card-copy">{method.copy}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="section work-section" id="work" data-reveal-scope>
-            <div className="section-heading reveal">
-              <div>
-                <p className="eyebrow">Selected work</p>
-                <h2>One shipped project, one portfolio in progress, and one broader code archive.</h2>
-              </div>
-              <p className="section-note">{sectionNotes.work}</p>
-            </div>
-
-            <div className="project-grid">
-              {projects.map((project, index) => (
-                <article
-                  key={project.title}
-                  className={`project-card glass-panel reveal${index === 0 ? " project-card--featured" : ""}`}
-                >
-                  <div className={`project-plate ${project.materialClass}`} aria-hidden="true">
-                    {index === 0 ? <Server size={52} /> : <AudioLines size={52} />}
-                  </div>
-                  <div className="project-copy-block">
-                    <p className="card-kicker">
-                      {project.year} / {project.discipline}
-                    </p>
-                    <h3>{project.title}</h3>
-                    <p className="card-copy">{project.copy}</p>
-                    <a className="project-meta" href={project.href}>
-                      <span className="project-scope">{project.scope}</span>
-                      <span className="project-emphasis">{project.emphasis}</span>
-                      <ArrowUpRight size={14} />
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="section profile-section" id="profile" data-reveal-scope>
-            <div className="section-heading reveal">
-              <div>
-                <p className="eyebrow">Studio</p>
-                <h2>A personal body of work shaped around practical systems and readable interfaces.</h2>
-              </div>
-              <p className="section-note">{sectionNotes.profile}</p>
-            </div>
-
-            <div className="profile-grid">
-              <p className="profile-text reveal">
-                I care most about projects that solve a real workflow problem
-                and then explain themselves clearly. This site is meant to grow
-                into a fuller archive, with `v2t` as one current example rather
-                than the entire story.
-              </p>
-
-              <div className="profile-side">
-                <div className="capability-list reveal" aria-label="Capabilities">
-                  {capabilities.map((capability) => (
-                    <article key={capability.title} className="capability-card">
-                      <strong>{capability.title}</strong>
-                      <p>{capability.note}</p>
-                    </article>
-                  ))}
-                </div>
-
-                <div className="availability-card glass-panel reveal">
-                  <span className="availability-label">Project access</span>
-                  <strong>{studioProfile.availability}</strong>
-                  <p>{studioProfile.response}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="section contact-section" id="contact" data-reveal-scope>
-            <div className="contact-card reveal">
-              <p className="eyebrow">Contact</p>
-              <h2>If you want to try v2t, look through the code, or ask about other projects, start here.</h2>
-
-              <div className="contact-summary">
-                <p>{studioProfile.role}</p>
-                <p>{studioProfile.location}</p>
-                <p>{studioProfile.response}</p>
-              </div>
-
-              <div className="contact-links">
-                <LiquidGlassButton variant="primary" href={studioProfile.projectUrl}>
-                  Live project
-                  <ExternalLink size={16} />
-                </LiquidGlassButton>
-                <LiquidGlassButton variant="primary" href={`mailto:${studioProfile.email}`}>
-                  Email
-                  <Mail size={16} />
-                </LiquidGlassButton>
-                <LiquidGlassButton variant="ghost" href={studioProfile.github}>
-                  GitHub
-                  <Github size={16} />
-                </LiquidGlassButton>
-              </div>
-            </div>
-          </section>
-        </main>
-
-        <footer className="site-footer">
-          <p>{studioProfile.name}</p>
-          <p>{year}</p>
-        </footer>
-      </div>
-    </AuroraBackground>
-  );
+  return <AuroraBackground className="site-stage candidate-site" backgroundMedia={media} onPointerMove={move}>
+    <div className="site-top-controls candidate-old-nav">
+      <div className="site-top-controls__nav"><TubelightNavBar items={navItems} activeId={activeId} className="site-floating-nav" onNavigate={(id) => navigate(id)} /></div>
+      <div className="site-top-controls__theme"><LiquidGlassButton className="site-theme-toggle" variant="icon" type="button" aria-label="切换主题" aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>主题</span></LiquidGlassButton></div>
+    </div>
+    <div className="candidate-shell">{children}<footer><span>{profile.name} · 大模型应用工程师</span><span>© {new Date().getFullYear()}</span></footer></div>
+  </AuroraBackground>;
 }
+
+function ProjectDetail({ id }: { id: string }) {
+  const project = projects.find(p => p.id === id) ?? projects[2]; const Icon = project.icon;
+  return <main className="detail-page"><a className="back-link" href="/"><ArrowLeft size={16}/> 返回作品集</a><section className="detail-hero glass-panel"><div><p className="mono-label">{project.type}</p><h1>{project.title}</h1><p>{project.short}</p><div className="tag-row">{project.stack.map(x => <span key={x}>{x}</span>)}</div></div><div className="project-glyph"><Icon size={72}/><span>CASE / {project.id.toUpperCase()}</span></div></section><section className="detail-grid"><article><p className="mono-label">项目目标</p><h2>从模型能力走向可使用的系统</h2><p>{project.challenge}</p></article><article className="glass-panel detail-facts"><div><span>个人职责</span><strong>{project.role}</strong></div><div><span>项目状态</span><strong>案例资料整理中</strong></div><div><span>结果指标</span><strong>数据待补充</strong></div></article></section><section className="placeholder-evidence"><Search size={24}/><div><h2>项目证据待完善</h2><p>后续将在此补充架构图、关键界面、技术取舍、评测方法与量化结果。</p></div></section>{project.live && <div className="detail-actions"><LiquidGlassButton variant="primary" href={project.live} target="_blank">在线体验 <ExternalLink size={16}/></LiquidGlassButton><LiquidGlassButton href="/?status=offline">服务异常说明</LiquidGlassButton></div>}</main>;
+}
+
+function OfflinePage() { return <main className="status-page"><div className="status-code">503</div><p className="mono-label">DEMO SERVICE / TEMPORARILY OFFLINE</p><h1>演示服务暂时不可用</h1><p>部分项目后端按需启动。当前异常不影响项目案例浏览，你仍可查看技术说明或源代码。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/?project=v2t">查看项目案例</LiquidGlassButton><LiquidGlassButton href={profile.github}>访问 GitHub <Github size={16}/></LiquidGlassButton></div></main>; }
+
+function Home() { return <main>
+  <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 求职中 · 接受大模型应用工程实习</div><p className="mono-label">AI APPLICATION ENGINEER / 2026</p><h1><span>姓名</span>，把大模型能力<br/>交付成<span className="accent-word">可用系统。</span></h1><p className="hero-lead">聚焦 RAG、多智能体、ASR 与生成式 AI 应用，关注模型能力如何进入真实工作流，并以清晰、稳定的产品形态完成交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">查看项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>下载简历 <Download size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="avatar-mock"><UserRound size={54}/><span>头像待替换</span></div><div className="identity-copy"><strong>{profile.title}</strong><p>候选人简介待补充：教育背景、技术兴趣与求职时间。</p></div><div className="signal-line"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>方向</span><b>LLM · Agent · RAG</b><span>意向</span><b>实习 / 校招</b></div></aside></section>
+  <section className="proof-strip"><span>当前作品集</span><strong>03</strong><p>个面向真实场景的大模型应用项目</p><span>从检索、协同推理到结构化交付</span></section>
+  <section className="portfolio-section" id="work"><div className="section-title"><p className="mono-label">SELECTED WORK</p><h2>代表项目</h2><p>围绕三个不同领域，展示从模型组合到应用交付的工程能力。</p></div><div className="case-list">{projects.map((p, i) => { const Icon=p.icon; return <a href={`/?project=${p.id}`} className="case-row glass-panel" key={p.id}><span className="case-index">0{i+1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{p.type}</p><h3>{p.title}</h3><p>{p.short}</p><div className="tag-row">{p.stack.map(x=><span key={x}>{x}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>})}</div></section>
+  <section className="portfolio-section skills-section" id="skills"><div className="section-title"><p className="mono-label">CAPABILITY MAP</p><h2>能力不是关键词列表，<br/>而是一条交付链路。</h2></div><div className="skill-track">{[["01","问题建模","将业务目标拆成模型、检索与工具调用边界"],["02","系统编排","组合 RAG、Agent、ASR 与异步任务流程"],["03","产品交付","构建可理解的状态反馈、异常兜底与前后端接口"],["04","评测迭代","建立效果、延迟与一致性的验证方式（指标待补充）"]].map(x=><article key={x[0]}><span>{x[0]}</span><h3>{x[1]}</h3><p>{x[2]}</p></article>)}</div></section>
+  <section className="portfolio-section about-section" id="about"><div><p className="mono-label">PROFILE</p><h2>关于我</h2><p>这里将补充真实姓名、头像、教育背景与个人简介。当前版本先以项目本身作为能力证据，所有待验证的数据均明确保留为占位内容。</p></div><aside className="contact-panel glass-panel"><p className="mono-label">CONTACT</p><h3>正在寻找大模型应用工程方向的实习机会</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${profile.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>简历 <Download size={16}/></LiquidGlassButton></div><small>{profile.email}</small></aside></section>
+ </main>; }
+
+export function App() { const [dark,setDark]=useTheme(); const params=new URLSearchParams(location.search); const content=params.has("status")?<OfflinePage/>:params.get("project")?<ProjectDetail id={params.get("project")!}/>:<Home/>; return <Shell dark={dark} setDark={setDark}>{content}</Shell>; }

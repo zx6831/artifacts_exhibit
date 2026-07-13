@@ -205,9 +205,15 @@
     min-height: 100vh;
     overflow: hidden;
     isolation: isolate;
-    background:
-      radial-gradient(circle at calc(var(--pointer-x) * 1%) calc(var(--pointer-y) * 1%), rgba(184, 226, 229, 0.32), transparent 34%),
-      linear-gradient(135deg, var(--color-bg), var(--color-bg-soft));
+    background: linear-gradient(135deg, var(--color-bg), var(--color-bg-soft));
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .aurora-background {
+      background:
+        radial-gradient(circle at calc(var(--pointer-x) * 1%) calc(var(--pointer-y) * 1%), rgba(184, 226, 229, 0.32), transparent 34%),
+        linear-gradient(135deg, var(--color-bg), var(--color-bg-soft));
+    }
   }
 
   .aurora-field {

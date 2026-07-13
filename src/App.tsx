@@ -33,6 +33,7 @@ function useTheme() {
 
 function Shell({ children, dark, setDark }: { children: React.ReactNode; dark: boolean; setDark: (v: boolean) => void }) {
   const frame = useRef<number | null>(null);
+  const [canUsePointerHighlight, setCanUsePointerHighlight] = useState(false);
   const [activeId, setActiveId] = useState(() => location.hash.slice(1) || "top");
   const pendingNavTarget = useRef<string | null>(null);
   const pendingNavTimer = useRef<number | null>(null);
@@ -42,6 +43,19 @@ function Shell({ children, dark, setDark }: { children: React.ReactNode; dark: b
     frame.current = requestAnimationFrame(() => { el.style.setProperty("--pointer-x", (((event.clientX-b.left)/b.width)*100).toFixed(1)); el.style.setProperty("--pointer-y", (((event.clientY-b.top)/b.height)*100).toFixed(1)); });
   };
   const media = useMemo(() => ({ enabled: true, poster: dark ? "/media/aurora-dark-poster.png" : "/media/aurora-light-poster.png", sources: [{ src: dark ? "/media/aurora-dark-loop.webm" : "/media/aurora-light-loop.webm", type: "video/webm" }] }), [dark]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const updateCapability = () => setCanUsePointerHighlight(query.matches);
+
+    updateCapability();
+    query.addEventListener("change", updateCapability);
+    return () => query.removeEventListener("change", updateCapability);
+  }, []);
+
+  useEffect(() => () => {
+    if (frame.current !== null) cancelAnimationFrame(frame.current);
+  }, []);
 
   useEffect(() => {
     if (new URLSearchParams(location.search).size) return;
@@ -110,7 +124,7 @@ function Shell({ children, dark, setDark }: { children: React.ReactNode; dark: b
     target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   };
 
-  return <AuroraBackground className="site-stage candidate-site" backgroundMedia={media} onPointerMove={move}>
+  return <AuroraBackground className="site-stage candidate-site" backgroundMedia={media} onPointerMove={canUsePointerHighlight ? move : undefined}>
     <div className="site-top-controls candidate-old-nav">
       <div className="site-top-controls__nav"><TubelightNavBar items={navItems} activeId={activeId} className="site-floating-nav" onNavigate={(id) => navigate(id)} /></div>
       <div className="site-top-controls__theme"><LiquidGlassButton className="site-theme-toggle" variant="icon" type="button" aria-label="切换主题" aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>主题</span></LiquidGlassButton></div>

@@ -18,6 +18,7 @@ Maintain truthful Projects content and project detail pages whose project scope,
 - Expanded `public/data/home-work.json` to six projects and added a shared evidence-oriented detail renderer for the four new cases.
 - Fixed project-card reliability: `home-work.json` now revalidates rather than serving an indefinitely cached initial response; obsolete project IDs render an explicit 404-style page instead of falling back to the first project; every detail-page return action targets `/#work`.
 - Published the portfolio case-study update to `origin/main` as `5ff9f5e`.
+- Published the audited six-project expansion and cache-safe route repair to `origin/main` as `263a3fa`.
 
 ## In Progress
 - Optional manual visual review of shimmer intensity remains available.
@@ -50,6 +51,7 @@ Maintain truthful Projects content and project detail pages whose project scope,
 - Portfolio `npm run build` and `git diff --check` — passed after the expansion.
 - Local browser route checks — passed for all six project routes. GitHub action count is 1 for ScholarWeaver, SSO, and Eliminate; 0 for PharmAgent, V2T, and Fubao.
 - Fresh-browser regression check — passed: homepage has 6 cards; all 6 route titles match; return navigation reaches `/#work`; obsolete `dingjia` renders “这个项目链接已失效”.
+- `git push origin main` — succeeded for `263a3fa`.
 
 ## Known Problems
 - The desktop computer-control/viewer channel is blocked by a sandbox lock, so subjective screenshot inspection is unavailable here; computed-style and CDP checks completed successfully.

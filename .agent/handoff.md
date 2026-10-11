@@ -1,7 +1,7 @@
 # Session Handoff
 Created: 2026-10-11
 Branch: main
-Working tree: Portfolio expansion and its routing/cache fix are verified locally and remain uncommitted. Modified files are `src/App.tsx`, `public/data/home-work.json`, and the four `.agent/` records; six pre-existing deleted files remain unstaged and untouched.
+Working tree: Portfolio expansion and its routing/cache fix were published as `263a3fa`; this handoff refresh is pending commit. Six pre-existing deleted files remain unstaged and untouched.
 
 ## Session Goal
 Re-audit every visible public-repository branch, assess supplied local projects, add only evidence-backed portfolio cases, and repair reported project navigation regressions.
@@ -13,12 +13,13 @@ Re-audit every visible public-repository branch, assess supplied local projects,
 - Retained Dingjia as a ScholarWeaver component and excluded `sqldemo` as a learning-focused database example.
 - Added shared evidence-oriented detail-page content for the four new cases while preserving the homepage card layout and existing ScholarWeaver/Fubao detail pages.
 - Fixed the stale-data routing failure: project JSON now revalidates, unknown IDs show an explicit missing-project page, and all project returns target `/#work`.
+- Committed and pushed the six-file portfolio expansion to `origin/main` as `263a3fa`.
 
 ## Current Stopping Point
-Implementation and browser verification are complete. The next session should commit/push only if the user requests publication.
+The portfolio implementation is published. Commit this status-record refresh, then preserve the pre-existing deletions unless their owner explicitly requests action.
 
 ## Uncommitted Changes
-- Modified: `src/App.tsx`, `public/data/home-work.json`, `.agent/current_state.md`, `.agent/lessons.md`, `.agent/TODO_list.md`, `.agent/handoff.md` (portfolio expansion; not published).
+- Modified: `.agent/current_state.md`, `.agent/handoff.md` (publication-status refresh; not yet committed).
 - Pre-existing deletions left untouched: `2842293fa2bb01d8eec6e1c9026d2402.png`, `chrome-check-process-no-panel.png`, `chrome-check-studio-light.png`, `chrome-check-studio-no-panel.png`, `chrome-check-work-no-panel.png`, `v2tproject.md`.
 
 ## Validation Results
@@ -30,6 +31,7 @@ Implementation and browser verification are complete. The next session should co
 - V2T `npm run build` passed; `python -m pytest tests -q` reported 23 passed.
 - Eliminate `PYTHONPATH=src python -m unittest discover -s tests -v` reported 12 passed.
 - `git ls-remote --heads` completed for all six public repositories; non-default branch source was inspected for SSO, sqldemo, Eliminate, and Dingjia.
+- `git push origin main` succeeded for `263a3fa`.
 
 ## Failing Tests or Known Errors
 - Fubao Golden failure remains unresolved; review `test/visual/page_golden_test.dart` and the generated failure image before declaring its suite green.
@@ -37,8 +39,8 @@ Implementation and browser verification are complete. The next session should co
 - V2T's README deployment URL returned Cloudflare Tunnel Error 1033 during browser review; no live-demo link is shown.
 
 ## Recommended Next Steps
-1. If publication is requested, stage only the six portfolio/state files and preserve the six pre-existing deletions.
-2. After publishing, use a fresh browser session or hard reload to verify the deployed project JSON revalidates and the six-card list renders.
+1. Commit and push this publication-status refresh; stage only `.agent/current_state.md` and `.agent/handoff.md`.
+2. Use a fresh browser session or hard reload to verify the deployed project JSON revalidates and the six-card list renders.
 3. Restore the V2T Tunnel before adding any live-demo action; verify it in a browser first.
 4. Review the Fubao Golden diff and either fix the UI or approve a baseline update.
 
@@ -53,11 +55,11 @@ Implementation and browser verification are complete. The next session should co
 ## Risks and Open Questions
 - ScholarWeaver’s complete runtime flow is not independently executed, so no performance, accuracy, or deployment claims are made.
 - Fubao’s Golden mismatch needs an explicit disposition before claiming full test health.
-- No user request has yet authorized pushing this local expansion to `origin/main`.
+- The six pre-existing deleted files have no known owner or requested disposition and must remain untouched.
 
 ## Start Here
 ```powershell
 git status --short
-npm run build
-git diff --check
+git log -2 --oneline
+git diff -- .agent/current_state.md .agent/handoff.md
 ```

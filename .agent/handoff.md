@@ -1,46 +1,50 @@
 # Session Handoff
-Created: 2026-10-11 18:38 +08:00
+Created: 2026-10-11
 Branch: main
-Working tree: Source and resource implementation is committed and pushed. Six pre-existing deleted files remain unstaged and untouched.
+Working tree: Portfolio source and `.agent/` updates are unstaged. Six pre-existing deleted files remain unstaged and untouched.
 
 ## Session Goal
-Publish the completed homepage/detail loading UI work to `origin/main`.
+Audit accessible public/private repositories and replace unverified portfolio claims with evidence-based project pages.
 
 ## Work Completed
-- Committed homepage loading resources, per-element shimmer, route-aware boot skeleton, and project-detail navigation changes as `27c8978` (`feat: improve loading skeletons and detail routes`).
-- Pushed `27c8978` successfully to `origin/main`.
-- Preserved all six pre-existing deleted files outside the commit.
+- Audited six public `zx6831` repositories, two private repositories, and the supplied public ScholarWeaver repository.
+- Replaced homepage project data with ScholarWeaver and Fubao while preserving the Projects module layout and behavior.
+- Implemented `/?project=scholarweaver` with a public repository action and `/?project=fubao` without any repository action.
+- Corrected Dingjia’s classification: it is described as ScholarWeaver’s reference-example retrieval component, not a standalone full project.
 
 ## Current Stopping Point
-Repository delivery is complete. Only optional visual review remains.
+Portfolio implementation and verification are complete; no commit has been created.
 
 ## Uncommitted Changes
+- Modified: `.agent/current_state.md`, `.agent/lessons.md`, `.agent/TODO_list.md`, `.agent/handoff.md`, `public/data/home-work.json`, `src/App.tsx`, `src/index.css`.
 - Pre-existing deletions left untouched: `2842293fa2bb01d8eec6e1c9026d2402.png`, `chrome-check-process-no-panel.png`, `chrome-check-studio-light.png`, `chrome-check-studio-no-panel.png`, `chrome-check-work-no-panel.png`, `v2tproject.md`.
 
 ## Validation Results
-- `npm run build` passed after final route/skeleton changes.
-- CDP Slow 3G-equivalent (400ms latency, 6400 B/s down) test passed: the correct detail boot skeleton displayed before React and the loaded detail page had no top navigation.
-- `git diff --check` passed before the implementation commit.
-- `git push origin main` pushed `27c8978` successfully.
+- `npm run build` passed after the portfolio update.
+- `git diff --check` passed after the portfolio update.
+- Browser checks passed for the homepage, ScholarWeaver detail page, and Fubao detail page; Fubao has no GitHub action.
+- Fubao `flutter test` executed 86 tests and failed one Golden baseline (`younger_plans`, 0.17%, 574 px).
 
 ## Failing Tests or Known Errors
-- No failing automated checks.
-- Screenshot visual inspection is unavailable in the current environment because the viewer and Windows UI automation hit `helper_sandbox_lock_failed`.
+- Fubao Golden failure remains unresolved; review `test/visual/page_golden_test.dart` and the generated failure image before declaring its suite green.
+- ScholarWeaver was not run end-to-end because MinerU, terminology, model-service, and API configuration were not available.
 
 ## Recommended Next Steps
-1. Optionally hard-reload `/?project=v2t` under DevTools Slow 3G and visually review shimmer intensity and detail-placeholder proportions.
-2. Do not add the six existing deletions unless their removal is intentional and separately confirmed.
+1. Review the Fubao Golden diff and either fix the UI or approve a baseline update.
+2. Manually inspect both detail pages at desktop and mobile widths before publishing.
+3. Stage only the seven modified source/state files; do not include the six pre-existing deletions.
 
 ## Important Decisions
-- Boot-skeleton route selection occurs synchronously in `index.html` before React starts.
-- Project-detail routes hide only the top navigation; theme control remains.
-- Each skeleton placeholder owns its shimmer; it does not use a page-wide light sweep.
+- Private projects may be described and have detail pages, but must not expose a repository URL.
+- ScholarWeaver is a public collaboration; its contribution claims are restricted to its visible Git history.
+- No sensitive material from private source was included in source, content, logs, or links.
 
 ## Risks and Open Questions
-- The static detail skeleton approximates the shared detail layout; add project-specific variants only if detail layouts actually diverge.
+- ScholarWeaver’s complete runtime flow is not independently executed, so no performance, accuracy, or deployment claims are made.
+- Fubao’s Golden mismatch needs an explicit disposition before claiming full test health.
 
 ## Start Here
 ```powershell
 git status --short
-git log -2 --oneline
+npm run build
 ```

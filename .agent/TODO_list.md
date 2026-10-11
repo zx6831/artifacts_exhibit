@@ -1,6 +1,34 @@
 # TODO List
 
+## P0 — Blocking
+### [x] Replace unverified project claims with repository-backed portfolio content
+Status: completed
+Depends on: Completed audit of public/private repositories and the supplied ScholarWeaver repository
+Blocked by: None
+Scope: `public/data/home-work.json`, `src/App.tsx`, `src/index.css`, and the four `.agent/` status files
+Acceptance criteria:
+- Homepage Projects module contains only entries whose content and attribution are supported by the audited repositories.
+- The existing homepage Projects layout, card styling, interactions, and all non-Projects homepage content remain unchanged.
+- Each homepage entry resolves to a working detail route with repository-backed implementation evidence; private project pages must not show a GitHub link.
+- Detail copy does not claim unverified metrics, deployments, results, or personal contributions.
+Validation:
+- `npm run build`
+- `git diff --check`
+- Browser checks against `/?project=scholarweaver` and `/?project=fubao` — passed.
+
 ## P2 — Later
+### [ ] Resolve or rebaseline Fubao `younger_plans` Golden mismatch
+Status: ready
+Depends on: Decision whether the current Flutter/Skia rendering is an expected baseline change
+Blocked by: None
+Scope: Private `FubaoApp/apps/fubao_app/test/visual/page_golden_test.dart` and `goldens/younger_plans.png`
+Acceptance criteria:
+- Determine whether the 0.17% / 574-pixel mismatch is environmental or a UI regression.
+- Fix the regression or review and regenerate the baseline.
+- `flutter test` completes with no failures in a documented environment.
+Validation:
+- `flutter test` from `apps/fubao_app`
+
 ### [ ] Optional manual visual review of shimmer intensity
 Status: ready
 Depends on: A normal Chrome DevTools session with visual access

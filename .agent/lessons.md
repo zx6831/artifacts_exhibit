@@ -52,3 +52,26 @@ Scope: The homepage and project-detail startup paths.
 Evidence: CDP Slow 3G-equivalent reloads kept React unmounted while the inline boot skeleton stayed visible.
 Correct approach: Put a small, route-aware first-viewport placeholder and critical CSS directly in `index.html`; dismiss it after the first application commit, not after background media readiness.
 Related files/tests: `index.html`, `src/App.tsx`, CDP Slow 3G-equivalent tests.
+
+## Repository Audit
+### Attribute collaborative work from visible history, not repository ownership
+Conclusion: A related component repository does not establish authorship of the whole project.
+Scope: Portfolio descriptions for ScholarWeaver and the Dingjia reference-example component.
+Evidence: `MikeHuang2000/LLMs_Database_Translater` has 20 visible commits by `MikeHuang2000` and two by `zx`; `zx`'s merged relay work adds a local service forwarding layer and endpoint-connectivity tests.
+Correct approach: Label the project a collaboration and scope the contribution statement to the visible history; describe Dingjia as a component when the project README identifies it that way.
+Related files/tests: `src/App.tsx`, public commits `e1964c4` and `62687c8`.
+
+### Do not promote private configuration into portfolio content
+Conclusion: A private source repository can contain sensitive runtime configuration even when its project summary is safe to describe.
+Scope: Portfolio review and detail-page authoring for private repositories.
+Evidence: The audited private translation-project mirror included sensitive configuration material.
+Correct approach: Omit its link, do not copy configuration values into content or logs, and preserve only non-sensitive project descriptions where attribution is supportable.
+Related files/tests: `src/App.tsx`, private audit clone.
+
+## Validation
+### A Golden mismatch is a failed test suite
+Conclusion: A small screenshot difference still makes a Flutter test command fail.
+Scope: Fubao Flutter visual regression tests.
+Evidence: `flutter test` executed 86 tests and failed `younger_plans` with 0.17% / 574 pixels differing.
+Correct approach: Record the concrete mismatch and fix or review-rebaseline it before claiming all tests pass.
+Related files/tests: Fubao `test/visual/page_golden_test.dart`, `src/App.tsx`.

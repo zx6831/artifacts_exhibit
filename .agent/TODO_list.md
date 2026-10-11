@@ -1,6 +1,18 @@
 # TODO List
 
 ## P0 — Blocking
+### [x] Fix stale project-card data, detail mismatch, and return target
+Status: completed
+Depends on: Reproducible local browser check
+Blocked by: None
+Scope: `src/App.tsx`
+Acceptance criteria:
+- Homepage revalidates the project JSON instead of relying on an indefinitely cached initial response.
+- An obsolete or unknown project ID does not render another project's detail page.
+- Every project detail-page return link reaches `/#work`.
+Validation:
+- Fresh-browser check: 6 homepage cards, matching titles on all 6 routes, `/#work` after back navigation, and the obsolete `dingjia` ID renders the explicit missing-project page.
+
 ### [x] Replace unverified project claims with repository-backed portfolio content
 Status: completed
 Depends on: Completed audit of public/private repositories and the supplied ScholarWeaver repository
@@ -15,6 +27,20 @@ Validation:
 - `npm run build`
 - `git diff --check`
 - Browser checks against `/?project=scholarweaver` and `/?project=fubao` — passed.
+
+## P1 — Next
+### [x] Re-audit public repositories across all visible remote branches
+Status: completed
+Depends on: Public repository access
+Blocked by: None
+Scope: Every public `zx6831` repository considered for portfolio inclusion, including `sso-platform/master`
+Acceptance criteria:
+- Enumerate every visible remote branch rather than inspecting only each repository's default branch. — completed for all six public repositories.
+- Record source-bearing non-default branches and revise any incomplete exclusion conclusion. — completed: SSO and Eliminate were added; Dingjia remains a ScholarWeaver component; sqldemo remains excluded as a learning example.
+- Decide with evidence whether an additional project belongs on the homepage. — completed: added SSO, Eliminate, V2T, and PharmAgent; private/local cases expose no source link.
+Validation:
+- `git ls-remote --heads https://github.com/zx6831/<repository>.git` for each audited repository
+- Inspect each unique branch head's tree and relevant documentation.
 
 ## P2 — Later
 ### [ ] Resolve or rebaseline Fubao `younger_plans` Golden mismatch

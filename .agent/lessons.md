@@ -39,6 +39,13 @@ Correct approach: Each placeholder owns `position:relative`, `overflow:hidden`, 
 Related files/tests: `src/index.css`, CDP `Emulation.setEmulatedMedia` test, `npm run build`.
 
 ## Resource Loading
+### Project-card data must revalidate when route IDs evolve
+Conclusion: Independently cached homepage project JSON can become inconsistent with a newly deployed route registry, producing missing cards and incorrect fallback details.
+Scope: `home-work.json` loading and `?project=<id>` routing in this portfolio.
+Evidence: The resource loader used `force-cache`; an obsolete `dingjia` ID resolved through `projects.find(...) ?? projects[0]` and rendered PharmAgent. A fresh browser session loaded six current cards, while the old cache state exposed the mismatch.
+Correct approach: Request project data with `cache: "no-cache"` so the browser revalidates it, and render an explicit unknown-project page instead of substituting an unrelated first project.
+Related files/tests: `src/App.tsx`, fresh-browser route regression check.
+
 ### Retries must bypass cached failed resource responses
 Conclusion: A resource loader using `force-cache` for fast preloads must refresh cache on retry.
 Scope: `useJsonResource` in `src/App.tsx`.
@@ -54,6 +61,20 @@ Correct approach: Put a small, route-aware first-viewport placeholder and critic
 Related files/tests: `index.html`, `src/App.tsx`, CDP Slow 3G-equivalent tests.
 
 ## Repository Audit
+### Audit every visible remote branch, not only the default branch
+Conclusion: A repository's default branch is not sufficient evidence for judging whether it contains a project implementation.
+Scope: Public repository audits used for portfolio selection and attribution.
+Evidence: `zx6831/sso-platform` resolves `HEAD` to `main` (`8d5015e`), but its separate `master` branch at `43171e3` contains the CAS server, two clients, database migrations, infrastructure, and tests.
+Correct approach: Enumerate `git ls-remote --heads <repository>` for every audited repository, then inspect each distinct branch head before deciding to exclude or describe a project.
+Related files/tests: temporary audit clone `C:\Users\zx\AppData\Local\Temp\zx6831-github-audit\sso-platform-master`, `git ls-remote --heads https://github.com/zx6831/sso-platform.git`.
+
+### Do not link a deployed demo that fails its availability check
+Conclusion: A deployment URL found in local project documentation is not evidence that the public demo is currently usable.
+Scope: Portfolio actions for locally maintained or privately sourced projects.
+Evidence: Opening the V2T URL recorded in its README returned Cloudflare Tunnel Error 1033 during the portfolio audit, while its local frontend build and 23 pytest cases passed.
+Correct approach: Keep the portfolio case and its locally verified evidence, but omit the live-demo action until a browser availability check succeeds.
+Related files/tests: `C:\Users\zx\Desktop\tmp\v2t\README.md`, V2T `npm run build`, `python -m pytest tests -q`.
+
 ### Attribute collaborative work from visible history, not repository ownership
 Conclusion: A related component repository does not establish authorship of the whole project.
 Scope: Portfolio descriptions for ScholarWeaver and the Dingjia reference-example component.

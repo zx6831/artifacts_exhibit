@@ -14,6 +14,46 @@ const profile = {
 
 const projects = [
   {
+    id: "pharmagent",
+    icon: HeartPulse,
+    type: "挑战杯 · 智能药物研发",
+    title: "PharmAgent 智能药物发现与递送助手",
+    short: "以知识库、插件与工作流组织药物信息检索、ADMET 解析、分子生成与递送策略建议的科研智能体。",
+    stack: ["FastGPT", "FastAPI", "ChEMBL / openFDA", "DrugEx"],
+    repository: null,
+    visibility: "private",
+  },
+  {
+    id: "sso-platform",
+    icon: Network,
+    type: "Spring Boot · CAS · IAM",
+    title: "CAS 单点登录与 IAM 平台",
+    short: "以 Apereo CAS 为认证中心，组合双客户端、身份权限边界、Redis 会话、防重放与读写分离的 HTTPS SSO 平台。",
+    stack: ["Apereo CAS 7.2", "Spring Boot", "MySQL + Redis", "Docker Compose"],
+    repository: "https://github.com/zx6831/sso-platform/tree/master",
+    visibility: "public",
+  },
+  {
+    id: "v2t",
+    icon: FileText,
+    type: "ASR · 视频处理 · Web",
+    title: "V2T 视频转写与课程摘要",
+    short: "把视频拆解为语音识别、时间轴文本清洗和流式课程摘要任务，并通过 Web 界面呈现进度与结果。",
+    stack: ["FunASR", "Next.js", "SSE", "DeepSeek API"],
+    repository: null,
+    visibility: "private",
+  },
+  {
+    id: "eliminate",
+    icon: Layers3,
+    type: "计算机视觉 · 图像处理",
+    title: "主体保护式路人移除管线",
+    short: "基于分割检测、三态主体判定与掩码约束，批量移除背景路人并保护画面主体的图像处理基线。",
+    stack: ["YOLO-seg", "OpenCV", "IOPaint / LaMa", "Python CLI"],
+    repository: "https://github.com/zx6831/eliminate/tree/feature/person-removal-baseline",
+    visibility: "public",
+  },
+  {
     id: "scholarweaver",
     icon: Database,
     type: "合作项目 · LLM 文档翻译",
@@ -34,6 +74,49 @@ const projects = [
     visibility: "private",
   },
 ];
+
+const auditedCaseStudies = {
+  "pharmagent": {
+    position: { title: "把药物研发问题组织成可追溯的智能体链路", text: "PharmAgent 是第十九届“挑战杯”全国大学生课外学术科技作品竞赛“人工智能+”挑战赛项目；用户确认其已入围国赛决赛。项目书围绕药物—靶点信息、ADMET 性质、分子生成与递送策略，将科研检索与方案辅助拆分为可组合的知识库、插件和工作流。" },
+    facts: [["项目身份", "第十九届“挑战杯”人工智能+挑战赛国赛决赛入围作品"], ["交付形态", "FastGPT 智能体、FastAPI 本地插件与科研工作流"], ["数据与模型", "ChEMBL、openFDA、ADMETlab 3.0 与 DrugEx"], ["材料边界", "仅依据本地项目书与用户提供的竞赛状态展示；不提供代码链接"]],
+    flow: [["研究问题", "疾病或靶点输入"], ["知识与数据", "药物、标签与性质查询"], ["模型插件", "ADMET 解析与分子生成"], ["工作流", "检索、调用与方案编排"], ["结构化建议", "递送策略与验证框架"]],
+    note: "项目书将每条建议限制在“基础分析—方案设计—可行性验证”的结构中，避免把生成内容表述为临床结论。",
+    implementation: [["多源科研数据插件", "通过本地 HTTP 服务封装 ChEMBL、openFDA 与 ADMET 相关能力，让工作流可按自然语言问题选择检索与解析路径。", "证据：项目书“多源数据插件整合”与插件接口说明"], ["分子生成接口", "项目书描述以 DrugEx 的序列模型生成 SMILES，并将模型加载、参数校验和结果返回封装为 FastAPI 插件。", "证据：项目书“靶向特定疾病或靶点的新分子生成插件”"], ["可视化工作流", "FastGPT 将输入、插件调用、模型调用与结构化输出放入可配置流程，保留面向科研任务的复用边界。", "证据：项目书“工作流设计”"]],
+    decisions: ["以外部数据库与本地插件分工，避免把数据获取、模型调用和生成逻辑耦合在单一提示词中。", "输出模板覆盖药物特性、递送策略与验证事项，便于审阅方案的依据与缺口。", "面向科研辅助而非诊断或处方：项目书也将模型、数据质量与部署风险列为需要独立控制的边界。"],
+    limitation: { title: "竞赛项目材料不等同于临床验证", text: "本次审查未获得独立的临床、实验或部署评测材料；页面不声称系统能够提供医疗诊断、治疗建议，或证明任何候选分子与递送方案的有效性。" },
+    resources: { title: "项目材料按竞赛与隐私边界呈现", text: "项目书记录了系统构想、插件设计与风险控制。源代码、模型配置和内部运行环境未对外公开，因此本页不提供仓库或演示链接。" },
+  },
+  "sso-platform": {
+    position: { title: "把认证、身份边界和业务资料拆成独立服务", text: "该平台基于 Apereo CAS 7.2.7 构建 HTTPS 单点登录演示环境：CAS 负责统一身份，两个客户端各自维持会话与业务边界，并通过内部 HTTPS 调用聚合资料。公开 `master` 分支的单一可见作者为 zx，包含完整源码、部署文件与测试。" },
+    facts: [["公开分支", "zx6831/sso-platform 的 master（非默认分支）"], ["认证机制", "CAS 3.0 Service Ticket、Redis Session 与 SM2 登录凭据加密"], ["数据边界", "CAS 管 IAM；Client B 管岗位/工号；Redis 仅保存技术状态"], ["运行条件", "Java 21、Docker Compose、MySQL、Redis；可选 Nacos"]],
+    flow: [["浏览器", "三个 HTTPS 入口"], ["CAS 认证中心", "统一登录与 IAM"], ["Client A / B", "会话与业务页面"], ["MySQL + Redis", "权威数据与技术状态"], ["可选 Nacos", "配置加载与注册"]],
+    note: "项目的安全重点是分层：CAS Ticket 一次性使用，指定 GET 接口再通过 HMAC challenge 与 Redis 原子 claim 做额外防重放。",
+    implementation: [["认证与身份模型", "CAS 管理用户、主部门与角色；客户端只保存自己的业务资料，从数据模型上明确身份权威来源。", "证据：README、数据库迁移与 IAM V9 文档"], ["双层防重放", "CAS Service Ticket 的一次性语义覆盖 SSO 流程；客户端对指定读取接口叠加 HMAC challenge 和 Redis 原子 claim。", "证据：README、replay/ 源码与测试"], ["可复现的运行拓扑", "Compose 将 CAS、两个客户端、主库与 Redis 组合；Client B 的读写路径区分副本查询和主库更新。", "证据：docker-compose.yml、运行手册与检查脚本"]],
+    decisions: ["让 IAM 与 Client B 的业务档案各自拥有数据权威，降低跨服务资料写入的歧义。", "把 Nacos 设计成可选构建能力，避免开发环境强依赖服务发现。", "要求使用项目 CA 验证 HTTPS，而不是用跳过证书校验的方式掩盖部署问题。"],
+    limitation: { title: "源码与测试齐全，但本次未启动完整拓扑", text: "仓库要求 Java 21、Docker、数据库、Redis、证书、hosts 和本地 Gradle 发行包。本次审查未配置上述环境，因此不宣称三个服务已在本机联通或完成端到端验收。" },
+    resources: { title: "查看公开的 master 分支", text: "该分支含服务端、两个客户端、迁移、证书/部署脚本、OpenAPI 文档和测试。链接明确指向实际含源码的 master，而非默认 main。", action: "查看 GitHub 分支" },
+  },
+  "v2t": {
+    position: { title: "将长视频处理拆为可恢复、可观察的任务", text: "V2T 是本地部署的视频转写与课程摘要工具：先从视频提取音频并按区间转写，再清洗、合并时间轴文本，最后按需流式生成学习摘要。Next.js 前端通过任务 API 和 SSE 展示每一步状态。" },
+    facts: [["运行形态", "本地 Python API 服务 + Next.js 前端 + Cloudflare Tunnel 配置"], ["语音处理", "FunASR Paraformer、VAD 与标点模型的本地模型目录"], ["任务交互", "上传、任务创建、SSE 进度、结果下载与磁盘恢复"], ["本次验证", "Next.js 生产构建通过；pytest 23 项通过"]],
+    flow: [["视频上传", "安全文件名与任务创建"], ["音频与分段", "FFmpeg 提取、区间切分"], ["FunASR", "识别、VAD 与标点"], ["文本处理", "时间轴合并与清洗"], ["SSE / 摘要", "实时状态与课程整理"]],
+    note: "服务端会把任务元数据和产物落到输出目录，并在启动时扫描恢复，这让中断后的任务状态不会只存在于进程内存。",
+    implementation: [["长音频分段与边界合并", "转写模块根据时长生成分段，回写偏移后的时间戳，并处理相邻片段文本重叠，减少长视频边界重复。", "证据：tools/transcribe_video.py"], ["可观察的任务 API", "API 提供上传、创建、查询、SSE progress/token/done/error 与下载端点，并维护每步状态和可恢复元数据。", "证据：BACKEND.md、tools/api_server.py"], ["结构化课程摘要", "管线将清洗后的转写文本填入固定学习提纲，支持流式调用摘要服务；密钥从环境变量读取而非写入页面。", "证据：tools/pipeline.py、BACKEND.md"]],
+    decisions: ["转写、清洗和摘要被拆分，方便只复用已完成的中间结果或定位失败环节。", "前端通过 SSE 接收状态，不需要长轮询来猜测后台进度。", "公开 Tunnel 在审查时返回 Cloudflare 1033，因而本页不放置失效的在线演示链接。"],
+    limitation: { title: "可验证本地构建，不等同于在线服务可用", text: "本地 Next.js 构建与 23 项测试均通过；但 `v2t.206831.xyz` 在本次审查返回 Cloudflare Tunnel Error 1033。转写还依赖本地模型、FFmpeg 与可选摘要服务，页面不承诺当前公共访问或处理性能。" },
+    resources: { title: "本地项目，暂不公开代码或演示", text: "项目源位于用户提供的本地目录，未提供公开代码仓库。线上 Tunnel 当前不可用，所以仅展示已核验的本地架构与测试信息。" },
+  },
+  "eliminate": {
+    position: { title: "先保护画面主体，再决定哪些人物可移除", text: "该基线将人像分割结果分为主体、路人和不确定三种状态：只将可安全移除的路人并入删除掩码，并用扩张后的主体保护掩码做减法，随后交给可替换的修补后端。公开分支的可见作者为 zx。" },
+    facts: [["公开分支", "zx6831/eliminate 的 feature/person-removal-baseline"], ["检测与判定", "YOLO-seg 人像实例 + 基于面积、位置、置信度的三态规则"], ["输出工件", "删除/保护掩码、可视化覆盖层、结果图与 JSON 记录"], ["本次验证", "unittest 12 项通过（无模型权重的轻量测试）"]],
+    flow: [["输入图像", "单图或目录批处理"], ["实例分割", "YOLO-seg 或空检测回退"], ["主体判定", "主体 / 路人 / 不确定"], ["掩码约束", "删除并减去保护区域"], ["修补与记录", "IOPaint/LaMa 或 dry-run 工件"]],
+    note: "不确定人物会在覆盖层中标记，但不会强制进入删除掩码；这比“检测到人就移除”的策略更符合保护主体的目标。",
+    implementation: [["三态主体决策", "把面积、中心性、置信度、完整度与可选的主体框/索引结合，输出可序列化的主体、路人或不确定结果。", "证据：src/eliminate/subject.py、tests/test_subject.py"], ["保护优先的掩码构建", "删除掩码先汇合路人实例并膨胀，再减去膨胀后的主体保护区；覆盖层显示三类实例供人工复核。", "证据：src/eliminate/masks.py、tests/test_masks.py"], ["可替换修补与批处理", "dry-run 会完整产出工件；实际修补可接 IOPaint/LaMa 或命令模板。批处理遇到单项失败仍生成汇总。", "证据：pipeline.py、cli.py、tests/test_pipeline.py"]],
+    decisions: ["在不确定时默认保护，而不是为了产出结果强行删除可能的主体。", "把检测器和修补后端设为适配层，方便在缺少权重或修补工具时仍审阅掩码决策。", "每次运行写出 JSON、掩码和叠加图，便于回溯为何删除或保护某个实例。"],
+    limitation: { title: "单元验证不等同于真实图像质量评估", text: "12 项测试覆盖规则、掩码、dry-run 与批处理行为，未加载 YOLO 权重或 LaMa 模型，也未对真实数据集的修补自然度做主观或定量评测。" },
+    resources: { title: "查看公开的功能分支", text: "项目的可运行基线位于 feature/person-removal-baseline；链接明确指向该分支，避免默认 main 分支造成误判。", action: "查看 GitHub 分支" },
+  },
+} as const;
 
 const navItems = [
   { href: "/#top", label: "首页", id: "top", icon: House },
@@ -120,7 +203,7 @@ type WorkData = { eyebrow: string; heading: string; description: string; project
 type SkillsData = { eyebrow: string; heading: string; skills: Array<{ index: string; title: string; description: string }> };
 type AboutData = { eyebrow: string; heading: string; description: string; contactEyebrow: string; contactTitle: string; email: string };
 
-function useJsonResource<T>(url: string, timeoutMs = 7000) {
+function useJsonResource<T>(url: string, timeoutMs = 7000, initialCache: RequestCache = "force-cache") {
   const [state, setState] = useState<ResourceState<T>>({ status: "idle" });
   const requestRef = useRef<Promise<void> | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
@@ -133,7 +216,7 @@ function useJsonResource<T>(url: string, timeoutMs = 7000) {
     const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
     const requestUrl = forceRefresh ? `${url}${url.includes("?") ? "&" : "?"}retry=${Date.now()}` : url;
     setState({ status: "loading" });
-    const request = fetch(requestUrl, { signal: controller.signal, cache: forceRefresh ? "reload" : "force-cache" })
+    const request = fetch(requestUrl, { signal: controller.signal, cache: forceRefresh ? "reload" : initialCache })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json() as Promise<T>;
@@ -301,7 +384,7 @@ type Project = typeof projects[number];
 function ScholarWeaverDetail({ project }: { project: Project }) {
   const Icon = project.icon;
   return <main className="detail-page detail-page--case-study">
-    <a className="back-link" href="/"><ArrowLeft size={16}/> 返回作品集</a>
+    <a className="back-link" href="/#work"><ArrowLeft size={16}/> 返回作品集</a>
     <section className="detail-hero glass-panel">
       <div>
         <p className="mono-label">{project.type} / REPOSITORY CASE STUDY</p>
@@ -369,7 +452,7 @@ function ScholarWeaverDetail({ project }: { project: Project }) {
 
     <section className="detail-resources glass-panel">
       <div><p className="mono-label">06 / 项目资源</p><h2>回到合作项目的可审查材料</h2><p>该公开仓库保留安装说明、服务端、工作流和可见提交历史；Dingjia 以参考例句库形式参与其中。贡献归属按公开历史陈述，未把其他作者的实现归功于 zx6831。</p></div>
-      <div className="detail-actions"><LiquidGlassButton variant="primary" href={project.repository ?? profile.github} target="_blank">查看 GitHub 仓库 <ExternalLink size={16}/></LiquidGlassButton><LiquidGlassButton href="/">返回首页 <ArrowUpRight size={16}/></LiquidGlassButton></div>
+      <div className="detail-actions"><LiquidGlassButton variant="primary" href={project.repository ?? profile.github} target="_blank">查看 GitHub 仓库 <ExternalLink size={16}/></LiquidGlassButton><LiquidGlassButton href="/#work">返回项目 <ArrowUpRight size={16}/></LiquidGlassButton></div>
     </section>
   </main>;
 }
@@ -377,7 +460,7 @@ function ScholarWeaverDetail({ project }: { project: Project }) {
 function FubaoDetail({ project }: { project: Project }) {
   const Icon = project.icon;
   return <main className="detail-page detail-page--case-study detail-page--fubao">
-    <a className="back-link" href="/"><ArrowLeft size={16}/> 返回作品集</a>
+    <a className="back-link" href="/#work"><ArrowLeft size={16}/> 返回作品集</a>
     <section className="detail-hero glass-panel">
       <div>
         <p className="mono-label">{project.type} / PRIVATE PROJECT CASE STUDY</p>
@@ -445,21 +528,82 @@ function FubaoDetail({ project }: { project: Project }) {
 
     <section className="detail-resources glass-panel">
       <div><p className="mono-label">06 / 项目说明</p><h2>私有项目，按范围展示</h2><p>为保护代码与配置边界，本项目不公开 GitHub 链接、内部文档或运行环境。页面中的内容仅来自已审查的目录结构、源码、测试和项目文档。</p></div>
-      <div className="detail-actions"><LiquidGlassButton variant="primary" href="/">返回首页 <ArrowUpRight size={16}/></LiquidGlassButton></div>
+      <div className="detail-actions"><LiquidGlassButton variant="primary" href="/#work">返回项目 <ArrowUpRight size={16}/></LiquidGlassButton></div>
+    </section>
+  </main>;
+}
+
+function AuditedProjectDetail({ project }: { project: Project }) {
+  const detail = auditedCaseStudies[project.id as keyof typeof auditedCaseStudies];
+  const Icon = project.icon;
+  const flowIcons = [FileText, Database, Workflow, Network, Layers3];
+  const implementationIcons = [Code2, ShieldAlert, Workflow];
+  const isPrivate = project.visibility === "private";
+  const resourceAction = "action" in detail.resources ? detail.resources.action : undefined;
+
+  return <main className="detail-page detail-page--case-study">
+    <a className="back-link" href="/#work"><ArrowLeft size={16}/> 返回作品集</a>
+    <section className="detail-hero glass-panel">
+      <div>
+        <p className="mono-label">{project.type} / {isPrivate ? "PRIVATE PROJECT CASE STUDY" : "REPOSITORY CASE STUDY"}</p>
+        <h1>{project.title}</h1>
+        <p>{project.short}</p>
+        <div className="tag-row">{project.stack.map((item) => <span key={item}>{item}</span>)}</div>
+      </div>
+      <div className="project-glyph"><Icon size={72}/><span>CASE / {project.id.toUpperCase()}</span></div>
+    </section>
+
+    <section className="detail-summary">
+      <article><p className="mono-label">01 / 项目定位</p><h2>{detail.position.title}</h2><p>{detail.position.text}</p></article>
+      <aside className="glass-panel detail-facts">{detail.facts.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</aside>
+    </section>
+
+    <section className="detail-section">
+      <div className="detail-section__heading"><p className="mono-label">02 / 系统链路</p><h2>让每个输入、边界与输出都有位置</h2><p>以下链路依据已审查的仓库源码、测试、项目文档或本地工程目录整理；它描述系统结构与工作边界，不代表性能或效果承诺。</p></div>
+      <div className="architecture-flow" aria-label={`${project.title} 系统链路`}>
+        {detail.flow.map(([title, description], index) => {
+          const FlowIcon = flowIcons[index] ?? Database;
+          return <><article key={title}><FlowIcon size={23}/><strong>{title}</strong><span>{description}</span></article>{index < detail.flow.length - 1 && <i key={`${title}-arrow`} aria-hidden="true">→</i>}</>;
+        })}
+      </div>
+      <div className="detail-callout"><GitBranch size={18}/><p>{detail.note}</p></div>
+    </section>
+
+    <section className="detail-section detail-section--implementation">
+      <div className="detail-section__heading"><p className="mono-label">03 / 核心实现</p><h2>以可验证材料收束项目描述</h2></div>
+      <div className="implementation-grid">{detail.implementation.map(([title, text, evidence], index) => {
+        const ImplementationIcon = implementationIcons[index] ?? Code2;
+        return <article className="glass-panel" key={title}><ImplementationIcon size={22}/><h3>{title}</h3><p>{text}</p><small>{evidence}</small></article>;
+      })}</div>
+    </section>
+
+    <section className="detail-section detail-section--split">
+      <article><p className="mono-label">04 / 设计取舍</p><h2>优先把关键边界写进系统</h2><ul className="detail-list">{detail.decisions.map((item) => <li key={item}>{item}</li>)}</ul></article>
+      <aside className="detail-limitations glass-panel"><ShieldAlert size={21}/><p className="mono-label">05 / 验证边界</p><h3>{detail.limitation.title}</h3><p>{detail.limitation.text}</p></aside>
+    </section>
+
+    <section className="detail-resources glass-panel">
+      <div><p className="mono-label">06 / 项目资源</p><h2>{detail.resources.title}</h2><p>{detail.resources.text}</p></div>
+      <div className="detail-actions">{project.repository && resourceAction && <LiquidGlassButton variant="primary" href={project.repository} target="_blank">{resourceAction} <ExternalLink size={16}/></LiquidGlassButton>}<LiquidGlassButton href="/#work">返回项目 <ArrowUpRight size={16}/></LiquidGlassButton></div>
     </section>
   </main>;
 }
 
 function ProjectDetail({ id }: { id: string }) {
-  const project = projects.find(p => p.id === id) ?? projects[0];
-  return project.id === "fubao" ? <FubaoDetail project={project}/> : <ScholarWeaverDetail project={project}/>;
+  const project = projects.find(p => p.id === id);
+  if (!project) return <UnknownProjectPage />;
+  if (project.id === "fubao") return <FubaoDetail project={project}/>;
+  if (project.id === "scholarweaver") return <ScholarWeaverDetail project={project}/>;
+  return <AuditedProjectDetail project={project}/>;
 }
+
+function UnknownProjectPage() { return <main className="status-page"><div className="status-code">404</div><p className="mono-label">PROJECT / NOT FOUND</p><h1>这个项目链接已失效</h1><p>项目清单已经更新。为避免展示错误的项目详情，请返回项目列表后重新选择。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/#work">返回项目 <ArrowUpRight size={16}/></LiquidGlassButton></div></main>; }
 
 function OfflinePage() { return <main className="status-page"><div className="status-code">503</div><p className="mono-label">DEMO SERVICE / TEMPORARILY OFFLINE</p><h1>演示服务暂时不可用</h1><p>项目案例仍可浏览；仓库中可核验的源码与接口文档不依赖在线演示服务。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/?project=scholarweaver">查看项目案例</LiquidGlassButton><LiquidGlassButton href={profile.github}>访问 GitHub <Github size={16}/></LiquidGlassButton></div></main>; }
 
 function Home() {
   const summary = useJsonResource<SummaryData>("/data/home-summary.json");
-  const work = useJsonResource<WorkData>("/data/home-work.json");
+  const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache");
   const skills = useJsonResource<SkillsData>("/data/home-skills.json");
   const about = useJsonResource<AboutData>("/data/home-about.json");
   const preloadTargets = useMemo(() => [
@@ -476,7 +620,7 @@ function Home() {
   const skillsData = skills.state.data;
   const summaryData = summary.state.data;
   const aboutData = about.state.data;
-  const projectIcons = { scholarweaver: Database, fubao: HeartPulse };
+  const projectIcons = { pharmagent: HeartPulse, "sso-platform": Network, v2t: FileText, eliminate: Layers3, scholarweaver: Database, fubao: HeartPulse };
 
   return <main>
     <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 求职中 · 接受大模型应用工程实习</div><p className="mono-label">AI APPLICATION ENGINEER / 2026</p><h1><span>姓名</span>，把大模型能力<br/>交付成<span className="accent-word">可用系统。</span></h1><p className="hero-lead">聚焦 RAG、多智能体、ASR 与生成式 AI 应用，关注模型能力如何进入真实工作流，并以清晰、稳定的产品形态完成交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">查看项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>下载简历 <Download size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="avatar-mock"><UserRound size={54}/><span>头像待替换</span></div><div className="identity-copy"><strong>{profile.title}</strong><p>候选人简介待补充：教育背景、技术兴趣与求职时间。</p></div><div className="signal-line"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>方向</span><b>LLM · Agent · RAG</b><span>意向</span><b>实习 / 校招</b></div></aside></section>

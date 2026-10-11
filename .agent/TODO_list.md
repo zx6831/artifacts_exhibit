@@ -14,6 +14,17 @@ Validation:
 - Chrome DevTools → Network: Slow 3G + Disable cache + hard reload; visually inspect light and dark themes.
 
 ## Completed
+### [x] Publish loading and detail-route implementation
+Status: completed
+Depends on: Verified implementation changes
+Scope: Staged homepage/detail source, JSON resources, and state files
+Acceptance criteria:
+- Commit only the requested implementation and state files.
+- Preserve the six pre-existing deleted files outside the commit.
+- Push the resulting commit to `origin/main`.
+Validation:
+- `git push origin main` — pushed `27c8978` successfully.
+
 ### [x] Remove project-detail top navigation and add a route-specific boot skeleton
 Status: completed
 Depends on: Existing project-detail route and HTML boot skeleton

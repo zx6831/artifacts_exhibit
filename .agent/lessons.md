@@ -1,5 +1,13 @@
 # Lessons Learned
 
+## Repository Workflow
+### Scope commits when the worktree contains unrelated deletions
+Conclusion: Existing unstaged deletions must be left outside a delivery commit unless the user explicitly asks to include them.
+Scope: This repository's mixed worktree during the loading/detail-route delivery.
+Evidence: `27c8978` pushed only the eleven staged implementation and state files; the six pre-existing deletions remained unstaged afterward.
+Correct approach: Inspect `git status --short`, commit the explicit staged set, and verify the post-push worktree before reporting delivery.
+Related files/tests: `git status --short`, commit `27c8978`.
+
 ## Route-Specific Loading UI
 ### Pre-React loading UI must select its layout from the URL synchronously
 Conclusion: The startup skeleton is rendered before React runs, so project-detail loading cannot be corrected by React route state alone.

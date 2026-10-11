@@ -14,6 +14,7 @@ Maintain truthful Projects content and project detail pages whose project scope,
 - Added a query-aware detail boot skeleton matching the actual return row, split Hero, project goal/facts grid, and evidence section. The homepage boot skeleton is hidden on `?project=` routes.
 - Committed and pushed the implemented loading and detail-route work to `origin/main` as `27c8978`.
 - Audited accessible public/private repositories and replaced unverified project claims with ScholarWeaver and Fubao case studies. ScholarWeaver’s public collaboration link is present; Fubao’s private source link is intentionally absent.
+- Published the portfolio case-study update to `origin/main` as `5ff9f5e`.
 
 ## In Progress
 - Optional manual visual review of shimmer intensity remains available.
@@ -37,6 +38,7 @@ Maintain truthful Projects content and project detail pages whose project scope,
 - GitHub audit — completed for six public `zx6831` repositories, two accessible private repositories, and the supplied public ScholarWeaver repository. Homepage content retains only ScholarWeaver and Fubao.
 - `npm run build` — passed after the final update.
 - `git diff --check` — passed after the final update.
+- `git push origin main` — succeeded for `5ff9f5e`.
 - Local browser checks — passed for the homepage, `/?project=scholarweaver`, and `/?project=fubao`; only ScholarWeaver has a GitHub action.
 - Fubao clone `flutter pub get && flutter test` — 86 tests executed; failed one `younger_plans` Golden baseline with a 0.17% / 574-pixel difference.
 

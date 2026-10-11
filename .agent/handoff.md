@@ -1,28 +1,29 @@
 # Session Handoff
 Created: 2026-10-11
 Branch: main
-Working tree: Portfolio source and `.agent/` updates are unstaged. Six pre-existing deleted files remain unstaged and untouched.
+Working tree: Portfolio update `5ff9f5e` is published to `origin/main`. Six pre-existing deleted files remain unstaged and untouched.
 
 ## Session Goal
-Audit accessible public/private repositories and replace unverified portfolio claims with evidence-based project pages.
+Audit accessible public/private repositories and replace unverified portfolio claims with evidence-based project pages, then publish the update.
 
 ## Work Completed
 - Audited six public `zx6831` repositories, two private repositories, and the supplied public ScholarWeaver repository.
 - Replaced homepage project data with ScholarWeaver and Fubao while preserving the Projects module layout and behavior.
 - Implemented `/?project=scholarweaver` with a public repository action and `/?project=fubao` without any repository action.
 - Corrected Dingjia’s classification: it is described as ScholarWeaver’s reference-example retrieval component, not a standalone full project.
+- Committed the portfolio update as `5ff9f5e` (`feat: curate portfolio project case studies`) and pushed it to `origin/main`.
 
 ## Current Stopping Point
-Portfolio implementation and verification are complete; no commit has been created.
+Portfolio implementation is published. This handoff refresh records the resulting repository state.
 
 ## Uncommitted Changes
-- Modified: `.agent/current_state.md`, `.agent/lessons.md`, `.agent/TODO_list.md`, `.agent/handoff.md`, `public/data/home-work.json`, `src/App.tsx`, `src/index.css`.
 - Pre-existing deletions left untouched: `2842293fa2bb01d8eec6e1c9026d2402.png`, `chrome-check-process-no-panel.png`, `chrome-check-studio-light.png`, `chrome-check-studio-no-panel.png`, `chrome-check-work-no-panel.png`, `v2tproject.md`.
 
 ## Validation Results
 - `npm run build` passed after the portfolio update.
 - `git diff --check` passed after the portfolio update.
 - Browser checks passed for the homepage, ScholarWeaver detail page, and Fubao detail page; Fubao has no GitHub action.
+- `git push origin main` succeeded for `5ff9f5e`.
 - Fubao `flutter test` executed 86 tests and failed one Golden baseline (`younger_plans`, 0.17%, 574 px).
 
 ## Failing Tests or Known Errors
@@ -31,8 +32,8 @@ Portfolio implementation and verification are complete; no commit has been creat
 
 ## Recommended Next Steps
 1. Review the Fubao Golden diff and either fix the UI or approve a baseline update.
-2. Manually inspect both detail pages at desktop and mobile widths before publishing.
-3. Stage only the seven modified source/state files; do not include the six pre-existing deletions.
+2. Manually inspect both detail pages at desktop and mobile widths before future content changes.
+3. Keep the six pre-existing deletion records outside unrelated commits unless their removal is explicitly requested.
 
 ## Important Decisions
 - Private projects may be described and have detail pages, but must not expose a repository URL.
@@ -46,5 +47,5 @@ Portfolio implementation and verification are complete; no commit has been creat
 ## Start Here
 ```powershell
 git status --short
-npm run build
+git log -2 --oneline
 ```

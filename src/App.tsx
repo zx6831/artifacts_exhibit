@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowUpRight, Bot, BrainCircuit, BriefcaseBusiness, Download, ExternalLink, Github, House, Mail, Moon, Orbit, Search, Sun, UserRound, Wrench } from "lucide-react";
-import type { CSSProperties, PointerEvent } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, PointerEvent, ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LiquidGlassButton } from "@/components/ui/liquid-glass-button";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
@@ -31,7 +31,153 @@ function useTheme() {
   return [dark, setDark] as const;
 }
 
-function Shell({ children, dark, setDark }: { children: React.ReactNode; dark: boolean; setDark: (v: boolean) => void }) {
+type ScrollRevealGroup = {
+  sectionSelector: string;
+  itemSelector: string;
+};
+
+const scrollRevealGroups: ScrollRevealGroup[] = [
+  { sectionSelector: ".proof-strip", itemSelector: ".proof-strip__content > *" },
+  { sectionSelector: "#work", itemSelector: ".section-title > *, .case-row" },
+  { sectionSelector: "#skills", itemSelector: ".section-title > *, .skill-track article" },
+  { sectionSelector: "#about", itemSelector: ".about-resource-content > *" },
+];
+
+function useScrollReveal(groups: ScrollRevealGroup[], contentVersion = "") {
+  useEffect(() => {
+    const itemsBySection = new Map<HTMLElement, HTMLElement[]>();
+    const sections = groups.flatMap(({ sectionSelector, itemSelector }) => {
+      const section = document.querySelector<HTMLElement>(sectionSelector);
+      if (!section) return [];
+
+      const items = Array.from(section.querySelectorAll<HTMLElement>(itemSelector)).filter((item) => !item.closest(".section-resource--ready .section-resource__skeleton"));
+      items.forEach((item, index) => {
+        item.classList.add("scroll-reveal-item");
+        item.style.setProperty("--scroll-reveal-delay", `${index * 90}ms`);
+      });
+      itemsBySection.set(section, items);
+
+      return [section];
+    });
+
+    if (!sections.length) return;
+
+    const delayResetTimers: number[] = [];
+    const reveal = (section: HTMLElement) => {
+      section.classList.add("is-visible");
+      const items = itemsBySection.get(section) ?? [];
+      const duration = 560 + Math.max(0, items.length - 1) * 90;
+      delayResetTimers.push(window.setTimeout(() => {
+        items.forEach((item) => item.style.removeProperty("--scroll-reveal-delay"));
+      }, duration));
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      sections.forEach(reveal);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          reveal(entry.target as HTMLElement);
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => {
+      observer.disconnect();
+      delayResetTimers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [contentVersion, groups]);
+}
+
+type ResourceStatus = "idle" | "loading" | "ready" | "error";
+type ResourceState<T> = { status: ResourceStatus; data?: T; message?: string };
+type PreloadTarget = { selector: string; load: () => void };
+type SummaryData = { label: string; count: string; description: string; note: string };
+type WorkData = { eyebrow: string; heading: string; description: string; projects: Array<{ id: string; type: string; title: string; short: string; stack: string[] }> };
+type SkillsData = { eyebrow: string; heading: string; skills: Array<{ index: string; title: string; description: string }> };
+type AboutData = { eyebrow: string; heading: string; description: string; contactEyebrow: string; contactTitle: string; email: string };
+
+function useJsonResource<T>(url: string, timeoutMs = 7000) {
+  const [state, setState] = useState<ResourceState<T>>({ status: "idle" });
+  const requestRef = useRef<Promise<void> | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  const load = useCallback((forceRefresh = false) => {
+    if (requestRef.current || (!forceRefresh && state.status === "ready")) return;
+    const controller = new AbortController();
+    let timedOut = false;
+    controllerRef.current = controller;
+    const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
+    const requestUrl = forceRefresh ? `${url}${url.includes("?") ? "&" : "?"}retry=${Date.now()}` : url;
+    setState({ status: "loading" });
+    const request = fetch(requestUrl, { signal: controller.signal, cache: forceRefresh ? "reload" : "force-cache" })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json() as Promise<T>;
+      })
+      .then((data) => setState({ status: "ready", data }))
+      .catch(() => setState({ status: "error", message: timedOut ? "加载超时，请重试。" : "内容暂时无法加载。" }))
+      .finally(() => {
+        window.clearTimeout(timeout);
+        requestRef.current = null;
+      });
+    requestRef.current = request;
+  }, [state.status, timeoutMs, url]);
+
+  const retry = useCallback(() => {
+    if (requestRef.current) return;
+    load(true);
+  }, [load]);
+
+  useEffect(() => () => controllerRef.current?.abort(), []);
+  return { state, load, retry };
+}
+
+function useNearViewportPreload(targets: PreloadTarget[], distance = 400) {
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) {
+      targets.forEach(({ load }) => load());
+      return;
+    }
+    const targetByElement = new Map<HTMLElement, PreloadTarget>();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        targetByElement.get(entry.target as HTMLElement)?.load();
+        observer.unobserve(entry.target);
+      });
+    }, { rootMargin: `${distance}px 0px ${distance}px 0px`, threshold: 0 });
+
+    targets.forEach((target) => {
+      const element = document.querySelector<HTMLElement>(target.selector);
+      if (!element) return;
+      targetByElement.set(element, target);
+      observer.observe(element);
+    });
+    return () => observer.disconnect();
+  }, [distance, targets]);
+}
+
+function ResourceBoundary({ state, retry, skeleton, children }: { state: ResourceState<unknown>; retry: () => void; skeleton: ReactNode; children: ReactNode }) {
+  const isReady = state.status === "ready";
+  return <div className={`section-resource section-resource--${state.status}`} aria-busy={!isReady}>
+    {state.status !== "error" && <div className="section-resource__skeleton" aria-hidden={isReady}>{skeleton}</div>}
+    {isReady && <div className="section-resource__content">{children}</div>}
+    {state.status === "error" && <div className="section-resource__error" role="status"><span>{state.message}</span><button type="button" onClick={retry}>重新加载</button></div>}
+  </div>;
+}
+
+function SummarySkeleton() { return <div className="proof-strip__content proof-strip__skeleton"><i/><b/><i/><i/></div>; }
+function WorkSkeleton() { return <><div className="section-title section-title--skeleton"><i/><b/><i/></div><div className="case-list">{[0, 1, 2].map((item) => <div className="case-row case-row--skeleton" key={item}><i/><i/><div><b/><i/><i/></div></div>)}</div></>; }
+function SkillsSkeleton() { return <><div className="section-title section-title--skeleton"><i/><b/></div><div className="skill-track">{[0, 1, 2, 3].map((item) => <article className="skill-card--skeleton" key={item}><i/><b/><i/></article>)}</div></>; }
+function AboutSkeleton() { return <div className="about-resource-content about-resource-content--skeleton"><div className="about-copy"><i/><b/><i/></div><aside className="contact-panel"><i/><b/><i/><i/></aside></div>; }
+function Shell({ children, dark, setDark, showNavigation = true }: { children: React.ReactNode; dark: boolean; setDark: (v: boolean) => void; showNavigation?: boolean }) {
   const frame = useRef<number | null>(null);
   const [canUsePointerHighlight, setCanUsePointerHighlight] = useState(false);
   const [activeId, setActiveId] = useState(() => location.hash.slice(1) || "top");
@@ -125,8 +271,8 @@ function Shell({ children, dark, setDark }: { children: React.ReactNode; dark: b
   };
 
   return <AuroraBackground className="site-stage candidate-site" backgroundMedia={media} onPointerMove={canUsePointerHighlight ? move : undefined}>
-    <div className="site-top-controls candidate-old-nav">
-      <div className="site-top-controls__nav"><TubelightNavBar items={navItems} activeId={activeId} className="site-floating-nav" onNavigate={(id) => navigate(id)} /></div>
+    <div className={`site-top-controls candidate-old-nav${showNavigation ? "" : " site-top-controls--detail"}`}>
+      {showNavigation && <div className="site-top-controls__nav"><TubelightNavBar items={navItems} activeId={activeId} className="site-floating-nav" onNavigate={(id) => navigate(id)} /></div>}
       <div className="site-top-controls__theme"><LiquidGlassButton className="site-theme-toggle" variant="icon" type="button" aria-label="切换主题" aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>主题</span></LiquidGlassButton></div>
     </div>
     <div className="candidate-shell">{children}<footer><span>{profile.name} · 大模型应用工程师</span><span>© {new Date().getFullYear()}</span></footer></div>
@@ -140,12 +286,34 @@ function ProjectDetail({ id }: { id: string }) {
 
 function OfflinePage() { return <main className="status-page"><div className="status-code">503</div><p className="mono-label">DEMO SERVICE / TEMPORARILY OFFLINE</p><h1>演示服务暂时不可用</h1><p>部分项目后端按需启动。当前异常不影响项目案例浏览，你仍可查看技术说明或源代码。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/?project=v2t">查看项目案例</LiquidGlassButton><LiquidGlassButton href={profile.github}>访问 GitHub <Github size={16}/></LiquidGlassButton></div></main>; }
 
-function Home() { return <main>
-  <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 求职中 · 接受大模型应用工程实习</div><p className="mono-label">AI APPLICATION ENGINEER / 2026</p><h1><span>姓名</span>，把大模型能力<br/>交付成<span className="accent-word">可用系统。</span></h1><p className="hero-lead">聚焦 RAG、多智能体、ASR 与生成式 AI 应用，关注模型能力如何进入真实工作流，并以清晰、稳定的产品形态完成交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">查看项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>下载简历 <Download size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="avatar-mock"><UserRound size={54}/><span>头像待替换</span></div><div className="identity-copy"><strong>{profile.title}</strong><p>候选人简介待补充：教育背景、技术兴趣与求职时间。</p></div><div className="signal-line"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>方向</span><b>LLM · Agent · RAG</b><span>意向</span><b>实习 / 校招</b></div></aside></section>
-  <section className="proof-strip"><span>当前作品集</span><strong>03</strong><p>个面向真实场景的大模型应用项目</p><span>从检索、协同推理到结构化交付</span></section>
-  <section className="portfolio-section" id="work"><div className="section-title"><p className="mono-label">SELECTED WORK</p><h2>代表项目</h2><p>围绕三个不同领域，展示从模型组合到应用交付的工程能力。</p></div><div className="case-list">{projects.map((p, i) => { const Icon=p.icon; return <a href={`/?project=${p.id}`} className="case-row glass-panel" key={p.id}><span className="case-index">0{i+1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{p.type}</p><h3>{p.title}</h3><p>{p.short}</p><div className="tag-row">{p.stack.map(x=><span key={x}>{x}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>})}</div></section>
-  <section className="portfolio-section skills-section" id="skills"><div className="section-title"><p className="mono-label">CAPABILITY MAP</p><h2>能力不是关键词列表，<br/>而是一条交付链路。</h2></div><div className="skill-track">{[["01","问题建模","将业务目标拆成模型、检索与工具调用边界"],["02","系统编排","组合 RAG、Agent、ASR 与异步任务流程"],["03","产品交付","构建可理解的状态反馈、异常兜底与前后端接口"],["04","评测迭代","建立效果、延迟与一致性的验证方式（指标待补充）"]].map(x=><article key={x[0]}><span>{x[0]}</span><h3>{x[1]}</h3><p>{x[2]}</p></article>)}</div></section>
-  <section className="portfolio-section about-section" id="about"><div><p className="mono-label">PROFILE</p><h2>关于我</h2><p>这里将补充真实姓名、头像、教育背景与个人简介。当前版本先以项目本身作为能力证据，所有待验证的数据均明确保留为占位内容。</p></div><aside className="contact-panel glass-panel"><p className="mono-label">CONTACT</p><h3>正在寻找大模型应用工程方向的实习机会</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${profile.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>简历 <Download size={16}/></LiquidGlassButton></div><small>{profile.email}</small></aside></section>
- </main>; }
+function Home() {
+  const summary = useJsonResource<SummaryData>("/data/home-summary.json");
+  const work = useJsonResource<WorkData>("/data/home-work.json");
+  const skills = useJsonResource<SkillsData>("/data/home-skills.json");
+  const about = useJsonResource<AboutData>("/data/home-about.json");
+  const preloadTargets = useMemo(() => [
+    { selector: "#proof", load: summary.load },
+    { selector: "#work", load: work.load },
+    { selector: "#skills", load: skills.load },
+    { selector: "#about", load: about.load },
+  ], [about.load, skills.load, summary.load, work.load]);
 
-export function App() { const [dark,setDark]=useTheme(); const params=new URLSearchParams(location.search); const content=params.has("status")?<OfflinePage/>:params.get("project")?<ProjectDetail id={params.get("project")!}/>:<Home/>; return <Shell dark={dark} setDark={setDark}>{content}</Shell>; }
+  useNearViewportPreload(preloadTargets, 400);
+  useScrollReveal(scrollRevealGroups, [summary.state.status, work.state.status, skills.state.status, about.state.status].join("|"));
+
+  const workData = work.state.data;
+  const skillsData = skills.state.data;
+  const summaryData = summary.state.data;
+  const aboutData = about.state.data;
+  const projectIcons = { molecule: Orbit, translation: Bot, v2t: BrainCircuit };
+
+  return <main>
+    <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 求职中 · 接受大模型应用工程实习</div><p className="mono-label">AI APPLICATION ENGINEER / 2026</p><h1><span>姓名</span>，把大模型能力<br/>交付成<span className="accent-word">可用系统。</span></h1><p className="hero-lead">聚焦 RAG、多智能体、ASR 与生成式 AI 应用，关注模型能力如何进入真实工作流，并以清晰、稳定的产品形态完成交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">查看项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>下载简历 <Download size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="avatar-mock"><UserRound size={54}/><span>头像待替换</span></div><div className="identity-copy"><strong>{profile.title}</strong><p>候选人简介待补充：教育背景、技术兴趣与求职时间。</p></div><div className="signal-line"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>方向</span><b>LLM · Agent · RAG</b><span>意向</span><b>实习 / 校招</b></div></aside></section>
+    <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{summaryData.count}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
+    <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Orbit; return <a href={`/?project=${project.id}`} className="case-row glass-panel" key={project.id}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
+    <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <><div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading.split("，")[0]}，<br/>{skillsData.heading.split("，").slice(1).join("，")}</h2></div><div className="skill-track">{skillsData.skills.map((skill) => <article key={skill.index}><span>{skill.index}</span><h3>{skill.title}</h3><p>{skill.description}</p></article>)}</div></>}</ResourceBoundary></section>
+    <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>简历 <Download size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
+  </main>;
+}
+
+export function App() { const [dark,setDark]=useTheme(); useEffect(() => { document.documentElement.classList.add("app-ready"); }, []); const params=new URLSearchParams(location.search); const projectId=params.get("project"); const content=params.has("status")?<OfflinePage/>:projectId?<ProjectDetail id={projectId}/>:<Home/>; return <Shell dark={dark} setDark={setDark} showNavigation={!projectId}>{content}</Shell>; }

@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Code2, Database, Download, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench } from "lucide-react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { LiquidGlassButton } from "@/components/ui/liquid-glass-button";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
@@ -125,6 +126,134 @@ const navItems = [
   { href: "/#about", label: "关于", id: "about", icon: UserRound },
 ];
 
+type FontGateStatus = "loading" | "ready" | "fallback";
+type TextFontStatus = FontGateStatus | "idle";
+
+const fontLoadTimeoutMs = 4500;
+const fontLatinSample = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 · / - + : , .";
+const fontFaceRequests = [
+  '400 16px "Manrope"',
+  '500 16px "Manrope"',
+  '600 16px "Manrope"',
+  '700 16px "Manrope"',
+  '400 16px "Noto Sans SC"',
+  '500 16px "Noto Sans SC"',
+  '600 16px "Noto Sans SC"',
+  '400 16px "IBM Plex Mono"',
+  '500 16px "IBM Plex Mono"',
+  '500 16px "Cormorant Garamond"',
+  '600 16px "Cormorant Garamond"',
+  '700 16px "Cormorant Garamond"',
+];
+
+function collectText(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(collectText).join(" ");
+  if (value && typeof value === "object") return Object.values(value).map(collectText).join(" ");
+  return "";
+}
+
+const staticFontCorpus = [
+  collectText([profile, projects, auditedCaseStudies, navItems]),
+  "项目链接已失效 项目清单已经更新 返回项目列表重新选择 演示服务暂时不可用 项目案例仍可浏览 源码接口文档 查看项目案例 访问 GitHub 返回项目 主题 求职中 接受大模型应用工程实习 姓名 把大模型能力交付成可用系统 聚焦多智能体生成式 AI 应用 真实工作流 清晰稳定产品形态 完成交付 下载简历 头像待替换 候选人简介 教育背景 技术兴趣 求职时间 方向 意向 实习 校招 大模型应用工程师",
+].join(" ");
+
+function waitForFinalFonts(text: string, timeoutMs = fontLoadTimeoutMs): Promise<FontGateStatus> {
+  if (!("fonts" in document)) return Promise.resolve("fallback");
+  const sample = `${text} ${fontLatinSample}`.trim();
+  if (!sample) return Promise.resolve("ready");
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let retry: number | null = null;
+    const finish = (status: FontGateStatus) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      if (retry !== null) window.clearTimeout(retry);
+      resolve(status);
+    };
+    const timeout = window.setTimeout(() => finish("fallback"), timeoutMs);
+    const fontSet = document.fonts;
+    const requestFonts = () => {
+      if (settled) return;
+      const requests = fontFaceRequests.map((descriptor) => fontSet.load(
+        descriptor,
+        descriptor.includes("Noto Sans SC") ? sample : fontLatinSample,
+      ));
+
+      void Promise.all(requests)
+        .then((faces) => {
+          if (faces.some((match) => !match.length)) {
+            retry = window.setTimeout(requestFonts, 80);
+            return;
+          }
+          return fontSet.ready.then(() => finish("ready"));
+        })
+        .catch(() => { retry = window.setTimeout(requestFonts, 80); });
+    };
+
+    requestFonts();
+  });
+}
+
+function useDocumentFontGate() {
+  const [status, setStatus] = useState<FontGateStatus>("loading");
+
+  useEffect(() => {
+    let active = true;
+    const frame = window.requestAnimationFrame(() => {
+      const visibleText = document.getElementById("root")?.textContent ?? "";
+      void waitForFinalFonts(`${staticFontCorpus} ${visibleText}`).then((nextStatus) => {
+        if (active) setStatus(nextStatus);
+      });
+    });
+    return () => {
+      active = false;
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return status;
+}
+
+function useTextFontGate(text: string | undefined, parentStatus: FontGateStatus): TextFontStatus {
+  const textKey = text ?? "";
+  const key = `${parentStatus}\u0000${textKey}`;
+  const [resolution, setResolution] = useState<{ key: string; status: TextFontStatus }>({ key: "", status: "idle" });
+  const currentStatus: TextFontStatus = resolution.key === key
+    ? resolution.status
+    : !textKey
+      ? "idle"
+      : parentStatus === "fallback"
+        ? "fallback"
+        : "loading";
+
+  useEffect(() => {
+    let active = true;
+    if (!textKey) {
+      setResolution({ key, status: "idle" });
+      return () => { active = false; };
+    }
+    if (parentStatus === "loading") {
+      setResolution({ key, status: "loading" });
+      return () => { active = false; };
+    }
+    if (parentStatus === "fallback") {
+      setResolution({ key, status: "fallback" });
+      return () => { active = false; };
+    }
+
+    setResolution({ key, status: "loading" });
+    void waitForFinalFonts(textKey).then((nextStatus) => {
+      if (active) setResolution({ key, status: nextStatus });
+    });
+    return () => { active = false; };
+  }, [key, parentStatus, textKey]);
+
+  return currentStatus;
+}
+
 function useTheme() {
   const [dark, setDark] = useState(() => localStorage.getItem("theme") !== "light");
   useEffect(() => { document.documentElement.classList.toggle("dark", dark); localStorage.setItem("theme", dark ? "dark" : "light"); }, [dark]);
@@ -143,19 +272,24 @@ const scrollRevealGroups: ScrollRevealGroup[] = [
   { sectionSelector: "#about", itemSelector: ".about-resource-content > *" },
 ];
 
-function useScrollReveal(groups: ScrollRevealGroup[], contentVersion = "") {
+const scrollRevealItemDuration = 620;
+const scrollRevealItemStagger = 90;
+
+function useScrollReveal(groups: ScrollRevealGroup[], contentVersion = "", enabled = true) {
   useEffect(() => {
+    if (!enabled) return;
     const itemsBySection = new Map<HTMLElement, HTMLElement[]>();
     const sections = groups.flatMap(({ sectionSelector, itemSelector }) => {
       const section = document.querySelector<HTMLElement>(sectionSelector);
       if (!section) return [];
 
-      const items = Array.from(section.querySelectorAll<HTMLElement>(itemSelector)).filter((item) => !item.closest(".section-resource--ready .section-resource__skeleton"));
-      items.forEach((item, index) => {
+      const items = Array.from(section.querySelectorAll<HTMLElement>(itemSelector)).filter((item) => !item.closest(".section-resource__skeleton"));
+      const unrevealedItems = items.filter((item) => item.dataset.scrollRevealCompleted !== "true");
+      unrevealedItems.forEach((item, index) => {
         item.classList.add("scroll-reveal-item");
-        item.style.setProperty("--scroll-reveal-delay", `${index * 90}ms`);
+        item.style.setProperty("--scroll-reveal-delay", `${index * scrollRevealItemStagger}ms`);
       });
-      itemsBySection.set(section, items);
+      itemsBySection.set(section, unrevealedItems);
 
       return [section];
     });
@@ -166,9 +300,19 @@ function useScrollReveal(groups: ScrollRevealGroup[], contentVersion = "") {
     const reveal = (section: HTMLElement) => {
       section.classList.add("is-visible");
       const items = itemsBySection.get(section) ?? [];
-      const duration = 560 + Math.max(0, items.length - 1) * 90;
+      if (!items.length) return;
+      items.forEach((item) => { item.dataset.scrollRevealCompleted = "true"; });
+      const finish = () => items.forEach((item) => {
+        item.style.removeProperty("--scroll-reveal-delay");
+        item.classList.remove("scroll-reveal-item");
+      });
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        finish();
+        return;
+      }
+      const duration = scrollRevealItemDuration + Math.max(0, items.length - 1) * scrollRevealItemStagger;
       delayResetTimers.push(window.setTimeout(() => {
-        items.forEach((item) => item.style.removeProperty("--scroll-reveal-delay"));
+        finish();
       }, duration));
     };
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
@@ -187,12 +331,14 @@ function useScrollReveal(groups: ScrollRevealGroup[], contentVersion = "") {
       { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
     );
 
-    sections.forEach((section) => observer.observe(section));
+    sections.forEach((section) => {
+      if (section.classList.contains("is-visible")) reveal(section);
+      else observer.observe(section);
+    });
     return () => {
       observer.disconnect();
-      delayResetTimers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [contentVersion, groups]);
+  }, [contentVersion, enabled, groups]);
 }
 
 type ResourceStatus = "idle" | "loading" | "ready" | "error";
@@ -264,9 +410,10 @@ function useNearViewportPreload(targets: PreloadTarget[], distance = 400) {
   }, [distance, targets]);
 }
 
-function ResourceBoundary({ state, retry, skeleton, children }: { state: ResourceState<unknown>; retry: () => void; skeleton: ReactNode; children: ReactNode }) {
-  const isReady = state.status === "ready";
-  return <div className={`section-resource section-resource--${state.status}`} aria-busy={!isReady}>
+function ResourceBoundary({ state, fontStatus, retry, skeleton, children }: { state: ResourceState<unknown>; fontStatus: TextFontStatus; retry: () => void; skeleton: ReactNode; children: ReactNode }) {
+  const isReady = state.status === "ready" && (fontStatus === "ready" || fontStatus === "fallback");
+  const visualStatus = state.status === "ready" && !isReady ? "font-loading" : state.status;
+  return <div className={`section-resource section-resource--${visualStatus}${fontStatus === "fallback" ? " section-resource--font-fallback" : ""}`} aria-busy={!isReady && state.status !== "error"}>
     {state.status !== "error" && <div className="section-resource__skeleton" aria-hidden={isReady}>{skeleton}</div>}
     {isReady && <div className="section-resource__content">{children}</div>}
     {state.status === "error" && <div className="section-resource__error" role="status"><span>{state.message}</span><button type="button" onClick={retry}>重新加载</button></div>}
@@ -375,25 +522,183 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
       {showNavigation && <div className="site-top-controls__nav"><TubelightNavBar items={navItems} activeId={activeId} className="site-floating-nav" onNavigate={(id) => navigate(id)} /></div>}
       <div className="site-top-controls__theme"><LiquidGlassButton className="site-theme-toggle" variant="icon" type="button" aria-label="切换主题" aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>主题</span></LiquidGlassButton></div>
     </div>
-    <div className="candidate-shell">{children}<footer><span>{profile.name} · 大模型应用工程师</span><span>© {new Date().getFullYear()}</span></footer></div>
+    <div className={`candidate-shell${showNavigation ? "" : " candidate-shell--detail"}`}>{children}<footer><span>{profile.name} · 大模型应用工程师</span><span>© {new Date().getFullYear()}</span></footer></div>
   </AuroraBackground>;
 }
 
 type Project = typeof projects[number];
 
-function ScholarWeaverDetail({ project }: { project: Project }) {
+function CaseSignature({ project }: { project: Project }) {
   const Icon = project.icon;
-  return <main className="detail-page detail-page--case-study">
+  switch (project.id) {
+    case "pharmagent":
+      return <div className="case-signature case-signature--pharmagent" aria-label="药物研发工作流示意">
+        <span className="signature-kicker">RESEARCH ROUTE</span>
+        <div className="molecule-map" aria-hidden="true"><i/><i/><i/><i/><b/><b/><b/></div>
+        <div className="signature-foot"><span>靶点</span><em>→</em><span>性质</span><em>→</em><span>方案</span></div>
+      </div>;
+    case "sso-platform":
+      return <div className="case-signature case-signature--sso" aria-label="单点登录访问关系示意">
+        <span className="signature-kicker">TRUST TOPOLOGY</span>
+        <div className="access-board"><strong>CAS</strong><i/><span>Client A</span><span>Client B</span><b>ticket · session · claim</b></div>
+        <div className="signature-foot"><span>HTTPS</span><em>↔</em><span>身份权威</span></div>
+      </div>;
+    case "v2t":
+      return <div className="case-signature case-signature--v2t" aria-label="视频转写时间轴示意">
+        <span className="signature-kicker">TRANSCRIPT IN MOTION</span>
+        <div className="transcript-track"><small>00:03</small><div aria-hidden="true">{[18, 31, 46, 24, 53, 38, 65, 29, 44, 20, 58, 35].map((height, index) => <i key={index} style={{ height }} />)}</div><small>47:12</small></div>
+        <div className="caption-line"><b>识别</b><span>清洗 · 合并 · 摘要</span></div>
+      </div>;
+    case "eliminate":
+      return <div className="case-signature case-signature--eliminate" aria-label="主体保护掩码示意">
+        <span className="signature-kicker">MASK BEFORE REMOVE</span>
+        <div className="mask-stage" aria-hidden="true"><i/><i/><i/><b>主体</b><span>路人</span></div>
+        <div className="signature-foot"><span>保护区域</span><em>−</em><span>删除掩码</span></div>
+      </div>;
+    case "scholarweaver":
+      return <div className="case-signature case-signature--scholarweaver" aria-label="学术文档翻译示意">
+        <span className="signature-kicker">ANNOTATED MANUSCRIPT</span>
+        <div className="paper-spread" aria-hidden="true"><article><b>ABSTRACT</b><i/><i/><i/><em/></article><article><b>译文</b><i/><i/><i/><em/></article></div>
+        <div className="signature-foot"><span>原文</span><em>⇄</em><span>可审阅译稿</span></div>
+      </div>;
+    case "fubao":
+      return <div className="case-signature case-signature--fubao" aria-label="家庭共管任务示意">
+        <span className="signature-kicker">SHARED CARE DAY</span>
+        <div className="care-board"><article><b>子女</b><span>安排计划</span></article><i>↔</i><article><b>长辈</b><span>完成记录</span></article></div>
+        <div className="signature-foot"><span>同一日程</span><em>·</em><span>两种角色</span></div>
+      </div>;
+    default:
+      return <div className="case-signature"><Icon size={64}/></div>;
+  }
+}
+
+function CaseMasthead({ project, isTransitionTarget = false }: { project: Project; isTransitionTarget?: boolean }) {
+  const caseLabel = project.visibility === "private" ? "PRIVATE PROJECT CASE STUDY" : "REPOSITORY CASE STUDY";
+  return <section className={`case-masthead case-masthead--${project.id}${isTransitionTarget ? " case-masthead--transition-target" : ""}`}>
+    <div className="case-masthead__copy">
+      <p className="mono-label">{project.type} / {caseLabel}</p>
+      <h1>{project.title}</h1>
+      <p>{project.short}</p>
+      <div className="tag-row">{project.stack.map((item) => <span key={item}>{item}</span>)}</div>
+    </div>
+    <CaseSignature project={project}/>
+  </section>;
+}
+
+function EvidenceLabel({ status, source }: { status: string; source: string }) {
+  return <div className="evidence-label"><span>{status}</span><p>{source}</p></div>;
+}
+
+type SourceFigure = {
+  src: string;
+  alt: string;
+  kind: string;
+  title: string;
+  description: string;
+};
+
+function SourceFigureGallery({ title, description, figures }: { title: string; description: string; figures: SourceFigure[] }) {
+  return <div className="source-figures">
+    <div className="source-figures__heading"><div><p className="mono-label">DOCUMENT FIGURES</p><h3>{title}</h3></div><p>{description}</p></div>
+    <div className="source-figure-grid">
+      {figures.map((figure) => <figure className="source-figure" key={figure.src}>
+        <a className="source-figure__asset" href={figure.src} target="_blank" rel="noreferrer" aria-label={`在新标签页查看原图：${figure.title}`}>
+          <img src={figure.src} alt={figure.alt} loading="lazy" decoding="async" />
+          <span>查看原图 <ArrowUpRight size={14} aria-hidden="true" /></span>
+        </a>
+        <figcaption><p>{figure.kind}</p><h4>{figure.title}</h4><span>{figure.description}</span></figcaption>
+      </figure>)}
+    </div>
+  </div>;
+}
+
+function PharmAgentEvidence() {
+  const steps = [
+    ["研究起点", "疾病、靶点或候选药物"],
+    ["可信信息", "ChEMBL、openFDA 与知识库"],
+    ["插件分析", "分子生成与 ADMET 解析"],
+    ["工作流编排", "FastGPT 路由、检索与调用"],
+    ["方案输出", "递送策略与验证框架"],
+  ];
+
+  return <section className="detail-section evidence-section evidence-section--pharmagent">
+    <div className="detail-section__heading"><p className="mono-label">02 / KEY EVIDENCE</p><h2>从研究问题到递送策略，不让建议脱离输入</h2><p>这条链路从项目书中提炼模块之间的输入与交接关系，说明方案如何被组织；它不是模型准确率、临床有效性或线上性能的证明。</p></div>
+    <EvidenceLabel status="项目材料所述模块" source="依据：药物—靶点、ADMET、分子生成与递送策略的工作流描述"/>
+    <ol className="research-trace" aria-label="PharmAgent 研究证据链">
+      {steps.map(([title, description], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><strong>{title}</strong><p>{description}</p></li>)}
+    </ol>
+    <div className="detail-callout"><GitBranch size={18}/><p>网页只保留每一步的职责与可追溯交接：外部数据、模型插件和工作流共同支撑研究辅助，而非把任何单一数据源或生成结果包装为结论。</p></div>
+    <SourceFigureGallery title="原始项目图：部署边界与智能体编排" description="两张原图分别回答“请求从哪里进入”与“工作流内部怎样调度”。点击任一图可在新标签页查看原始分辨率。" figures={[
+      { src: "/project-evidence/pharmagent-system-architecture.png", alt: "PharmAgent 原始系统架构图，展示微信端、Giiso 私域部署、主 API、FastGPT 工作流及插件层。", kind: "系统架构原图", title: "从微信端到 ChEMBL、ADMET 与分子生成插件", description: "项目书把交互端、私域部署、主 API、FastGPT 编排层和插件层放在同一调用图中。" },
+      { src: "/project-evidence/pharmagent-fastgpt-workflow.png", alt: "PharmAgent 原始 FastGPT 工作流截图，包含知识检索、分子生成和 ADMET 节点。", kind: "工作流原图", title: "知识检索、分子生成与 ADMET 的节点编排", description: "原始画布保留了插件节点及其连线，作为上方五段流程的实现层补充。" },
+    ]}/>
+  </section>;
+}
+
+function ScholarWeaverEvidence() {
+  const steps = [
+    ["论文输入", "PDF 的页面、文本与结构"],
+    ["可读结构", "解析、占位保护与全文摘要"],
+    ["领域辅助", "术语归一与参考例句检索"],
+    ["两阶段翻译", "初稿、反思与结构化修订"],
+    ["审阅输出", "原译对照与可定位阅读"],
+  ];
+
+  return <section className="detail-section evidence-section evidence-section--scholarweaver">
+    <div className="detail-section__heading"><p className="mono-label">02 / KEY EVIDENCE</p><h2>把学术翻译拆成可审阅的处理链</h2><p>页面将解析、术语、参考例句与翻译修订明确分开，强调文档结构为何能保留，而不将 Demo 描述成已完成的质量评测。</p></div>
+    <EvidenceLabel status="DEMO WORKFLOW" source="依据：项目书、公开 README 与已审查的工作流目录"/>
+    <div className="translation-evidence">
+      <ol className="translation-flow" aria-label="ScholarWeaver 文档翻译链路">
+        {steps.map(([title, description], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{title}</strong><p>{description}</p></div></li>)}
+      </ol>
+      <aside className="translation-proof" aria-label="原文与译文对照的网页原生示意">
+        <div className="translation-proof__header"><strong>输出结构示意</strong><span>网页原生重绘</span></div>
+        <div className="translation-proof__pages" aria-hidden="true">
+          <article><b>ORIGINAL</b><i/><i/><i/><em>TableFormer</em><i className="is-short"/><i/></article>
+          <article><b>译文</b><i/><i/><i/><em>术语锚点</em><i className="is-short"/><i/></article>
+        </div>
+        <p>术语提示、表格占位与参考文献保留是输出结构的设计重点；此处不是竞品对比或准确率展示。</p>
+      </aside>
+    </div>
+    <div className="detail-callout"><GitBranch size={18}/><p>zx6831 的可见提交聚焦服务端到本地检索服务的联通层和端点测试；因此页面把贡献叙述限定为可见的转发与联调工作，不替代其他协作者的实现归属。</p></div>
+    <SourceFigureGallery title="原始项目图：解析管道与双栏工作台" description="原图把处理管道和用户最终看到的阅读界面并置：前者解释为何能保留结构，后者说明成果以怎样的形态交付。" figures={[
+      { src: "/project-evidence/scholarweaver-processing-pipeline.png", alt: "ScholarWeaver 项目书中的文档解析处理管道图，展示 PDF 页面、OCR、版面分析、表格结构及 JSON 或 Markdown 输出。", kind: "处理管道原图", title: "PDF 页面经 OCR、版面与表格处理后组装输出", description: "原始技术报告图直观呈现文档拆解、模型管道与结构化结果之间的关系。" },
+      { src: "/project-evidence/scholarweaver-translation-workbench.png", alt: "ScholarWeaver 原始工作台截图，左侧目录，中间原文，右侧译文。", kind: "工作台截图", title: "原文、译文与文件目录同屏审阅", description: "原始界面把文件管理与双栏阅读并列，补足“审阅输出”在真实产品中的落点。" },
+    ]}/>
+  </section>;
+}
+
+function FubaoEvidence() {
+  const roles = [
+    ["01", "子女", "制定计划，查看进度"],
+    ["02", "同一家庭事实", "计划与任务按家庭边界记录"],
+    ["03", "长辈", "以少步骤完成和确认任务"],
+    ["04", "关怀反馈", "火花、提醒与可追溯状态"],
+  ];
+
+  return <section className="detail-section evidence-section evidence-section--fubao">
+    <div className="detail-section__heading"><p className="mono-label">02 / KEY EVIDENCE</p><h2>一日共管，不是同一界面的两种配色</h2><p>核心体验由角色分工与同一家庭事实源共同构成：子女配置、长辈确认、系统再呈现可解释的进度与关怀反馈。</p></div>
+    <EvidenceLabel status="V1.4 架构边界" source="依据：双角色产品流程、Family 聚合、OCR 与 Agent 执行说明"/>
+    <ol className="role-loop" aria-label="福豹家庭共管闭环">
+      {roles.map(([order, title, description]) => <li key={order}><span>{order}</span><strong>{title}</strong><p>{description}</p></li>)}
+    </ol>
+    <div className="privacy-rail" aria-label="福豹 OCR、健康档案与 AI 的数据边界">
+      <article className="privacy-rail__node privacy-rail__node--local"><span>本地编辑</span><strong>OCR 候选</strong><p>原图与识别原文停留在设备</p></article><i aria-hidden="true">→</i>
+      <article className="privacy-rail__node"><span>用户确认</span><strong>家庭业务事实</strong><p>由 NestJS 与 Family 授权管理</p></article><i aria-hidden="true">→</i>
+      <article className="privacy-rail__node privacy-rail__node--service"><span>受控服务</span><strong>最小上下文</strong><p>AI 仅处理筛选后的请求</p></article>
+    </div>
+    <div className="detail-callout"><ShieldAlert size={18}/><p>健康事件等级由确定性规则形成；本地 OCR 的候选必须经用户确认，AI 不持有原图或完整档案，也不替代诊断或用药决策。</p></div>
+    <SourceFigureGallery title="原始项目图：家庭闭环与分层系统上下文" description="业务图呈现子女端与长辈端围绕 Family 协作的完整闭环；系统图则把前端、业务权威层、内部 AI 与外部依赖的边界展开。" figures={[
+      { src: "/project-evidence/fubao-family-loop.png", alt: "福豹 V1.4 产品总体业务闭环图，围绕 Family 展示子女端和长辈端的健康共管流程。", kind: "业务闭环原图", title: "Family 连接两端角色与九个持续共管环节", description: "从创建家庭、档案和 DailyTask，到健康报告、建议与互动，原图完整呈现产品的业务叙事。" },
+      { src: "/project-evidence/fubao-system-context.png", alt: "福豹系统上下文图，展示 Flutter 双角色 App、NestJS Core、Python AI Service 和外部 Provider 的安全分区。", kind: "系统上下文原图", title: "Flutter、NestJS、内部 AI 与 Provider 的分层边界", description: "图中保留客户端、业务权威层、内网 AI 和外部依赖之间的调用方向与关键安全约束。" },
+    ]}/>
+  </section>;
+}
+
+function ScholarWeaverDetail({ project, isTransitionTarget }: { project: Project; isTransitionTarget: boolean }) {
+  return <main className="detail-page detail-page--case-study case-theme--scholarweaver">
     <a className="back-link" href="/#work"><ArrowLeft size={16}/> 返回作品集</a>
-    <section className="detail-hero glass-panel">
-      <div>
-        <p className="mono-label">{project.type} / REPOSITORY CASE STUDY</p>
-        <h1>{project.title}</h1>
-        <p>{project.short}</p>
-        <div className="tag-row">{project.stack.map(x => <span key={x}>{x}</span>)}</div>
-      </div>
-      <div className="project-glyph"><Icon size={72}/><span>CASE / {project.id.toUpperCase()}</span></div>
-    </section>
+    <CaseMasthead project={project} isTransitionTarget={isTransitionTarget}/>
 
     <section className="detail-summary">
       <article>
@@ -409,21 +714,7 @@ function ScholarWeaverDetail({ project }: { project: Project }) {
       </aside>
     </section>
 
-    <section className="detail-section">
-      <div className="detail-section__heading"><p className="mono-label">02 / 系统结构</p><h2>从论文 PDF 到可审阅的翻译输出</h2><p>以下关系根据公开仓库的 <code>server.py</code>、<code>workflow/</code>、<code>utils/</code> 和项目 README 整理；它是源码结构图，不是运行性能图。</p></div>
-      <div className="architecture-flow" aria-label="ScholarWeaver 文档翻译系统结构">
-        <article><FileText size={23}/><strong>PDF 输入</strong><span>论文文档与页面内容</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Database size={23}/><strong>解析与知识辅助</strong><span>MinerU、术语与参考例句</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Layers3 size={23}/><strong>Dingjia 组件</strong><span>参考例句检索与重排</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Workflow size={23}/><strong>翻译工作流</strong><span>两阶段翻译与反思修订</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Network size={23}/><strong>FastAPI 服务</strong><span>任务、文件和结果接口</span></article>
-      </div>
-      <div className="detail-callout"><GitBranch size={18}/><p>zx6831 的可见提交新增了服务端到本地 <code>8031</code> 端口的转发层，并为健康检查、重排、索引、任务构建和文件上传等路径增加联通性测试脚本。</p></div>
-    </section>
+    <ScholarWeaverEvidence/>
 
     <section className="detail-section detail-section--implementation">
       <div className="detail-section__heading"><p className="mono-label">03 / 核心实现</p><h2>把非结构化论文处理拆成可配置环节</h2></div>
@@ -457,19 +748,10 @@ function ScholarWeaverDetail({ project }: { project: Project }) {
   </main>;
 }
 
-function FubaoDetail({ project }: { project: Project }) {
-  const Icon = project.icon;
+function FubaoDetail({ project, isTransitionTarget }: { project: Project; isTransitionTarget: boolean }) {
   return <main className="detail-page detail-page--case-study detail-page--fubao">
     <a className="back-link" href="/#work"><ArrowLeft size={16}/> 返回作品集</a>
-    <section className="detail-hero glass-panel">
-      <div>
-        <p className="mono-label">{project.type} / PRIVATE PROJECT CASE STUDY</p>
-        <h1>{project.title}</h1>
-        <p>{project.short}</p>
-        <div className="tag-row">{project.stack.map(x => <span key={x}>{x}</span>)}</div>
-      </div>
-      <div className="project-glyph"><Icon size={72}/><span>CASE / {project.id.toUpperCase()}</span></div>
-    </section>
+    <CaseMasthead project={project} isTransitionTarget={isTransitionTarget}/>
 
     <section className="detail-summary">
       <article>
@@ -485,21 +767,7 @@ function FubaoDetail({ project }: { project: Project }) {
       </aside>
     </section>
 
-    <section className="detail-section">
-      <div className="detail-section__heading"><p className="mono-label">02 / 系统结构</p><h2>同一领域模型服务两种使用角色</h2><p>结构依据私有仓库的 Flutter 数据层、NestJS 模块、Prisma schema 与 Compose 配置整理。代码仓库保持私有，本页只呈现必要的技术关系与可公开的项目描述。</p></div>
-      <div className="architecture-flow architecture-flow--fubao" aria-label="福豹应用系统结构">
-        <article><HeartPulse size={23}/><strong>双角色界面</strong><span>子女端 / 长辈端</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Layers3 size={23}/><strong>Flutter 数据边界</strong><span>Demo / Remote Repository</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Network size={23}/><strong>NestJS API</strong><span>认证、家庭、计划、健康</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Database size={23}/><strong>PostgreSQL</strong><span>Prisma 迁移与领域状态</span></article>
-        <i aria-hidden="true">→</i>
-        <article><Workflow size={23}/><strong>Redis / 通知适配</strong><span>缓存、限流与提醒通道</span></article>
-      </div>
-      <div className="detail-callout"><GitBranch size={18}/><p>客户端把 <code>demo</code>、<code>dev</code> 与 <code>production</code> 的数据来源分开：演示模式便于完整交互验证，连接后端时再通过远程仓库实现处理登录、家庭与业务状态。</p></div>
-    </section>
+    <FubaoEvidence/>
 
     <section className="detail-section detail-section--implementation">
       <div className="detail-section__heading"><p className="mono-label">03 / 核心实现</p><h2>从界面状态到服务端约束</h2></div>
@@ -533,32 +801,22 @@ function FubaoDetail({ project }: { project: Project }) {
   </main>;
 }
 
-function AuditedProjectDetail({ project }: { project: Project }) {
+function AuditedProjectDetail({ project, isTransitionTarget }: { project: Project; isTransitionTarget: boolean }) {
   const detail = auditedCaseStudies[project.id as keyof typeof auditedCaseStudies];
-  const Icon = project.icon;
   const flowIcons = [FileText, Database, Workflow, Network, Layers3];
   const implementationIcons = [Code2, ShieldAlert, Workflow];
-  const isPrivate = project.visibility === "private";
   const resourceAction = "action" in detail.resources ? detail.resources.action : undefined;
 
-  return <main className="detail-page detail-page--case-study">
+  return <main className={`detail-page detail-page--case-study case-theme--${project.id}`}>
     <a className="back-link" href="/#work"><ArrowLeft size={16}/> 返回作品集</a>
-    <section className="detail-hero glass-panel">
-      <div>
-        <p className="mono-label">{project.type} / {isPrivate ? "PRIVATE PROJECT CASE STUDY" : "REPOSITORY CASE STUDY"}</p>
-        <h1>{project.title}</h1>
-        <p>{project.short}</p>
-        <div className="tag-row">{project.stack.map((item) => <span key={item}>{item}</span>)}</div>
-      </div>
-      <div className="project-glyph"><Icon size={72}/><span>CASE / {project.id.toUpperCase()}</span></div>
-    </section>
+    <CaseMasthead project={project} isTransitionTarget={isTransitionTarget}/>
 
     <section className="detail-summary">
       <article><p className="mono-label">01 / 项目定位</p><h2>{detail.position.title}</h2><p>{detail.position.text}</p></article>
       <aside className="glass-panel detail-facts">{detail.facts.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</aside>
     </section>
 
-    <section className="detail-section">
+    {project.id === "pharmagent" ? <PharmAgentEvidence/> : <section className="detail-section">
       <div className="detail-section__heading"><p className="mono-label">02 / 系统链路</p><h2>让每个输入、边界与输出都有位置</h2><p>以下链路依据已审查的仓库源码、测试、项目文档或本地工程目录整理；它描述系统结构与工作边界，不代表性能或效果承诺。</p></div>
       <div className="architecture-flow" aria-label={`${project.title} 系统链路`}>
         {detail.flow.map(([title, description], index) => {
@@ -567,7 +825,7 @@ function AuditedProjectDetail({ project }: { project: Project }) {
         })}
       </div>
       <div className="detail-callout"><GitBranch size={18}/><p>{detail.note}</p></div>
-    </section>
+    </section>}
 
     <section className="detail-section detail-section--implementation">
       <div className="detail-section__heading"><p className="mono-label">03 / 核心实现</p><h2>以可验证材料收束项目描述</h2></div>
@@ -589,19 +847,20 @@ function AuditedProjectDetail({ project }: { project: Project }) {
   </main>;
 }
 
-function ProjectDetail({ id }: { id: string }) {
+function ProjectDetail({ id, transitionProjectId }: { id: string; transitionProjectId: string | null }) {
   const project = projects.find(p => p.id === id);
   if (!project) return <UnknownProjectPage />;
-  if (project.id === "fubao") return <FubaoDetail project={project}/>;
-  if (project.id === "scholarweaver") return <ScholarWeaverDetail project={project}/>;
-  return <AuditedProjectDetail project={project}/>;
+  const isTransitionTarget = transitionProjectId === project.id;
+  if (project.id === "fubao") return <FubaoDetail project={project} isTransitionTarget={isTransitionTarget}/>;
+  if (project.id === "scholarweaver") return <ScholarWeaverDetail project={project} isTransitionTarget={isTransitionTarget}/>;
+  return <AuditedProjectDetail project={project} isTransitionTarget={isTransitionTarget}/>;
 }
 
 function UnknownProjectPage() { return <main className="status-page"><div className="status-code">404</div><p className="mono-label">PROJECT / NOT FOUND</p><h1>这个项目链接已失效</h1><p>项目清单已经更新。为避免展示错误的项目详情，请返回项目列表后重新选择。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/#work">返回项目 <ArrowUpRight size={16}/></LiquidGlassButton></div></main>; }
 
 function OfflinePage() { return <main className="status-page"><div className="status-code">503</div><p className="mono-label">DEMO SERVICE / TEMPORARILY OFFLINE</p><h1>演示服务暂时不可用</h1><p>项目案例仍可浏览；仓库中可核验的源码与接口文档不依赖在线演示服务。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/?project=scholarweaver">查看项目案例</LiquidGlassButton><LiquidGlassButton href={profile.github}>访问 GitHub <Github size={16}/></LiquidGlassButton></div></main>; }
 
-function Home() {
+function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpen: (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => void; transitionProjectId: string | null; fontStatus: FontGateStatus }) {
   const summary = useJsonResource<SummaryData>("/data/home-summary.json");
   const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache");
   const skills = useJsonResource<SkillsData>("/data/home-skills.json");
@@ -614,21 +873,85 @@ function Home() {
   ], [about.load, skills.load, summary.load, work.load]);
 
   useNearViewportPreload(preloadTargets, 400);
-  useScrollReveal(scrollRevealGroups, [summary.state.status, work.state.status, skills.state.status, about.state.status].join("|"));
 
   const workData = work.state.data;
   const skillsData = skills.state.data;
   const summaryData = summary.state.data;
   const aboutData = about.state.data;
+  const summaryFontStatus = useTextFontGate(collectText(summaryData), fontStatus);
+  const workFontStatus = useTextFontGate(collectText(workData), fontStatus);
+  const skillsFontStatus = useTextFontGate(collectText(skillsData), fontStatus);
+  const aboutFontStatus = useTextFontGate(collectText(aboutData), fontStatus);
   const projectIcons = { pharmagent: HeartPulse, "sso-platform": Network, v2t: FileText, eliminate: Layers3, scholarweaver: Database, fubao: HeartPulse };
+
+  useScrollReveal(scrollRevealGroups, [summary.state.status, summaryFontStatus, work.state.status, workFontStatus, skills.state.status, skillsFontStatus, about.state.status, aboutFontStatus].join("|"), fontStatus !== "loading");
 
   return <main>
     <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 求职中 · 接受大模型应用工程实习</div><p className="mono-label">AI APPLICATION ENGINEER / 2026</p><h1><span>姓名</span>，把大模型能力<br/>交付成<span className="accent-word">可用系统。</span></h1><p className="hero-lead">聚焦 RAG、多智能体、ASR 与生成式 AI 应用，关注模型能力如何进入真实工作流，并以清晰、稳定的产品形态完成交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">查看项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>下载简历 <Download size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="avatar-mock"><UserRound size={54}/><span>头像待替换</span></div><div className="identity-copy"><strong>{profile.title}</strong><p>候选人简介待补充：教育背景、技术兴趣与求职时间。</p></div><div className="signal-line"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>方向</span><b>LLM · Agent · RAG</b><span>意向</span><b>实习 / 校招</b></div></aside></section>
-    <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{summaryData.count}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
-    <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database; return <a href={`/?project=${project.id}`} className="case-row glass-panel" key={project.id}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
-    <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <><div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading.split("，")[0]}，<br/>{skillsData.heading.split("，").slice(1).join("，")}</h2></div><div className="skill-track">{skillsData.skills.map((skill) => <article key={skill.index}><span>{skill.index}</span><h3>{skill.title}</h3><p>{skill.description}</p></article>)}</div></>}</ResourceBoundary></section>
-    <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>简历 <Download size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
+    <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} fontStatus={summaryFontStatus} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{summaryData.count}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
+    <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database; const isTransitionSource = transitionProjectId === project.id; return <a href={`/?project=${project.id}`} className={`case-row glass-panel${isTransitionSource ? " case-row--transition-source" : ""}`} key={project.id} onClick={(event) => onProjectOpen(event, project.id)}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
+    <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} fontStatus={skillsFontStatus} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <><div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading.split("，")[0]}，<br/>{skillsData.heading.split("，").slice(1).join("，")}</h2></div><div className="skill-track">{skillsData.skills.map((skill) => <article key={skill.index}><span>{skill.index}</span><h3>{skill.title}</h3><p>{skill.description}</p></article>)}</div></>}</ResourceBoundary></section>
+    <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} fontStatus={aboutFontStatus} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>简历 <Download size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
   </main>;
 }
 
-export function App() { const [dark,setDark]=useTheme(); useEffect(() => { document.documentElement.classList.add("app-ready"); }, []); const params=new URLSearchParams(location.search); const projectId=params.get("project"); const content=params.has("status")?<OfflinePage/>:projectId?<ProjectDetail id={projectId}/>:<Home/>; return <Shell dark={dark} setDark={setDark} showNavigation={!projectId}>{content}</Shell>; }
+type AppRoute = { hasStatus: boolean; projectId: string | null };
+type ProjectViewTransition = { finished: Promise<unknown> };
+type ProjectViewTransitionDocument = Document & { startViewTransition?: (update: () => void | Promise<void>) => ProjectViewTransition };
+
+function readAppRoute(): AppRoute {
+  const params = new URLSearchParams(location.search);
+  return { hasStatus: params.has("status"), projectId: params.get("project") };
+}
+
+export function App() {
+  const [dark, setDark] = useTheme();
+  const [route, setRoute] = useState(readAppRoute);
+  const [transitionProjectId, setTransitionProjectId] = useState<string | null>(null);
+  const fontStatus = useDocumentFontGate();
+
+  useEffect(() => {
+    document.documentElement.dataset.fontStatus = fontStatus;
+    document.documentElement.classList.toggle("font-loading", fontStatus === "loading");
+    document.documentElement.classList.toggle("font-fallback", fontStatus === "fallback");
+    if (fontStatus !== "loading") document.documentElement.classList.add("app-ready");
+  }, [fontStatus]);
+
+  useEffect(() => {
+    const updateRoute = () => setRoute(readAppRoute());
+    window.addEventListener("popstate", updateRoute);
+    return () => window.removeEventListener("popstate", updateRoute);
+  }, []);
+
+  const openProject = useCallback((event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const transitionDocument = document as ProjectViewTransitionDocument;
+    if (!transitionDocument.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    event.preventDefault();
+    flushSync(() => setTransitionProjectId(projectId));
+    document.documentElement.classList.add("project-route-transition");
+
+    const updateRoute = () => {
+      history.pushState(null, "", `/?project=${projectId}`);
+      flushSync(() => setRoute(readAppRoute()));
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    };
+
+    try {
+      const transition = transitionDocument.startViewTransition(updateRoute);
+      void transition.finished.catch(() => undefined).finally(() => {
+        document.documentElement.classList.remove("project-route-transition");
+        setTransitionProjectId(null);
+      });
+    } catch {
+      document.documentElement.classList.remove("project-route-transition");
+      flushSync(() => setTransitionProjectId(null));
+      updateRoute();
+    }
+  }, []);
+
+  const content = route.hasStatus ? <OfflinePage/> : route.projectId ? <ProjectDetail id={route.projectId} transitionProjectId={transitionProjectId}/> : <Home onProjectOpen={openProject} transitionProjectId={transitionProjectId} fontStatus={fontStatus}/>;
+  return <Shell dark={dark} setDark={setDark} showNavigation={!route.projectId}>{content}</Shell>;
+}

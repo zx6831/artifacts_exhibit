@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Database, Dna, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Medal, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench } from "lucide-react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { CaseTaskStory, CaseImplementation, TranslationImplementation, FamilyImplementation, caseEditorial } from "./case-stories";
 import { AuroraBackground } from "@/components/ui/aurora-background";
@@ -349,7 +349,7 @@ function useScrollReveal(groups: ScrollRevealGroup[], contentVersion = "", enabl
           observer.unobserve(entry.target);
         });
       },
-      { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" }
     );
 
     sections.forEach((section) => {
@@ -606,7 +606,7 @@ function CaseMasthead({ project, isTransitionTarget = false }: { project: Projec
   return <section className={`case-masthead case-masthead--${project.id}${isTransitionTarget ? " case-masthead--transition-target" : ""}`}>
     <div className="case-masthead__copy">
       <p className="mono-label">{project.type} / {caseLabel}</p>
-      <h1>{project.title}</h1>
+      <h1 className={isTransitionTarget ? "case-title--transition-target" : undefined}>{project.title}</h1>
       <p>{project.short}</p>
       <div className="tag-row">{project.stack.map((item) => <span key={item}>{item}</span>)}</div>
     </div>
@@ -859,7 +859,7 @@ function UnknownProjectPage() { return <main className="status-page"><div classN
 
 function OfflinePage() { return <main className="status-page"><div className="status-code">503</div><p className="mono-label">DEMO SERVICE / TEMPORARILY OFFLINE</p><h1>演示服务暂时不可用</h1><p>项目案例仍可浏览；仓库中可核验的源码与接口文档不依赖在线演示服务。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/?project=scholarweaver">查看项目案例</LiquidGlassButton><LiquidGlassButton href={profile.github}>访问 GitHub <Github size={16}/></LiquidGlassButton></div></main>; }
 
-function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpen: (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => void; transitionProjectId: string | null; fontStatus: FontGateStatus }) {
+function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => void; fontStatus: FontGateStatus }) {
   const summary = useJsonResource<SummaryData>("/data/home-summary.json");
   const awards = useJsonResource<AwardsData>("/data/home-awards.json", 7000, "no-cache");
   const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache");
@@ -867,6 +867,10 @@ function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpe
   const about = useJsonResource<AboutData>("/data/home-about.json");
   const initialSectionId = useRef(location.hash.slice(1));
   const restoredInitialSection = useRef(false);
+  const openFromHome = (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => {
+    if (!event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) restoredInitialSection.current = true;
+    onProjectOpen(event, projectId);
+  };
   const preloadTargets = useMemo(() => [
     { selector: "#proof", load: summary.load },
     { selector: "#awards", load: awards.load },
@@ -919,16 +923,16 @@ function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpe
       <div className="section-title"><p className="mono-label">{awardsData.eyebrow}</p><h2>{awardsData.heading}</h2><p>{awardsData.description}</p></div>
       <div className="award-ledger">{awardsData.awards.map((award) => <article className="award-certificate glass-panel" key={award.title}>
         <div className="award-certificate__result"><div className="award-certificate__meta"><span>{award.level}</span><span>{award.edition}</span>{award.result.startsWith("本科生组") && <span>本科生组</span>}</div><strong>{award.result.replace(/^本科生组/, "")}</strong><span className="award-certificate__badge"><Medal size={20} aria-hidden="true"/>{award.badge}</span></div>
-        <div className="award-certificate__main"><p className="mono-label">{award.category}</p><h3>{award.title}</h3>{award.project && award.projectId ? <a href={`/?project=${award.projectId}`} className="award-certificate__project"><span>关联作品<strong>{award.project}</strong></span><ArrowUpRight size={19} aria-hidden="true"/></a> : <p className="award-certificate__project award-certificate__project--static">独立竞赛荣誉</p>}<p className="award-certificate__source"><span>材料来源</span>{award.evidence}</p></div>
+        <div className="award-certificate__main"><p className="mono-label">{award.category}</p><h3>{award.title}</h3>{award.project && award.projectId ? <a href={`/?project=${award.projectId}`} className="award-certificate__project" onClick={(event) => openFromHome(event, award.projectId!)}><span>关联作品<strong>{award.project}</strong></span><ArrowUpRight size={19} aria-hidden="true"/></a> : <p className="award-certificate__project award-certificate__project--static">独立竞赛荣誉</p>}<p className="award-certificate__source"><span>材料来源</span>{award.evidence}</p></div>
       </article>)}</div>
     </>}</ResourceBoundary></section>
-    <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database; const isTransitionSource = transitionProjectId === project.id; return <a href={`/?project=${project.id}`} className={`case-row glass-panel${isTransitionSource ? " case-row--transition-source" : ""}`} key={project.id} onClick={(event) => onProjectOpen(event, project.id)}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
+    <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database; return <a href={`/?project=${project.id}`} className="case-row glass-panel" key={project.id} onClick={(event) => openFromHome(event, project.id)}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} fontStatus={skillsFontStatus} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <>
       <div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading}</h2><p>{skillsData.description}</p></div>
       <ol className="capability-route" aria-label="能力交付顺序">{skillsData.skills.map((skill) => <li key={skill.index}><span>{skill.index}</span>{skill.title}</li>)}</ol>
       <div className="skill-track">{skillsData.skills.map((skill) => <article className="capability-card glass-panel" key={skill.index}>
         <header><span className="capability-step">{skill.index}</span><div><p className="mono-label">{skill.output}</p><h3>{skill.title}</h3></div></header><p>{skill.description}</p><ul className="capability-methods">{skill.methods.map((method) => <li key={method}>{method}</li>)}</ul><div className="tag-row">{skill.tools.map((tool) => <span key={tool}>{tool}</span>)}</div>
-        <div className="capability-cases"><p className="mono-label">在项目中查看</p>{skill.cases.map((item) => <a href={`/?project=${item.id}`} key={item.id}><span><strong>{item.label}</strong><small>{item.context}</small></span><ArrowUpRight size={18} aria-hidden="true"/></a>)}</div>
+        <div className="capability-cases"><p className="mono-label">在项目中查看</p>{skill.cases.map((item) => <a href={`/?project=${item.id}`} key={item.id} onClick={(event) => openFromHome(event, item.id)}><span><strong>{item.label}</strong><small>{item.context}</small></span><ArrowUpRight size={18} aria-hidden="true"/></a>)}</div>
       </article>)}</div>
     </>}</ResourceBoundary></section>
     <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} fontStatus={aboutFontStatus} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
@@ -936,6 +940,7 @@ function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpe
 }
 
 type AppRoute = { hasStatus: boolean; projectId: string | null };
+type ProjectOrigin = { projectId: string; element: HTMLElement; title: HTMLElement | null; scrollY: number; radius: string; url: string };
 type ProjectViewTransition = { finished: Promise<unknown> };
 type ProjectViewTransitionDocument = Document & { startViewTransition?: (update: () => void | Promise<void>) => ProjectViewTransition };
 
@@ -944,10 +949,26 @@ function readAppRoute(): AppRoute {
   return { hasStatus: params.has("status"), projectId: params.get("project") };
 }
 
+function scrollImmediately(top: number) {
+  const root = document.documentElement;
+  const previousBehavior = root.style.scrollBehavior;
+  root.style.scrollBehavior = "auto";
+  window.scrollTo({ top, left: 0, behavior: "instant" });
+  requestAnimationFrame(() => { root.style.scrollBehavior = previousBehavior; });
+}
+
+function nameProjectOrigin(origin: ProjectOrigin, active: boolean) {
+  origin.element.style.viewTransitionName = active ? "project-card" : "";
+  if (origin.title) origin.title.style.viewTransitionName = active ? "project-title" : "";
+  if (active) document.documentElement.style.setProperty("--project-origin-radius", origin.radius);
+}
+
 export function App() {
   const [dark, setDark] = useTheme();
   const [route, setRoute] = useState(readAppRoute);
   const [transitionProjectId, setTransitionProjectId] = useState<string | null>(null);
+  const [homeMounted, setHomeMounted] = useState(() => !readAppRoute().projectId);
+  const projectOrigin = useRef<ProjectOrigin | null>(null);
   const fontStatus = useDocumentFontGate();
 
   useEffect(() => {
@@ -958,40 +979,134 @@ export function App() {
   }, [fontStatus]);
 
   useEffect(() => {
-    const updateRoute = () => setRoute(readAppRoute());
+    const previousRestoration = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    return () => {
+      history.scrollRestoration = previousRestoration;
+    };
+  }, []);
+
+  const restoreRoute = useCallback((nextRoute: AppRoute, requestedSource?: Element) => {
+    const transitionDocument = document as ProjectViewTransitionDocument;
+    if (!nextRoute.projectId && route.projectId && homeMounted
+      && typeof (document as unknown as { startViewTransition?: unknown }).startViewTransition === "function"
+      && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const masthead = document.querySelector<HTMLElement>(".case-masthead");
+      const resources = document.querySelector<HTMLElement>(".detail-resources");
+      const isVisible = (element: HTMLElement | null) => {
+        const rect = element?.getBoundingClientRect();
+        return Boolean(rect && rect.bottom > 0 && rect.top < innerHeight);
+      };
+      const returnFromResources = Boolean(requestedSource?.closest(".detail-resources"));
+      const source = returnFromResources && isVisible(resources) ? "resources"
+        : isVisible(masthead) ? "masthead"
+        : isVisible(resources) ? "resources" : null;
+      const origin = projectOrigin.current;
+      const shareCard = Boolean(source && origin?.projectId === route.projectId && origin.element.isConnected);
+      if (source === "resources" && shareCard) document.documentElement.classList.add("project-return-transition--resources");
+      if (shareCard && origin) {
+        nameProjectOrigin(origin, true);
+        flushSync(() => setTransitionProjectId(route.projectId));
+      }
+      document.documentElement.classList.add("project-return-transition");
+      if (shareCard) document.documentElement.classList.add("project-return-transition--shared");
+      const cleanup = () => {
+        document.documentElement.classList.remove("project-return-transition", "project-return-transition--shared", "project-return-transition--resources");
+        if (shareCard && origin && !readAppRoute().projectId && projectOrigin.current === origin) {
+          nameProjectOrigin(origin, false);
+          setTransitionProjectId(null);
+        }
+      };
+      try {
+        const transition = transitionDocument.startViewTransition!(() => flushSync(() => setRoute(nextRoute)));
+        void transition.finished.catch(() => undefined).finally(cleanup);
+        return;
+      } catch {
+        cleanup();
+      }
+    }
+    flushSync(() => setRoute(nextRoute));
+  }, [homeMounted, route.projectId]);
+
+  useEffect(() => {
+    const updateRoute = () => restoreRoute(readAppRoute());
     window.addEventListener("popstate", updateRoute);
     return () => window.removeEventListener("popstate", updateRoute);
-  }, []);
+  }, [restoreRoute]);
+
+  useLayoutEffect(() => {
+    if (!route.projectId && !homeMounted) setHomeMounted(true);
+    if (!route.projectId && projectOrigin.current?.scrollY) {
+      scrollImmediately(projectOrigin.current.scrollY);
+    }
+  }, [homeMounted, route.projectId]);
+
+  const showHome = useCallback((source?: Element) => {
+    history.pushState(null, "", projectOrigin.current?.url ?? "/#work");
+    restoreRoute(readAppRoute(), source);
+  }, [restoreRoute]);
+
+  useEffect(() => {
+    if (!route.projectId || !homeMounted) return;
+    const onBackLink = (event: MouseEvent) => {
+      const anchor = (event.target as Element).closest<HTMLAnchorElement>('a[href="/#work"]');
+      if (!anchor || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      showHome(anchor);
+    };
+    document.addEventListener("click", onBackLink);
+    return () => document.removeEventListener("click", onBackLink);
+  }, [homeMounted, route.projectId, showHome]);
 
   const openProject = useCallback((event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
-    const transitionDocument = document as ProjectViewTransitionDocument;
-    if (!transitionDocument.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
     event.preventDefault();
+    const link = event.currentTarget;
+    const element = link.closest<HTMLElement>(".case-row") ?? link;
+    const title = link.closest(".case-row") ? link.querySelector<HTMLElement>("h3") : link.querySelector<HTMLElement>("strong");
+    const origin: ProjectOrigin = { projectId, element, title, scrollY: window.scrollY, radius: getComputedStyle(element).borderTopLeftRadius, url: location.pathname + location.search + location.hash };
+    projectOrigin.current = origin;
+    const transitionDocument = document as ProjectViewTransitionDocument;
+    const canTransition = typeof (document as unknown as { startViewTransition?: unknown }).startViewTransition === "function"
+      && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!canTransition) {
+      history.pushState(null, "", `/?project=${projectId}`);
+      flushSync(() => setRoute(readAppRoute()));
+      scrollImmediately(0);
+      return;
+    }
+
+    nameProjectOrigin(origin, true);
     flushSync(() => setTransitionProjectId(projectId));
     document.documentElement.classList.add("project-route-transition");
 
     const updateRoute = () => {
       history.pushState(null, "", `/?project=${projectId}`);
       flushSync(() => setRoute(readAppRoute()));
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      scrollImmediately(0);
     };
 
     try {
       const transition = transitionDocument.startViewTransition(updateRoute);
       void transition.finished.catch(() => undefined).finally(() => {
         document.documentElement.classList.remove("project-route-transition");
-        setTransitionProjectId(null);
+        if (readAppRoute().projectId === projectId && projectOrigin.current === origin) {
+          nameProjectOrigin(origin, false);
+          setTransitionProjectId(null);
+        }
       });
     } catch {
       document.documentElement.classList.remove("project-route-transition");
+      nameProjectOrigin(origin, false);
       flushSync(() => setTransitionProjectId(null));
       updateRoute();
     }
   }, []);
 
-  const content = route.hasStatus ? <OfflinePage/> : route.projectId ? <ProjectDetail id={route.projectId} transitionProjectId={transitionProjectId}/> : <Home onProjectOpen={openProject} transitionProjectId={transitionProjectId} fontStatus={fontStatus}/>;
+  const content = route.hasStatus ? <OfflinePage/> : <>
+    {(homeMounted || !route.projectId) && <div hidden={Boolean(route.projectId)}><Home onProjectOpen={openProject} fontStatus={fontStatus}/></div>}
+    {route.projectId && <ProjectDetail id={route.projectId} transitionProjectId={transitionProjectId}/>}
+  </>;
   return <Shell dark={dark} setDark={setDark} showNavigation={!route.projectId}>{content}</Shell>;
 }

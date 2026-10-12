@@ -55,6 +55,34 @@ Validation:
 
 ## Completed
 
+### [x] Remove the transition-only card halo
+Status: completed
+Depends on: Existing shared-element surface animation
+Blocked by: None
+Scope: src/index.css
+Acceptance criteria:
+- Entering and exiting shared card snapshots have no added external drop shadow.
+- Surface morph, detail top position, and exact return coordinates remain intact.
+Validation:
+- Chromium 1440×900 and 390×844 forward/reverse pseudo-style probes: computed box-shadow was none and origin coordinates matched after return.
+- `npm run build` and `git diff --check` passed on 2026-10-12.
+
+
+### [x] Unify project-origin transitions across work, awards, and skills
+Status: completed
+Depends on: Existing React routing and View Transition implementation
+Blocked by: None
+Scope: src/App.tsx, src/index.css
+Acceptance criteria:
+- Clicking a work card, linked award, or linked skill project starts from the exact clicked element without scrolling the old page.
+- Detail starts at scrollY=0; browser Back and detail top/bottom returns restore the clicked entry, URL/hash, and scroll position.
+- Visible detail masthead or bottom resources panel contracts into the origin; unavailable sources use a short fade.
+- Unsupported View Transition and reduced-motion paths navigate instantly.
+Validation:
+- `npm run build` — passed on 2026-10-12 (1,588 modules).
+- `git diff --check` — passed; LF→CRLF notices only.
+- Chromium desktop first/middle/last work-card probes, mobile work bottom return, mobile award browser Back from /#awards, desktop skill top return from /#skills, mobile skill bottom return — matched origin scroll and coordinates.
+- Simulated reduced motion — instant navigation and saved-position return. Real Safari/iOS remains unverified.
 ### [x] Implement awards, capability map, and seven tailored case studies
 Status: completed
 Depends on: docs/plans/2026-10-12-portfolio-design.md

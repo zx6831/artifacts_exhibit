@@ -1,51 +1,46 @@
 # Current State
 Last updated: 2026-10-12
-Current branch: main (matches origin/main; HEAD 74b5424)
-Current phase: Three-area design implementation and local QA complete; changes uncommitted
+Current branch: main (HEAD 9ca2f47, aligned with origin/main)
+Current phase: Unified project-origin transitions and shadow cleanup implemented locally; changes uncommitted
 
 ## Current Objective
-Make award outcomes prominent, connect capabilities to evidence, and distinguish all seven case-study bodies by their actual engineering tasks.
+Every project entry in work, awards, and skills should expand into its detail and return to the exact clicked entry with stable viewport position.
 
 ## Completed
-- Existing React/Vite portfolio has seven evidence-bounded case studies, JSON-backed homepage sections, source-figure galleries, route-specific loading, shared transitions, and light/dark themes.
-- Awards now use two zones: a large result with level/edition, and competition/project/source information. The five original award records remain unchanged; 本科生组 is a qualifier rather than oversized prize text.
-- Capabilities now expose four delivery stages, concrete methods, output labels, tools, and eight valid case links in a responsive two-column map.
-- Case bodies now explain research provenance, discovery tasks, CAS trust topology, V2T jobs/recovery, three-state person decisions, translation contribution boundaries, and family responsibilities through dedicated layouts.
-- Removed repeated generic detail headings and three-card implementation grids; preserved original figures, private/public resource boundaries, and audited facts.
-- Historical source-project tests are labelled as earlier engineering verification. New capability JSON uses no-cache revalidation to prevent a stale-schema runtime crash.
-- Design plan and execution results saved in docs/plans/2026-10-12-portfolio-design.md.
+- The seven-case React/Vite portfolio and its existing visual design remain in place.
+- Work-card, award-project, and skill-case links use one origin record: project ID, exact clicked element/title, original scroll position, radius, and URL/hash.
+- Forward View Transition captures the origin before routing and resets detail scroll instantly inside the update callback. The surface and title have separate 450ms shared transitions; the page background uses a short opacity fade.
+- Browser Back and detail top/bottom return links restore the original URL/hash and scroll. A visible detail masthead or bottom resources panel contracts into the saved origin. If no visible detail source or valid origin exists, return fades.
+- Transition snapshots no longer add a heavy external shadow around the expanding/contracting card; the underlying card styling remains unchanged.
+- Unsupported View Transition and reduced-motion paths navigate instantly.
 
 ## In Progress
-- No implementation remains for the requested three areas. Source, content, plan, and state records are uncommitted.
+- No further implementation work identified. Source and state changes remain uncommitted.
 
 ## Architecture and Key Decisions
-- src/case-stories.tsx owns task-specific case explanations and implementation ledgers. App.tsx retains routing, shared mastheads, facts, evidence galleries, limitations, resources, and font/resource gates.
-- Existing aurora/glass visual language and font families remain. Award result text carries the strongest emphasis; diagrams explain actual roles and tasks rather than pretend to show runtime output.
-- Skills data uses no-cache, matching the schema-sensitive work/awards data; initialCache is included in the loader callback dependencies.
-- No invented awards, proficiency percentages, model results, profile claims, or individual ownership of collaborative work.
+- `src/App.tsx` owns routing, origin capture, dynamic View Transition names, manual history scroll restoration, and preserved homepage DOM.
+- `src/index.css` defines surface/title transitions, root fade, and active-transition scroll override.
+- Exact award/skill project links are origins because one card may contain several project links.
+- Pre-existing unrelated scroll-reveal threshold and section-padding edits remain in the worktree.
 
 ## Validation Status
-- npm run build — passed on 2026-10-12: tsc --noEmit and Vite production build; 1,588 modules transformed.
-- git diff --check — passed before final state updates; only LF→CRLF warnings.
-- Python integrity check — all public/data JSON parsed; four capabilities/eight case IDs, five awards/project references, six original figure files, and removal of the three generic detail headings passed.
-- agent-browser — all seven detail routes at 1440×1000 light, 768×1024 dark, and 390×844 dark displayed expected titles and no horizontal overflow; homepage awards/skills checked across those widths and both themes.
-- Browser images — all six original figures decoded with nonzero dimensions.
-- Keyboard — capability link focused visibly with a solid outline; Tab/Enter opened CAS SSO; back link returned to #work with seven real project cards.
-- Reduced motion — matchMedia true; capability entrance animation none; no horizontal overflow.
-- Fresh browser session — no runtime errors reported after the cache correction; mobile #awards settled at top 90.15625px below fixed controls.
+- `npm run build` passed on 2026-10-12 (TypeScript and Vite, 1,588 modules).
+- `git diff --check` passed; Git only reported LF→CRLF working-copy notices.
+- Chromium 1440×900: first/middle/last work projects entered at detail scrollY=0 and returned to identical list scrollY and card top.
+- Chromium 390×844: work-card bottom return restored identical coordinates; award link from `/#awards` and skill link from the list returned to the same origin coordinates. Desktop skill from `/#skills` returned via detail top link with the original hash and coordinates. Award browser Back also restored `/#awards`.
+- Desktop and 390×844 Chromium shadow probes: forward and reverse `::view-transition-image-pair(project-card)` computed `box-shadow: none`; detail started at scrollY=0 and return restored identical card coordinates.
+- Simulated reduced motion navigated instantly and preserved the saved position.
+- Real Safari/iOS WebKit was unavailable on this Windows host.
 
 ## Known Problems
-- No outstanding issue found in the requested website changes.
-- Prior Fubao Flutter review recorded one younger_plans Golden mismatch (0.17% / 574 pixels); not re-run or changed in this website task.
+- No observed Chromium geometry/scroll regression in tested routes.
+- Prior Fubao Flutter younger_plans Golden mismatch (0.17% / 574 pixels) was not re-run in this website task.
 - Approved personal name, portrait, and final résumé remain unavailable and omitted.
 
 ## Blockers
-- None.
+- Real Safari/iOS verification requires a WebKit/iOS device or browser service.
 
 ## Important Files
-- docs/plans/2026-10-12-portfolio-design.md — design rationale, scope, acceptance, actual results.
-- src/App.tsx — homepage cards, routing, shared facts/evidence and resource loading.
-- src/case-stories.tsx — task-specific case-study bodies.
-- src/index.css — responsive cards, diagrams, and dark-theme contrast.
-- public/data/home-skills.json — methods, outputs, tools, and related cases.
-- qa-screenshots/after-*.png — ignored local visual-QA captures.
+- `src/App.tsx` — route and scroll lifecycle, work/award/skill entries, detail links.
+- `src/index.css` — View Transition animations.
+- `.agent/handoff.md` — session-specific verification and next steps.

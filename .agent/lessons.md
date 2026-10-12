@@ -226,3 +226,40 @@ Scope: This seven-case engineering portfolio.
 Evidence: Desktop/mobile screenshots show a discovery matrix, CAS trust topology, job timeline, three-state mask decisions, contribution comparison, and family responsibility lanes, with no horizontal overflow at 1440px, 768px, and 390px.
 Correct approach: Share routing, facts, sources, and resource actions; choose body layout and headings from the project's actual roles, decisions, or artefacts. Avoid fake runtime results and keep earlier engineering tests separate from current website validation.
 Related files/tests: src/case-stories.tsx, src/App.tsx, docs/plans/2026-10-12-portfolio-design.md, local after-*.png captures.
+### Reset scroll only inside the View Transition update, with explicit instant behavior
+Conclusion: `scrollTo({ behavior: "auto" })` can visibly animate when the root has `scroll-behavior: smooth`; placing it after the route render does not guarantee a hidden reset. Capture the old card viewport first, then change route and explicitly jump the new detail view to the top inside the update callback.
+Scope: Project-card navigation on this React single-document portfolio, especially from a scrolled list.
+Evidence: Before the fix, Chromium sampled scrollY=2568→2183→1057→637 after the detail URL was active. After explicit instant scrolling, a mobile bottom-card sample changed from 5154 directly to 0; desktop/mobile top, middle, and bottom cards returned to identical card viewport coordinates.
+Correct approach: Use `behavior: "instant"` with a temporary root `scroll-behavior: auto` safety override, keep the old page mounted for return, restore saved list scroll in a layout effect, and keep root transitions to short opacity changes.
+Related files/tests: `src/App.tsx`, `src/index.css`, Chromium desktop and 390×844 transition probes (2026-10-12).
+### Symmetric View Transitions need source naming before capture and guarded cleanup
+Conclusion: Reverse card transitions work when the detail masthead gets the shared name before the old snapshot, and the original card has the same name after the route and scroll restoration. A finishing forward transition must not clear that name during a fast return.
+Scope: Browser Back and detail back links after entering a project from a homepage card.
+Evidence: Chromium mobile first/middle/last and desktop bottom returns showed `view-transition-name: project-card` on the destination card at the restored viewport position. A fast-return probe initially lost the name when forward cleanup ran; guarding cleanup by the current route fixed it. An offscreen masthead originally selected the fade fallback; the later resources-panel return uses that visible panel as a shared source.
+Correct approach: Mark the visible masthead or bottom resources panel with `flushSync` before calling `startViewTransition`, restore the list scroll in a layout effect inside the update, and only clear temporary names if the route still belongs to that transition.
+Related files/tests: `src/App.tsx`, `src/index.css`, Chromium return probes (2026-10-12).
+### Give a shared surface and its title separate View Transition names
+Conclusion: A whole-card snapshot makes text blur while the card grows into a much taller masthead. Naming the title separately lets the surface interpolate size and radius while old and new title images exchange opacity without being stretched together.
+Scope: Project-card and detail-masthead transitions on desktop and mobile.
+Evidence: Chromium desktop confirmed active `project-surface-expand`, `project-title-leave`, and `project-title-arrive` pseudo animations. Mobile probes for first/middle/last cards confirmed the same forward/reverse names and exact return coordinates. Sampled mobile radius progressed about 9→14px forward and 14→8px in reverse; old title opacity fell before new title opacity rose.
+Correct approach: Assign temporary names to the selected card/masthead and their headings before the old snapshot and in the update. Keep root fading short, animate the surface for 450ms, and use opacity timing for heading readability.
+Related files/tests: `src/App.tsx`, `src/index.css`, Chromium pseudo-style and mobile route probes (2026-10-12).
+### Record the exact project origin across multiple homepage sections
+Conclusion: A project ID alone cannot identify the return target when a project is linked from several homepage sections. Store the clicked DOM element, its title, original URL/hash, scroll position, and corner radius for the current visit.
+Scope: Work cards, linked awards, and skill project links in this portfolio.
+Evidence: Chromium probes returned an award link from /#awards and a skill link from /#skills to identical URL, scrollY, and element viewport top. Work-card first/middle/last routes did the same.
+Correct approach: Assign View Transition names only to the saved origin and its title before each snapshot; preserve Home across route updates, restore scroll in a layout effect, and clear names after the transition finishes. Use the exact project link for awards/skills, where one card may contain multiple project targets.
+Related files/tests: `src/App.tsx`, `src/index.css`, Chromium desktop/mobile origin probes (2026-10-12).
+
+### Use an on-screen detail element for return from the page bottom
+Conclusion: A reverse shared transition needs a visible old-state element. When the masthead is above the viewport, the bottom resources panel can serve as the source for its own return button.
+Scope: Detail-page bottom return links after a homepage project entry.
+Evidence: Mobile work and skill bottom-return probes restored the exact origin coordinates, and the return path selected the resources shared-transition class while the panel was visible.
+Correct approach: Select a visible detail source before capturing the old state, temporarily name the resources panel and its heading for bottom returns, and let the saved origin receive the names after route/scroll restoration. If neither detail source is visible, use a short fade.
+Related files/tests: `src/App.tsx`, `src/index.css`, Chromium 390×844 bottom-return probes (2026-10-12).
+### Do not add a second shadow to the View Transition image pair
+Conclusion: A separate large `box-shadow` on `::view-transition-image-pair(project-card)` creates a visible halo around the homepage card during both expansion and contraction.
+Scope: Shared project transitions from work, awards, and skills.
+Evidence: The forward and reverse CSS rules applied `0 18px 46px`; desktop and 390px mobile browser probes after removal computed `box-shadow: none` while surface animations and exact return coordinates remained intact.
+Correct approach: Let the source/target elements supply their existing visual styling; animate only the shared surface geometry and title opacity on the View Transition pseudos.
+Related files/tests: `src/index.css`, Chromium pseudo-style and scroll-position probes (2026-10-12).

@@ -6,20 +6,6 @@ None.
 
 ## P1 — Next
 
-### [ ] Review and commit the 2026-10-12 homepage design/copy audit
-Status: ready
-Depends on: User review of the local visual/copy changes
-Blocked by: None
-Scope: src/App.tsx, src/index.css, public/data/home-*.json, and .agent/ records
-Acceptance criteria:
-- Confirm the casebook framing and revised public-facing wording are appropriate for publication.
-- Commit only the listed intentional source, content, and state-record changes.
-- Do not include unrelated files or fabricate identity/resume information.
-Validation:
-- npm run build
-- git diff --check
-- git diff -- <intentional paths>
-
 ### [ ] Supply approved personal profile material only when ready
 Status: deferred
 Depends on: User-provided name, portrait (optional), education/experience wording, and final résumé file
@@ -68,6 +54,22 @@ Validation:
 - flutter test from the Fubao app
 
 ## Completed
+
+### [x] Implement awards, capability map, and seven tailored case studies
+Status: completed
+Depends on: docs/plans/2026-10-12-portfolio-design.md
+Blocked by: None
+Scope: src/App.tsx, new story components, src/index.css, public/data/home-skills.json
+Acceptance criteria:
+- Awards prioritize the actual result with balanced two-zone layouts.
+- Four capabilities expose concrete methods, outputs, and valid case links.
+- Seven detail pages have distinct task-based body structures and specific headings.
+- Audited facts, privacy boundaries, responsive layouts, dark mode, and reduced motion remain valid.
+Validation:
+- npm run build
+- git diff --check
+- Browser at 1440px, 768px, 390px; seven routes, links, images, themes, reduced motion.
+Validation results (2026-10-12): production build, JSON/link/figure integrity, seven routes at three widths, themes, keyboard, and reduced motion passed. No commit made.
 
 ### [x] Complete a visual, responsive, copy, and deep-link audit of the portfolio homepage
 Status: completed

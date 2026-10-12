@@ -1,59 +1,66 @@
 # Session Handoff
 Created: 2026-10-12
-Branch: main (matches origin/main)
-Working tree: Modified intentional source/data files and state records; no commit was made in this session.
+Branch: main, HEAD 74b5424, aligned with origin/main
+Working tree: Intentional design/content/documentation changes, uncommitted
 
 ## Session Goal
-Perform a critical but minimal visual, responsive, interaction, and visible-copy audit of the portfolio while preserving its evidence-led aurora/glass language.
+Write a Markdown change plan, then redesign the awards, project-detail bodies, and capability section requested by the user using frontend-design.
 
 ## Work Completed
-- Audited source, state records, homepage, representative detail pages, and all seven route titles.
-- Reframed the incomplete Hero identity panel as a truthful CASEBOOK / 2026 index; removed name/avatar/biography placeholder copy.
-- Replaced both placeholder-résumé calls to action with actual in-site contact paths; updated the footer and About block to portfolio-focused, evidence-bounded copy.
-- Edited awards, skills, project-list, Fubao, and contact text for accuracy and shorter, clearer on-screen reading.
-- Added a small-screen opaque treatment to the floating Tubelight navigation and theme control. It preserves the control language while preventing text/navigation overlap on mobile cards.
-- Found and repaired first-load homepage deep links: a URL such as /#about now preloads local JSON and scrolls once after data/font layout is stable.
-- Captured post-edit screenshots in qa-screenshots/design-audit-2026-10-12/ when that directory is retained by the workspace.
+- Saved and executed docs/plans/2026-10-12-portfolio-design.md.
+- Awards: two-zone cards, large prize outcomes, qualifier labels, balanced information, responsive stacking, updated skeletons and entrance targets.
+- Capabilities: delivery route, four detailed panels, concrete methods/output/tools, eight case links, two-column desktop and one-column mobile.
+- Details: dedicated discovery matrix, trust topology, job timeline, mask decisions, translation contribution comparison, family lanes; PharmAgent retains its provenance chain and now has a layered implementation ledger.
+- Replaced generic detail headings and chapter labels, preserved all six source figures and public/private resource boundaries, clarified earlier engineering test records.
+- Corrected stale current-state/TODO records: the previous homepage audit was already committed in the clean baseline.
+- Fixed the warm-cache capability schema crash by revalidating skills JSON and including initialCache in callback dependencies.
 
 ## Current Stopping Point
-Implementation and QA are complete. Await user review/authorization to commit or publish; do not add personal name, photo, education, experience, or résumé claims without user-supplied material.
+Requested implementation and verification are complete locally. No commit or publication was requested or performed. The existing Vite preview is available at http://127.0.0.1:5176/.
 
 ## Uncommitted Changes
-- Modified: src/App.tsx, src/index.css.
-- Modified: public/data/home-about.json, public/data/home-awards.json, public/data/home-skills.json, public/data/home-work.json.
-- Modified state records: .agent/current_state.md, .agent/lessons.md, .agent/TODO_list.md, .agent/handoff.md.
-- At the source-only review point, git status --short --branch showed exactly the six source/data files above; verify the final status again before staging.
+- Modified: src/App.tsx, src/index.css, public/data/home-skills.json.
+- Added: src/case-stories.tsx, docs/plans/2026-10-12-portfolio-design.md.
+- Updated: .agent/current_state.md, .agent/lessons.md, .agent/TODO_list.md, .agent/handoff.md.
+- Ignored: qa-screenshots/after-*.png local review captures.
 
 ## Validation Results
-- npm run build — passed: tsc --noEmit && vite build, 1,587 modules transformed.
-- JSON parsing — passed for all modified public/data/home-*.json files.
-- git diff --check — passed before writing these state records; output had only LF→CRLF warnings.
-- Browser QA: homepage reviewed at 1440×900 (light), 768×1024 (dark), and 390×844 (light/dark); no horizontal overflow at checked widths.
-- Mobile /#about: passed after the repair with aboutTop: 90, visible About content, dark theme, and no horizontal overflow.
-- Reduced motion: passed; matchMedia reported reduced motion, Awards opacity was 1, and signal animation was none.
-- All seven direct ?project= routes: expected title, no top nav, no horizontal overflow at 1440×900.
+- npm run build — passed (TypeScript + Vite, 1,588 modules).
+- git diff --check — passed before final state update; LF→CRLF notices only.
+- Python integrity probe — all JSON parsed, four capabilities/eight valid IDs, five awards/valid related IDs, six figure files, removed generic headings.
+- agent-browser detail checks — all seven routes at 1440×1000 light, 768×1024 dark, 390×844 dark: expected h1, no homepage nav, no horizontal overflow.
+- Homepage visual checks — awards/capabilities at desktop/tablet/mobile and light/dark. Mobile prize 36px vs competition title 20px; five actual awards retained.
+- Six image decode checks — passed with nonzero dimensions.
+- Keyboard link navigation/return — passed with visible solid focus outline; #work returned seven content cards.
+- Reduced motion — true; entrance animation none. Fresh session runtime error list empty.
+- Mobile #awards final anchor top 90.15625px. Capture after smooth scroll settles; an intermediate capture can occur during native scrolling.
 
 ## Failing Tests or Known Errors
-- No failures in this website task.
-- Existing Fubao Flutter younger_plans Golden mismatch remains unmodified: 0.17% / 574 pixels in a prior 86-test run.
+- No unresolved website validation failure.
+- Browser CLI URL-glob waits timed out despite successful navigation; final checks used location.search/hash conditions instead.
+- A raw .case-row count includes persistent skeleton rows; scope real-card checks to #work .section-resource__content .case-row (seven).
+- Prior Fubao Flutter Golden mismatch is unchanged and unverified in this session: 0.17% / 574 pixels.
 
 ## Recommended Next Steps
-1. Review git diff -- src/App.tsx src/index.css public/data/home-about.json public/data/home-awards.json public/data/home-skills.json public/data/home-work.json.
-2. If approved, stage only the intentional source/data/state records, run git diff --check and npm run build, then commit.
-3. When actual personal assets are supplied, replace the casebook-only identity treatment and add a real résumé action in a separate, reviewed change.
+1. Review local changed areas and the plan's execution results; focus on prize hierarchy and the new task-specific details.
+2. If further design feedback arrives, edit the relevant task component or section, then repeat build and affected viewport checks.
+3. Commit only the intentional files if the user requests a commit; source project tests need their own environments and were not repeated here.
 
 ## Important Decisions
-- The casebook index uses only current, supported portfolio facts (07 cases and public evidence scope); it does not impersonate a completed CV.
-- The mobile navigation uses opacity rather than a new component, so the desktop Tubelight behavior and information architecture stay intact.
-- Deep-link restoration is deliberately first-load-only and uses behavior: auto; normal in-page navigation retains smooth scrolling and reduced-motion handling.
+- Preserve existing aurora/glass styling and font families; make results and task structure carry hierarchy.
+- Do not add fabricated awards, skill percentages, project results, personal profile assets, or collaboration ownership.
+- Existing source figures remain original downloadable images; new shapes are labelled explanations rather than claimed product screenshots.
+- Skills JSON now revalidates on load so a previous cached schema cannot feed the new component.
 
 ## Risks and Open Questions
-- The final user-supplied identity/resume material is still unavailable. Keep it omitted rather than inventing it.
-- The direct-anchor repair intentionally preloads all small homepage JSON resources only for first-load hash URLs; this trades a small one-time data request for correct deep-link placement.
+- Personal name/photo/resume still requires approved material; this task does not depend on it.
+- Full source-project runtime/clinical/model-quality verification is outside this website-design change; historical boundaries remain explicit.
 
 ## Start Here
-powershell
+```powershell
 git status --short --branch
 git diff --check
 npm run build
-git diff -- src/App.tsx src/index.css public/data/home-about.json public/data/home-awards.json public/data/home-skills.json public/data/home-work.json
+git diff -- src/App.tsx src/index.css public/data/home-skills.json
+```
+Read src/case-stories.tsx and docs/plans/2026-10-12-portfolio-design.md as newly added files; ordinary git diff does not show untracked file content.

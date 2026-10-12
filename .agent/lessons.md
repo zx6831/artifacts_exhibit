@@ -211,3 +211,18 @@ Scope: The Tubelight navigation and theme control below 560px.
 Evidence: Before the adjustment, 390px screenshots showed award heading text visibly mixing through the nav pill. With a high-opacity surface derived from existing background tokens, the same mobile award landing remained readable and retained the existing active lamp treatment.
 Correct approach: Preserve the component and its motion, but raise the surface opacity only at the constrained breakpoint; verify anchor landing below the control and both themes rather than flattening the desktop design.
 Related files/tests: src/index.css, mobile light/dark screenshots and /#awards navigation check (2026-10-12).
+
+## Content Schema and Browser QA
+### Revalidate independently cached JSON when its required fields change
+Conclusion: TypeScript and a production build cannot detect an old browser-cached JSON shape. New required fields can crash React even when the local JSON and types are correct.
+Scope: JSON-backed homepage sections whose shape changes independently of the application bundle.
+Evidence: After the capability redesign, force-cache returned the old four-item home-skills.json without methods/tools/cases. Home failed while the build passed. Switching the skills request to no-cache and reloading the same browser restored the page; a fresh session then reported no runtime errors.
+Correct approach: Revalidate schema-sensitive content, include the cache option in loader callback dependencies, and check both a warm browser and a fresh browser after a data-shape change.
+Related files/tests: src/App.tsx useJsonResource/Home, public/data/home-skills.json, agent-browser portfolio-design and portfolio-verify sessions (2026-10-12).
+
+### Make the body of a case study specific to its working object
+Conclusion: A custom masthead alone does not distinguish repeated case-study bodies. A useful common shell can preserve facts and sources while dedicated diagrams explain the unique task.
+Scope: This seven-case engineering portfolio.
+Evidence: Desktop/mobile screenshots show a discovery matrix, CAS trust topology, job timeline, three-state mask decisions, contribution comparison, and family responsibility lanes, with no horizontal overflow at 1440px, 768px, and 390px.
+Correct approach: Share routing, facts, sources, and resource actions; choose body layout and headings from the project's actual roles, decisions, or artefacts. Avoid fake runtime results and keep earlier engineering tests separate from current website validation.
+Related files/tests: src/case-stories.tsx, src/App.tsx, docs/plans/2026-10-12-portfolio-design.md, local after-*.png captures.

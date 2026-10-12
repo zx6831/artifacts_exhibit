@@ -1,46 +1,51 @@
 # Current State
 Last updated: 2026-10-12
-Current branch: main (matches origin/main)
-Current phase: Local visual/copy refinement complete and awaiting review or commit
+Current branch: main (matches origin/main; HEAD 74b5424)
+Current phase: Three-area design implementation and local QA complete; changes uncommitted
 
 ## Current Objective
-Maintain a truthful, evidence-led portfolio whose homepage and seven case studies remain visually coherent across desktop and mobile without exposing unfinished personal-profile placeholders.
+Make award outcomes prominent, connect capabilities to evidence, and distinguish all seven case-study bodies by their actual engineering tasks.
 
 ## Completed
-- The committed portfolio provides seven case studies, an evidence-led awards section, tailored detail mastheads, user-authorized source-figure galleries, route-aware boot skeletons, and shared-element card-to-detail transitions.
-- The current local refinement replaces the homepage's name/avatar/biography placeholders with a fact-backed CASEBOOK / 2026 index showing the seven existing cases and their evidence scope.
-- Removed user-facing links to the placeholder résumé and replaced them with the real contact path; the footer and About section now describe the site as a portfolio rather than an unfinished personal profile.
-- Tightened homepage copy in the overview, awards, skills, project section, Fubao card, and contact section without adding unverifiable claims.
-- On mobile, the floating Tubelight navigation and theme control now use an opaque-enough surface so scrolling text and controls do not visually overlap.
-- Direct homepage anchors now preload the small local data resources and restore the requested section after data and text-font layout have settled. /#about lands on the mobile contact section rather than remaining at the top.
+- Existing React/Vite portfolio has seven evidence-bounded case studies, JSON-backed homepage sections, source-figure galleries, route-specific loading, shared transitions, and light/dark themes.
+- Awards now use two zones: a large result with level/edition, and competition/project/source information. The five original award records remain unchanged; 本科生组 is a qualifier rather than oversized prize text.
+- Capabilities now expose four delivery stages, concrete methods, output labels, tools, and eight valid case links in a responsive two-column map.
+- Case bodies now explain research provenance, discovery tasks, CAS trust topology, V2T jobs/recovery, three-state person decisions, translation contribution boundaries, and family responsibilities through dedicated layouts.
+- Removed repeated generic detail headings and three-card implementation grids; preserved original figures, private/public resource boundaries, and audited facts.
+- Historical source-project tests are labelled as earlier engineering verification. New capability JSON uses no-cache revalidation to prevent a stale-schema runtime crash.
+- Design plan and execution results saved in docs/plans/2026-10-12-portfolio-design.md.
 
 ## In Progress
-- No active implementation. The source, content, and state-record changes from this audit are uncommitted.
+- No implementation remains for the requested three areas. Source, content, plan, and state records are uncommitted.
 
 ## Architecture and Key Decisions
-- Homepage content remains JSON-backed in public/data; project facts stay bounded to audited source, test, and project material.
-- The homepage's distinctive supporting object is a casebook index, not a fabricated personal profile. Actual name, avatar, and résumé remain intentionally absent until the user supplies approved material.
-- The floating navigation remains the existing Tubelight interaction. Only its small-screen surface opacity changes; desktop glass behavior and information architecture are retained.
-- For a first-load #section URL, Home preloads its local JSON, waits for resource/font readiness, then performs one non-animated scrollIntoView. Ordinary in-page navigation remains smooth and reduced-motion aware.
+- src/case-stories.tsx owns task-specific case explanations and implementation ledgers. App.tsx retains routing, shared mastheads, facts, evidence galleries, limitations, resources, and font/resource gates.
+- Existing aurora/glass visual language and font families remain. Award result text carries the strongest emphasis; diagrams explain actual roles and tasks rather than pretend to show runtime output.
+- Skills data uses no-cache, matching the schema-sensitive work/awards data; initialCache is included in the loader callback dependencies.
+- No invented awards, proficiency percentages, model results, profile claims, or individual ownership of collaborative work.
 
 ## Validation Status
-- npm run build — passed on 2026-10-12 (tsc --noEmit && vite build; 1,587 modules transformed).
-- JSON parsing — passed for home-about.json, home-awards.json, home-skills.json, and home-work.json.
-- git diff --check — passed before this state-record update; only LF→CRLF warnings were emitted.
-- Local browser review — passed at 1440×900 desktop light, 768×1024 tablet dark, and 390×844 mobile light/dark. The homepage has no horizontal overflow at the checked widths.
-- Mobile visual checks — passed: rewritten Hero holds a stable two-line title; opaque navigation no longer mixes with award text; /#about lands with aboutTop: 90, is visible, and has no horizontal overflow.
-- Reduced-motion check — passed at 390×844: prefers-reduced-motion was true, Awards opacity was 1, and the signal animation name was none.
-- Detail-route regression — passed for PharmAgent, Xuanji, SSO, V2T, Eliminate, ScholarWeaver, and Fubao at 1440×900: expected h1, no top navigation, and no horizontal overflow.
+- npm run build — passed on 2026-10-12: tsc --noEmit and Vite production build; 1,588 modules transformed.
+- git diff --check — passed before final state updates; only LF→CRLF warnings.
+- Python integrity check — all public/data JSON parsed; four capabilities/eight case IDs, five awards/project references, six original figure files, and removal of the three generic detail headings passed.
+- agent-browser — all seven detail routes at 1440×1000 light, 768×1024 dark, and 390×844 dark displayed expected titles and no horizontal overflow; homepage awards/skills checked across those widths and both themes.
+- Browser images — all six original figures decoded with nonzero dimensions.
+- Keyboard — capability link focused visibly with a solid outline; Tab/Enter opened CAS SSO; back link returned to #work with seven real project cards.
+- Reduced motion — matchMedia true; capability entrance animation none; no horizontal overflow.
+- Fresh browser session — no runtime errors reported after the cache correction; mobile #awards settled at top 90.15625px below fixed controls.
 
 ## Known Problems
-- A real name, portrait, and final résumé have not been supplied. The site no longer exposes the placeholder versions, but those assets must come from the user before being published.
-- The unrelated Fubao Flutter visual suite still has the recorded younger_plans Golden mismatch (0.17% / 574 pixels); it was not changed or re-run in this website task.
+- No outstanding issue found in the requested website changes.
+- Prior Fubao Flutter review recorded one younger_plans Golden mismatch (0.17% / 574 pixels); not re-run or changed in this website task.
+- Approved personal name, portrait, and final résumé remain unavailable and omitted.
 
 ## Blockers
-- None for the implemented design/copy work.
+- None.
 
 ## Important Files
-- src/App.tsx — homepage structure, route handling, deep-link restoration, and visible actions.
-- src/index.css — casebook card and mobile navigation surface treatment.
-- public/data/home-about.json, home-awards.json, home-skills.json, home-work.json — reviewed homepage copy.
-- qa-screenshots/design-audit-2026-10-12/ — local visual-QA captures, if retained by the workspace.
+- docs/plans/2026-10-12-portfolio-design.md — design rationale, scope, acceptance, actual results.
+- src/App.tsx — homepage cards, routing, shared facts/evidence and resource loading.
+- src/case-stories.tsx — task-specific case-study bodies.
+- src/index.css — responsive cards, diagrams, and dark-theme contrast.
+- public/data/home-skills.json — methods, outputs, tools, and related cases.
+- qa-screenshots/after-*.png — ignored local visual-QA captures.

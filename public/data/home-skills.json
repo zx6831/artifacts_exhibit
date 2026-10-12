@@ -1,1 +1,115 @@
-{"eyebrow":"CAPABILITY MAP","heading":"能力不是关键词列表，而是一条交付链路。","skills":[{"index":"01","title":"问题建模","description":"将业务目标拆成模型、检索与工具调用的边界"},{"index":"02","title":"系统编排","description":"组合 RAG、Agent、ASR 与异步任务流程"},{"index":"03","title":"产品交付","description":"构建可理解的状态反馈、异常兜底与前后端接口"},{"index":"04","title":"评测迭代","description":"关注效果、延迟与一致性的验证条件，不将未测数据写成结论"}]}
+{
+  "eyebrow": "CAPABILITY / FROM QUESTION TO DELIVERY",
+  "heading": "把问题接住，把系统交付。",
+  "description": "从任务边界到可验证的结果，四个环节连接具体的工程方法与案例。每一项都可以回到项目里看。",
+  "skills": [
+    {
+      "index": "01",
+      "title": "问题建模",
+      "description": "先弄清输入、决策与责任归属，再选择模型和工具。",
+      "output": "交付对象 / 任务与责任边界",
+      "methods": [
+        "区分研究辅助、业务事实与生成建议",
+        "定义数据归属、角色权限与异常分支"
+      ],
+      "tools": [
+        "领域模型",
+        "权限边界",
+        "任务拆解"
+      ],
+      "cases": [
+        {
+          "id": "fubao",
+          "label": "福豹",
+          "context": "双角色与家庭事实"
+        },
+        {
+          "id": "sso-platform",
+          "label": "CAS SSO",
+          "context": "IAM 与业务资料归属"
+        }
+      ]
+    },
+    {
+      "index": "02",
+      "title": "系统编排",
+      "description": "让数据、模型与工具各司其职，组织可追溯的处理链。",
+      "output": "交付对象 / 数据与工具链路",
+      "methods": [
+        "组合检索、模型插件与结构化输出",
+        "分离长任务步骤，保留可复用的中间结果"
+      ],
+      "tools": [
+        "FastGPT / FastAPI",
+        "RAG",
+        "ASR"
+      ],
+      "cases": [
+        {
+          "id": "pharmagent",
+          "label": "PharmAgent",
+          "context": "科研插件与工作流"
+        },
+        {
+          "id": "v2t",
+          "label": "V2T",
+          "context": "转写、清洗与摘要"
+        }
+      ]
+    },
+    {
+      "index": "03",
+      "title": "产品交付",
+      "description": "将后台能力变成可理解的操作、状态与结果。",
+      "output": "交付对象 / 界面与服务契约",
+      "methods": [
+        "设计进度反馈、错误提示与结果获取",
+        "联通前后端接口，明确协作贡献范围"
+      ],
+      "tools": [
+        "Flutter",
+        "Next.js / SSE",
+        "接口联调"
+      ],
+      "cases": [
+        {
+          "id": "v2t",
+          "label": "V2T",
+          "context": "任务状态与结果下载"
+        },
+        {
+          "id": "scholarweaver",
+          "label": "ScholarWeaver",
+          "context": "检索转发与端点联调"
+        }
+      ]
+    },
+    {
+      "index": "04",
+      "title": "评测迭代",
+      "description": "以测试和运行工件核对行为，同时说明尚未验证的部分。",
+      "output": "交付对象 / 测试与回溯工件",
+      "methods": [
+        "验证判定规则、掩码和任务边界",
+        "区分单元通过、视觉差异与真实效果评估"
+      ],
+      "tools": [
+        "unittest / pytest",
+        "Golden",
+        "JSON / 掩码"
+      ],
+      "cases": [
+        {
+          "id": "eliminate",
+          "label": "路人移除管线",
+          "context": "规则测试与掩码工件"
+        },
+        {
+          "id": "fubao",
+          "label": "福豹",
+          "context": "可访问性与视觉回归"
+        }
+      ]
+    }
+  ]
+}

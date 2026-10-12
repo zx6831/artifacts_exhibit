@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Code2, Database, Download, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Code2, Database, Dna, Download, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Medal, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench } from "lucide-react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -21,6 +21,16 @@ const projects = [
     title: "PharmAgent 智能药物发现与递送助手",
     short: "以知识库、插件与工作流组织药物信息检索、ADMET 解析、分子生成与递送策略建议的科研智能体。",
     stack: ["FastGPT", "FastAPI", "ChEMBL / openFDA", "DrugEx"],
+    repository: null,
+    visibility: "private",
+  },
+  {
+    id: "xuanji",
+    icon: Dna,
+    type: "AI 制药 · 智能决策",
+    title: "玄玑——全球新药发现智能加速平台",
+    short: "以 iDrugMap 组织多模态药物研发数据与算法能力，支持活性预测、虚拟筛选和相似性检索等研究辅助任务。",
+    stack: ["iDrugMap", "多模态数据", "活性预测", "虚拟筛选"],
     repository: null,
     visibility: "private",
   },
@@ -87,6 +97,16 @@ const auditedCaseStudies = {
     limitation: { title: "竞赛项目材料不等同于临床验证", text: "本次审查未获得独立的临床、实验或部署评测材料；页面不声称系统能够提供医疗诊断、治疗建议，或证明任何候选分子与递送方案的有效性。" },
     resources: { title: "项目材料按竞赛与隐私边界呈现", text: "项目书记录了系统构想、插件设计与风险控制。源代码、模型配置和内部运行环境未对外公开，因此本页不提供仓库或演示链接。" },
   },
+  "xuanji": {
+    position: { title: "将数据、算法与筛选入口组织成新药发现的研究辅助平台", text: "项目材料将“玄玑”描述为面向新药发现的智能加速平台：以 iDrugMap 汇集多模态药物研发数据与自主算法能力，并将活性预测、虚拟筛选、相似性检索等操作收束到可访问的研究入口。" },
+    facts: [["竞赛成果", "第十五届“挑战杯”建设银行中国大学生创业计划竞赛三等奖"], ["平台形态", "iDrugMap 一体化多模型药物发现平台"], ["材料所述能力", "活性预测、虚拟筛选、相似性检索"], ["展示边界", "依据项目介绍材料整理；不提供代码链接或临床结论"]],
+    flow: [["分子与任务输入", "分子结构、目标类别或筛选需求"], ["数据与模型", "多模态研发数据与算法能力"], ["活性预测", "辅助识别潜在有效分子"], ["虚拟筛选", "面向特定靶点或细胞系筛选"], ["相似性检索", "扩展候选化合物范围"]],
+    note: "项目材料将这三类操作呈现为研究工具入口；页面只说明其任务分工，不将算法输出表述为药效、临床成功率或真实世界疗效。",
+    implementation: [["一体化研究入口", "项目材料展示 iDrugMap 将活性预测、虚拟筛选与相似性检索配置为面向不同研发问题的操作模块。", "证据：项目介绍材料“项目概述”"], ["多模态数据与算法协同", "材料描述平台把公开与合作数据经过清洗、标注、补全和增强后，与多套药物发现算法共同支撑研究任务。", "证据：项目介绍材料“项目优势”"], ["筛选结果的研究边界", "页面将平台输出限定为候选发现与研究辅助；后续实验、验证与转化仍需由独立流程完成。", "证据：项目介绍材料的研发流程与应用描述"]],
+    decisions: ["将不同发现任务拆为明确入口，避免把分子预测、靶点筛选和相似结构检索混成单一结论。", "按材料原意保留数据与算法的协作关系，但不复述未经独立审计的规模、效果或临床进展数字。", "竞赛荣誉与项目介绍材料分开陈述：前者说明获奖事实，后者只支撑平台定位与功能范围。"],
+    limitation: { title: "项目材料不是独立技术或临床验收", text: "本次仅审查用户提供的项目介绍材料，未获得源代码、原始数据集、模型评测报告或独立实验/临床验证。因此页面不声称平台性能、候选分子有效性、药物临床进展或商业合作已被本次审查独立确认。" },
+    resources: { title: "竞赛项目，按材料范围展示", text: "页面仅使用项目名称、竞赛成果、平台定位与功能范围等可公开说明的信息；源代码、数据和内部运行环境不对外提供。" },
+  },
   "sso-platform": {
     position: { title: "把认证、身份边界和业务资料拆成独立服务", text: "该平台基于 Apereo CAS 7.2.7 构建 HTTPS 单点登录演示环境：CAS 负责统一身份，两个客户端各自维持会话与业务边界，并通过内部 HTTPS 调用聚合资料。公开 `master` 分支的单一可见作者为 zx，包含完整源码、部署文件与测试。" },
     facts: [["公开分支", "zx6831/sso-platform 的 master（非默认分支）"], ["认证机制", "CAS 3.0 Service Ticket、Redis Session 与 SM2 登录凭据加密"], ["数据边界", "CAS 管 IAM；Client B 管岗位/工号；Redis 仅保存技术状态"], ["运行条件", "Java 21、Docker Compose、MySQL、Redis；可选 Nacos"]],
@@ -121,6 +141,7 @@ const auditedCaseStudies = {
 
 const navItems = [
   { href: "/#top", label: "首页", id: "top", icon: House },
+  { href: "/#awards", label: "荣誉", id: "awards", icon: Medal },
   { href: "/#work", label: "项目", id: "work", icon: BriefcaseBusiness },
   { href: "/#skills", label: "能力", id: "skills", icon: Wrench },
   { href: "/#about", label: "关于", id: "about", icon: UserRound },
@@ -267,6 +288,7 @@ type ScrollRevealGroup = {
 
 const scrollRevealGroups: ScrollRevealGroup[] = [
   { sectionSelector: ".proof-strip", itemSelector: ".proof-strip__content > *" },
+  { sectionSelector: "#awards", itemSelector: ".section-title > *, .award-certificate > *" },
   { sectionSelector: "#work", itemSelector: ".section-title > *, .case-row" },
   { sectionSelector: "#skills", itemSelector: ".section-title > *, .skill-track article" },
   { sectionSelector: "#about", itemSelector: ".about-resource-content > *" },
@@ -345,6 +367,7 @@ type ResourceStatus = "idle" | "loading" | "ready" | "error";
 type ResourceState<T> = { status: ResourceStatus; data?: T; message?: string };
 type PreloadTarget = { selector: string; load: () => void };
 type SummaryData = { label: string; count: string; description: string; note: string };
+type AwardsData = { eyebrow: string; heading: string; description: string; awards: Array<{ edition: string; badge: string; level: string; title: string; result: string; project?: string; projectId?: string; category: string; evidence: string }> };
 type WorkData = { eyebrow: string; heading: string; description: string; projects: Array<{ id: string; type: string; title: string; short: string; stack: string[] }> };
 type SkillsData = { eyebrow: string; heading: string; skills: Array<{ index: string; title: string; description: string }> };
 type AboutData = { eyebrow: string; heading: string; description: string; contactEyebrow: string; contactTitle: string; email: string };
@@ -421,6 +444,7 @@ function ResourceBoundary({ state, fontStatus, retry, skeleton, children }: { st
 }
 
 function SummarySkeleton() { return <div className="proof-strip__content proof-strip__skeleton"><i/><b/><i/><i/></div>; }
+function AwardsSkeleton() { return <><div className="section-title section-title--skeleton"><i/><b/><i/></div><div className="award-ledger award-ledger--skeleton"><i/><div><b/><i/><i/><i/></div></div></>; }
 function WorkSkeleton() { return <><div className="section-title section-title--skeleton"><i/><b/><i/></div><div className="case-list">{[0, 1, 2].map((item) => <div className="case-row case-row--skeleton" key={item}><i/><i/><div><b/><i/><i/></div></div>)}</div></>; }
 function SkillsSkeleton() { return <><div className="section-title section-title--skeleton"><i/><b/></div><div className="skill-track">{[0, 1, 2, 3].map((item) => <article className="skill-card--skeleton" key={item}><i/><b/><i/></article>)}</div></>; }
 function AboutSkeleton() { return <div className="about-resource-content about-resource-content--skeleton"><div className="about-copy"><i/><b/><i/></div><aside className="contact-panel"><i/><b/><i/><i/></aside></div>; }
@@ -536,6 +560,12 @@ function CaseSignature({ project }: { project: Project }) {
         <span className="signature-kicker">RESEARCH ROUTE</span>
         <div className="molecule-map" aria-hidden="true"><i/><i/><i/><i/><b/><b/><b/></div>
         <div className="signature-foot"><span>靶点</span><em>→</em><span>性质</span><em>→</em><span>方案</span></div>
+      </div>;
+    case "xuanji":
+      return <div className="case-signature case-signature--xuanji" aria-label="新药发现研究入口示意">
+        <span className="signature-kicker">DISCOVERY ATLAS</span>
+        <div className="screening-atlas" aria-hidden="true"><b>iDrugMap</b><i>预测</i><i>筛选</i><i>检索</i></div>
+        <div className="signature-foot"><span>数据</span><em>→</em><span>算法</span><em>→</em><span>研究入口</span></div>
       </div>;
     case "sso-platform":
       return <div className="case-signature case-signature--sso" aria-label="单点登录访问关系示意">
@@ -708,7 +738,7 @@ function ScholarWeaverDetail({ project, isTransitionTarget }: { project: Project
       </article>
       <aside className="glass-panel detail-facts">
         <div><span>公开仓库</span><strong>MikeHuang2000/LLMs_Database_Translater</strong></div>
-        <div><span>项目属性</span><strong>华南理工大学鼎甲杯合作参赛作品；README 标记为 Demo</strong></div>
+        <div><span>项目属性</span><strong>荣誉关联项目“交叉互译”；华南理工大学鼎甲杯合作参赛作品；README 标记为 Demo</strong></div>
         <div><span>可见贡献</span><strong>zx6831 的公开记录含 2 次提交与一次 relay 分支合并</strong></div>
         <div><span>运行验证</span><strong>未在本次审查环境启动：MinerU、模型服务与 API 配置未齐备</strong></div>
       </aside>
@@ -862,33 +892,38 @@ function OfflinePage() { return <main className="status-page"><div className="st
 
 function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpen: (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => void; transitionProjectId: string | null; fontStatus: FontGateStatus }) {
   const summary = useJsonResource<SummaryData>("/data/home-summary.json");
+  const awards = useJsonResource<AwardsData>("/data/home-awards.json", 7000, "no-cache");
   const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache");
   const skills = useJsonResource<SkillsData>("/data/home-skills.json");
   const about = useJsonResource<AboutData>("/data/home-about.json");
   const preloadTargets = useMemo(() => [
     { selector: "#proof", load: summary.load },
+    { selector: "#awards", load: awards.load },
     { selector: "#work", load: work.load },
     { selector: "#skills", load: skills.load },
     { selector: "#about", load: about.load },
-  ], [about.load, skills.load, summary.load, work.load]);
+  ], [about.load, awards.load, skills.load, summary.load, work.load]);
 
   useNearViewportPreload(preloadTargets, 400);
 
   const workData = work.state.data;
+  const awardsData = awards.state.data;
   const skillsData = skills.state.data;
   const summaryData = summary.state.data;
   const aboutData = about.state.data;
   const summaryFontStatus = useTextFontGate(collectText(summaryData), fontStatus);
+  const awardsFontStatus = useTextFontGate(collectText(awardsData), fontStatus);
   const workFontStatus = useTextFontGate(collectText(workData), fontStatus);
   const skillsFontStatus = useTextFontGate(collectText(skillsData), fontStatus);
   const aboutFontStatus = useTextFontGate(collectText(aboutData), fontStatus);
-  const projectIcons = { pharmagent: HeartPulse, "sso-platform": Network, v2t: FileText, eliminate: Layers3, scholarweaver: Database, fubao: HeartPulse };
+  const projectIcons = { pharmagent: HeartPulse, xuanji: Dna, "sso-platform": Network, v2t: FileText, eliminate: Layers3, scholarweaver: Database, fubao: HeartPulse };
 
-  useScrollReveal(scrollRevealGroups, [summary.state.status, summaryFontStatus, work.state.status, workFontStatus, skills.state.status, skillsFontStatus, about.state.status, aboutFontStatus].join("|"), fontStatus !== "loading");
+  useScrollReveal(scrollRevealGroups, [summary.state.status, summaryFontStatus, awards.state.status, awardsFontStatus, work.state.status, workFontStatus, skills.state.status, skillsFontStatus, about.state.status, aboutFontStatus].join("|"), fontStatus !== "loading");
 
   return <main>
     <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 求职中 · 接受大模型应用工程实习</div><p className="mono-label">AI APPLICATION ENGINEER / 2026</p><h1><span>姓名</span>，把大模型能力<br/>交付成<span className="accent-word">可用系统。</span></h1><p className="hero-lead">聚焦 RAG、多智能体、ASR 与生成式 AI 应用，关注模型能力如何进入真实工作流，并以清晰、稳定的产品形态完成交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">查看项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>下载简历 <Download size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="avatar-mock"><UserRound size={54}/><span>头像待替换</span></div><div className="identity-copy"><strong>{profile.title}</strong><p>候选人简介待补充：教育背景、技术兴趣与求职时间。</p></div><div className="signal-line"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>方向</span><b>LLM · Agent · RAG</b><span>意向</span><b>实习 / 校招</b></div></aside></section>
     <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} fontStatus={summaryFontStatus} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{summaryData.count}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
+    <section className="portfolio-section awards-section" id="awards"><ResourceBoundary state={awards.state} fontStatus={awardsFontStatus} retry={awards.retry} skeleton={<AwardsSkeleton />}>{awardsData && <><div className="section-title"><p className="mono-label">{awardsData.eyebrow}</p><h2>{awardsData.heading}</h2><p>{awardsData.description}</p></div><div className="award-ledger">{awardsData.awards.map((award) => <article className="award-certificate glass-panel" key={award.title}><div className="award-certificate__edition"><span>{award.edition}</span><Medal size={28}/></div><div className="award-certificate__main"><p className="mono-label">{award.level} · {award.category} / {award.badge}</p><h3>{award.title}</h3><strong>{award.result}</strong>{award.project && award.projectId ? <a href={`/?project=${award.projectId}`} className="award-certificate__project">关联项目 · {award.project} <ArrowUpRight size={15}/></a> : <span className="award-certificate__project award-certificate__project--static">独立竞赛荣誉</span>}</div><dl className="award-certificate__facts"><div><dt>荣誉层级</dt><dd>{award.level}</dd></div><div><dt>核验材料</dt><dd>{award.evidence}</dd></div></dl></article>)}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database; const isTransitionSource = transitionProjectId === project.id; return <a href={`/?project=${project.id}`} className={`case-row glass-panel${isTransitionSource ? " case-row--transition-source" : ""}`} key={project.id} onClick={(event) => onProjectOpen(event, project.id)}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} fontStatus={skillsFontStatus} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <><div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading.split("，")[0]}，<br/>{skillsData.heading.split("，").slice(1).join("，")}</h2></div><div className="skill-track">{skillsData.skills.map((skill) => <article key={skill.index}><span>{skill.index}</span><h3>{skill.title}</h3><p>{skill.description}</p></article>)}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} fontStatus={aboutFontStatus} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>简历 <Download size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>

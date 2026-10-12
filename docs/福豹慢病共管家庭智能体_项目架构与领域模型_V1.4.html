@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>福豹慢病共管家庭智能体｜项目架构与领域模型 V1.4</title>
+  <style>
+    :root { --ink:#152132; --muted:#64748b; --paper:#fff; --bg:#f5f3ee; --mint:#d9f5e8; --green:#0c6b4b; --navy:#17263d; --line:#bdc7d4; --blue:#e9f0ff; --amber:#fff4d6; --rose:#fff0f0; }
+    * { box-sizing:border-box } body { margin:0; color:var(--ink); background:var(--bg); font:15px/1.7 "Microsoft YaHei","PingFang SC",Arial,sans-serif }
+    main { width:min(1180px,calc(100% - 36px)); margin:0 auto; padding:42px 0 72px } .paper { background:var(--paper); border:1px solid #e3e7eb; border-radius:24px; box-shadow:0 18px 48px #17263d10; padding:30px; margin-top:24px }
+    .eyebrow { color:var(--green); font-weight:800; font-size:12px; letter-spacing:.15em; text-transform:uppercase } h1,h2,h3 { margin:0; font-family:Georgia,"Noto Serif SC","Microsoft YaHei",serif; line-height:1.25 } h1 { font-size:clamp(31px,5vw,52px); margin-top:8px } h2 { font-size:28px; margin-bottom:16px } h3 { font-size:18px; margin-bottom:7px } p { margin:8px 0 } .intro { color:#405069; max-width:850px; font-size:17px }
+    .legend,.badges { display:flex; flex-wrap:wrap; gap:9px; margin-top:18px }.badge { border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; background:#edf2f7; color:#42526a }.badge.done{background:#dff7e9;color:#076244}.badge.plan{background:var(--amber);color:#815900}.badge.seam{border:1px dashed #66778e;background:#fff}
+    .grid { display:grid; gap:16px }.cols2 { grid-template-columns:repeat(2,minmax(0,1fr)) }.cols3 { grid-template-columns:repeat(3,minmax(0,1fr)) }.cols4 { grid-template-columns:repeat(4,minmax(0,1fr)) }
+    .card { border:1px solid #dbe2ea; border-radius:16px; padding:16px; background:#fff }.deep { background:linear-gradient(145deg,#10233d,#203b5a); color:#f8fbff; border-color:#10233d }.seam-card { border-style:dashed; border-width:2px }.external { background:#f8fafc }.entity { background:#f3f8ff; border-left:5px solid #4a78bd }.value { background:#f7f4ff; border-left:5px solid #795ad0 }.event { background:#fff8e7; border-left:5px solid #ce9b25 }.note { border-left:4px solid #11a270; background:#edfbf4; padding:12px 15px; border-radius:7px }
+    .arrow { text-align:center; color:#73849a; font-size:22px; line-height:1; padding:4px }.arrow::before { content:"↓" }.arrow.h::before { content:"→" }.architecture { display:grid; grid-template-columns:1fr 34px 1.35fr 34px 1fr; align-items:stretch; gap:7px; margin-top:18px }.architecture .arrow { display:flex; align-items:center; justify-content:center }.architecture .arrow::before { content:"→" }
+    .lane { border-radius:18px; padding:14px; border:1px solid #dbe2ea; background:#fbfcfd }.lane-title { font-size:12px; color:var(--muted); font-weight:800; letter-spacing:.08em; text-transform:uppercase; margin:0 0 10px }.stack { display:grid; gap:10px }.small { font-size:13px; line-height:1.55 }.muted { color:var(--muted) }.callout { border:1px solid #bfd9ca; background:#f2fbf6; border-radius:14px; padding:14px; margin-top:14px }
+    table { width:100%; border-collapse:collapse; font-size:13px } th,td { padding:10px; border-bottom:1px solid #e6ebf0; vertical-align:top; text-align:left } th { color:#33455f; background:#f7f9fb; font-weight:800 } code { background:#f0f3f6; border-radius:4px; padding:1px 4px; font-family:Consolas,monospace; font-size:.9em }
+    .model-grid { display:grid; grid-template-columns:1.1fr 34px 1.2fr 34px 1.1fr; align-items:center; gap:7px }.model-grid .arrow{display:flex;justify-content:center;align-items:center}.model-grid .arrow::before{content:"→"}.relation { border:1px solid #e0e6ed; border-radius:14px; padding:14px; background:#fcfdfe }.list { margin:7px 0 0; padding-left:18px }.list li { margin:3px 0 }.flow { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; align-items:center }.flow .step { min-height:90px; display:flex; align-items:center; justify-content:center; text-align:center; border:1px solid #d7e1e9; border-radius:14px; padding:10px; background:#fbfcfe; font-weight:700 }.flow .step.deep { border-color:#10233d }.flow .step.warn { background:#fff7e8; border-color:#edcf83 }.flow .step.ok { background:#edfbf4; border-color:#9ed7ba }
+    .footer { color:#6c7a8e; font-size:12px; padding:20px 2px 0 }.sources { font-size:13px; color:#526174 } @media(max-width:780px){ main{width:min(100% - 24px,1180px);padding-top:20px}.paper{padding:20px;border-radius:18px}.cols2,.cols3,.cols4,.architecture,.model-grid{grid-template-columns:1fr}.architecture .arrow,.model-grid .arrow{height:25px}.architecture .arrow::before,.model-grid .arrow::before{content:"↓"}.flow{grid-template-columns:1fr}.flow .step{min-height:55px} }
+  </style>
+</head>
+<body>
+<main>
+  <header class="paper">
+    <div class="eyebrow">Architecture & Domain Model · V1.4 · 2026-08-14</div>
+    <h1>福豹慢病共管家庭智能体<br>项目架构与领域模型</h1>
+    <p class="intro">以仓库当前实现为准的架构快照。该模型描述“家庭健康共管”的已实现运行边界、核心领域对象与 Agent 执行生命周期；虚线和黄色标签明确保留未来能力，避免将规划误写为现状。</p>
+    <div class="legend"><span class="badge done">已实现 / 已验证边界</span><span class="badge seam">适配缝隙（可替换实现）</span><span class="badge plan">规划或待验证能力</span><span class="badge">箭头：允许的依赖/数据流</span></div>
+  </header>
+
+  <section class="paper">
+    <div class="eyebrow">01 · System Context</div><h2>系统上下文与信任边界</h2>
+    <div class="architecture">
+      <div class="lane"><p class="lane-title">用户端</p><div class="stack"><div class="card"><b>Flutter 双角色 App</b><br><span class="small">子女端、长辈端；页面、临时会话、历史裁剪、离线任务变更、适老交互。</span></div><div class="card seam-card"><b>Demo / Remote adapters</b><br><span class="small">Demo 使用本地确定性数据；Remote 才访问真实 API 与共享数据。</span></div></div></div>
+      <div class="arrow"></div>
+      <div class="lane"><p class="lane-title">业务权威层 · NestJS Core</p><div class="stack"><div class="card deep"><b>Auth · Families · Onboarding · Plans · Health · Engagement</b><br><span class="small">身份、家庭授权、业务规则、事务、审计与正式业务数据的唯一权威。</span></div><div class="card deep"><b>Agent Gateway / Run 执行模块</b><br><span class="small">命令校验、Run/Attempt 生命周期、调度、重试和正式产物提交。</span></div><div class="card"><b>PostgreSQL</b><br><span class="small">业务事实、约束、事务、审计、Run 和 Recommendation。</span></div><div class="card"><b>Redis / Outbox / 通知与设备适配</b><br><span class="small">短期锁、限流、缓存、可靠投递、模拟设备与推送适配。</span></div></div></div>
+      <div class="arrow"></div>
+      <div class="lane"><p class="lane-title">内网 AI 执行层</p><div class="stack"><div class="card seam-card"><b>HMAC + 服务身份认证</b><br><span class="small">AI 不持有用户 JWT；受控 Tool API 只返回最小上下文。</span></div><div class="card deep"><b>Python AI Service</b><br><span class="small">无状态 Attempt 执行、轮次策略、模型目录、受控工具、检索、安全校验与结构化输出。</span></div><div class="card seam-card"><b>Provider adapter</b><br><span class="small">显式配置的 ModelScope 或智谱 OpenAI-compatible provider；默认模型由服务端目录解析。</span></div></div></div>
+    </div>
+    <div class="callout"><b>强制依赖方向：</b>Flutter 只调用 NestJS；AI Service 仅位于内部网络并通过 HMAC 访问受控 Tool API；Python 不写 Core Schema、不保留 AgentRun 注册表；Provider 不接收用户 JWT、完整报告或完整会话历史。</div>
+  </section>
+
+  <section class="paper">
+    <div class="eyebrow">02 · Bounded Contexts</div><h2>领域模块与职责</h2>
+    <div class="grid cols3">
+      <article class="card deep"><h3>家庭共管</h3><p class="small">以 Family 为协作边界；成员、邀请、健康档案、计划、读数、建议均受家庭授权与审计约束。</p><p class="small muted" style="color:#c9d7e6">接口：身份解析、成员关系、档案编辑授权。</p></article>
+      <article class="card deep"><h3>健康计划执行</h3><p class="small">Plan 生成 DailyTask；TaskRecord 记录完成或跳过。客户端可持有待同步变更，服务端是最终状态权威。</p><p class="small muted" style="color:#c9d7e6">接口：计划管理、长辈任务记录、提醒投递。</p></article>
+      <article class="card deep"><h3>健康事件与关怀</h3><p class="small">HealthReading 通过确定性 L1/L2 规则产生 Alert；LLM 不参与告警等级判定。</p><p class="small muted" style="color:#c9d7e6">接口：健康录入、告警处理、关怀提醒。</p></article>
+      <article class="card"><h3>设备与终端</h3><p class="small">当前模型将 Device 与 Family 绑定，覆盖发现、激活、设置、事件和命令记录；物理设备与家庭绑定分离是未来演进项。</p><span class="badge plan">生命周期拆分：规划</span></article>
+      <article class="card"><h3>互动与火花</h3><p class="small">SparkActivity / SparkStatus、Topic、Message 形成家庭互动与双端展示能力；话题建议可由后台 Agent 命令产生。</p></article>
+      <article class="card"><h3>健康助手</h3><p class="small">报告分析产生正式 Recommendation；普通问答只返回临时文本。客户端临时会话与服务端 Agent 执行是不同概念。</p></article>
+    </div>
+  </section>
+
+  <section class="paper">
+    <div class="eyebrow">03 · Domain Model</div><h2>家庭健康共管领域模型</h2>
+    <div class="model-grid">
+      <div class="relation entity"><h3>Family <span class="badge done">聚合根</span></h3><p class="small">家庭是数据协作与权限的边界。</p><ul class="list small"><li>FamilyMember：成员与角色</li><li>Invitation：加入邀请码</li><li>HealthProfile：家庭拥有的长辈健康档案</li><li>Device：当前家庭绑定设备</li></ul></div>
+      <div class="arrow"></div>
+      <div class="relation"><h3>健康管理事实</h3><div class="grid cols2"><div class="entity card"><b>Plan</b><br><span class="small">类型、状态、执行主体</span></div><div class="entity card"><b>DailyTask</b><br><span class="small">某日可执行事项</span></div><div class="entity card"><b>TaskRecord</b><br><span class="small">完成/跳过记录</span></div><div class="entity card"><b>HealthReading</b><br><span class="small">指标、时间、测量者</span></div><div class="entity card"><b>Alert</b><br><span class="small">确定性规则产生的风险提醒</span></div><div class="entity card"><b>Spark / Topic / Message</b><br><span class="small">互动事实与内容</span></div></div></div>
+      <div class="arrow"></div>
+      <div class="relation"><h3>约束性关系</h3><ul class="list small"><li>Family 1—N Plan；Plan 1—N DailyTask；DailyTask 0—1 TaskRecord。</li><li>Family 1—N HealthReading；Reading 0—N Alert。</li><li>Family 1—1 HealthProfile（当前数据模型）。</li><li>Family 1—N Device / Topic / Message / Recommendation。</li><li>健康档案、计划、任务和读数不得脱离家庭独立存在。</li></ul></div>
+    </div>
+    <div class="grid cols3" style="margin-top:16px"><div class="value card"><b>值与状态</b><br><span class="small">Role、PlanStatus、TaskStatus、HealthMetricType、AlertLevel、AlertStatus、SparkState。</span></div><div class="event card"><b>领域事件 / 可靠投递</b><br><span class="small">OutboxEvent 以幂等键承接需异步处理的业务事实；不能反过来成为事实源。</span></div><div class="note"><b>边界说明</b><br><span class="small">家庭解散、30 天保留/恢复、实体设备与绑定分离均已写为领域约束，但当前代码尚未实现完整生命周期。</span></div></div>
+  </section>
+
+  <section class="paper">
+    <div class="eyebrow">04 · Agent Execution</div><h2>Agent 执行与健康助手模型</h2>
+    <div class="grid cols2">
+      <div class="card"><h3>健康助手会话（Flutter 临时状态）</h3><ul class="list small"><li>进入页面到离开页面期间有效；重新进入即为新会话。</li><li>报告分析与普通问答是封闭命令；普通问答最多传输最近 8 个成功轮次、16 条消息。</li><li>报告分析不使用普通会话历史；普通问答成功文本不持久化。</li><li>本地 OCR 只提取待核对候选值，图片与原文不上传至健康档案接口或 AI 服务。</li></ul></div>
+      <div class="card deep"><h3>AgentRun 执行模块（NestJS 权威）</h3><ul class="list small"><li>一个 AgentRun = 一次逻辑业务执行；一个 AgentRunAttempt = 一次真实 AI 调用。</li><li>Run 状态：PENDING → RUNNING → SUCCEEDED，或 RETRYING → RUNNING，或 FAILED。</li><li>Attempt 状态：STARTED → SUCCEEDED / FAILED / ABANDONED。</li><li>交互命令只允许一次 Attempt；健康告警建议最多三次，使用数据库时间、租约与 fencing token。</li></ul></div>
+    </div>
+    <div class="flow" style="margin-top:18px"><div class="step">HealthReading<br>或交互命令</div><div class="step">NestJS：授权、命令解析、创建/取得 Run</div><div class="step deep">Atomic claim<br>创建 STARTED Attempt</div><div class="step">Python：一次无状态执行<br>策略、工具、Provider、安全校验</div><div class="step ok">fenced callback<br>提交 Recommendation 或结算临时回复</div></div>
+    <div class="grid cols3" style="margin-top:16px"><div class="card"><b>AgentRun</b><br><span class="small">executionKey 唯一；只保存命令种类、身份/追踪、模型、执行元数据、安全摘要和正式产物引用。</span></div><div class="card"><b>AgentRunAttempt</b><br><span class="small">Run + attemptNumber 唯一；记录状态、fencing token、稳定错误码、来源、延时；不记录异常原文或 Prompt。</span></div><div class="card"><b>Recommendation</b><br><span class="small">一个 Run 至多一个正式建议；仅报告分析、健康告警和话题等正式产物持久化，普通问答不写入。</span></div></div>
+  </section>
+
+  <section class="paper">
+    <div class="eyebrow">05 · Architecture Decisions</div><h2>关键架构决定与当前边界</h2>
+    <table><thead><tr><th>决定</th><th>当前实现</th><th>明确不应表述为已交付</th></tr></thead><tbody>
+      <tr><td>NestJS 为执行生命周期唯一权威</td><td>PostgreSQL 事务、原子 claim、租约、fencing、Run/Attempt/Recommendation 关系与 Outbox。</td><td>Python 持久化 Run、Python 内部重试、取消状态或 AgentRun 轮询 API。</td></tr>
+      <tr><td>受控 AI 出口</td><td>HMAC 服务认证、最小 Tool API、结构化输出与 SafetyGuard；模型从服务端目录显式解析。</td><td>客户端直连模型、App 内模型密钥、完整 Prompt/原始输出持久化、自动诊断或用药调整。</td></tr>
+      <tr><td>本地优先 OCR</td><td>Flutter 的 <code>HealthDocumentRecognizer</code> 抽象、ML Kit/浏览器本地实现、用户确认回填。</td><td>远程 OCR 微服务、上传原图/原文、自动覆盖健康档案、真机 OCR 全量验收。</td></tr>
+      <tr><td>知识库与运行平台</td><td>受控检索接口与当前可引用的 Mock 样本；Compose 部署含 PostgreSQL、Redis 与内部 AI service。</td><td>pgvector 知识入库、生产医疗知识库、Kafka、Kubernetes、自动周期话题调度。</td></tr>
+    </tbody></table>
+  </section>
+
+  <section class="paper">
+    <div class="eyebrow">06 · Traceability</div><h2>证据与关键路径</h2>
+    <p class="sources">领域术语与不变量：<code>CONTEXT.md</code>；AI 总体架构：<code>docs/v1.2-ai-architecture.md</code>；生命周期决定：<code>docs/adr/0024-make-nestjs-the-agent-run-lifecycle-owner.md</code>；持久化模型：<code>services/api/prisma/schema.prisma</code>；客户端健康助手与 OCR：<code>apps/fubao_app/lib/features/reports/conversation/</code>、<code>apps/fubao_app/lib/features/profile/health_document_recognizer.dart</code>；执行模块：<code>services/api/src/agent-gateway/</code> 与 <code>services/ai-service/app/</code>。</p>
+    <p class="footer">本文件是 V1.4 文档重构的唯一架构输入之一。状态描述以当前仓库和已运行验证为准；具体测试数量与发布结论请以仓库 `.agent/current_state.md` 中的当次验证记录为准。</p>
+  </section>
+</main>
+</body>
+</html>

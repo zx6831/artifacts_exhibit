@@ -1,7 +1,7 @@
 # Current State
 Last updated: 2026-10-12
 Current branch: main
-Current phase: Project-detail evidence, original-document figure galleries, shared-transition, first-viewport vertical-layout, and startup blank-state fixes verified locally; publication pending
+Current phase: Project-detail evidence, original-document figure galleries, shared-transition, first-viewport vertical-layout, startup blank-state fixes, and awards module verified locally; publication pending
 
 ## Current Objective
 Maintain truthful Projects content and project detail pages whose project scope, authorship, links, validation status, and first-viewport hierarchy match audited evidence and the existing design system.
@@ -19,18 +19,20 @@ Maintain truthful Projects content and project detail pages whose project scope,
 - Committed and pushed the implemented loading and detail-route work to `origin/main` as `27c8978`.
 - Completed a public-repository audit across every visible branch head. Added SSO (`master`) and subject-protecting passerby removal (`feature/person-removal-baseline`) as public portfolio cases; retained Dingjia only as ScholarWeaver’s component and excluded the learning-focused `sqldemo`.
 - Audited local V2T ASR and PharmAgent materials and added both as private/local project cases without GitHub links. PharmAgent is presented as a Challenge Cup AI+ national-finalist project per the user's supplied status and local project plan.
-- Expanded `public/data/home-work.json` to six projects and added a shared evidence-oriented detail renderer for the four new cases.
+- Expanded `public/data/home-work.json` to seven projects and added a shared evidence-oriented detail renderer for the new private/local cases, including Xuanji.
 - Fixed project-card reliability: `home-work.json` now revalidates rather than serving an indefinitely cached initial response; obsolete project IDs render an explicit 404-style page instead of falling back to the first project; every detail-page return action targets `/#work`.
 - Published the portfolio case-study update to `origin/main` as `5ff9f5e`.
 - Published the audited six-project expansion and cache-safe route repair to `origin/main` as `263a3fa`.
-- Replaced the generic detail-page hero on all six cases with tailored, content-grounded visual signatures: molecule route (PharmAgent), CAS trust topology, transcript timeline (V2T), protective-mask composition, annotated manuscript (ScholarWeaver), and dual-role care board (Fubao).
-- Corrected the independent homepage summary to show the six visible portfolio cases and broadened its scope beyond LLM applications: “06 个覆盖 AI、全栈、视觉与产品工程的代表项目”.
+- Replaced the generic detail-page hero on all seven cases with tailored, content-grounded visual signatures: molecule route (PharmAgent), discovery atlas (Xuanji), CAS trust topology, transcript timeline (V2T), protective-mask composition, annotated manuscript (ScholarWeaver), and dual-role care board (Fubao).
+- Corrected the independent homepage summary to show the seven visible portfolio cases and broadened its scope beyond LLM applications: “07 个覆盖 AI、全栈、视觉与产品工程的代表项目”.
 - Replaced the generic system-chain sections for PharmAgent, ScholarWeaver, and Fubao with three evidence modules grounded in the reviewed local documents. PharmAgent now exposes its research-to-delivery handoff; ScholarWeaver exposes its parse/term/RAG/two-stage-translation chain and a clearly labelled native output-structure illustration; Fubao exposes its dual-role daily loop plus OCR/Family/AI data boundaries.
 - After explicit user authorization, added six selected original project figures in `public/project-evidence/` and a linked, lazy-loaded gallery beneath each of the three evidence modules: PharmAgent architecture/workflow, ScholarWeaver parsing pipeline/workbench, and Fubao business-loop/system-context diagrams.
+- Added the homepage awards module before Projects. It is driven by `public/data/home-awards.json`, presents five user-supported national/provincial/school credentials, and keeps the navigation order 首页 → 荣誉 → 项目 → 能力 → 关于. Xuanji, PharmAgent, and “交叉互译” have matching case routes; independent math-modeling honors intentionally do not.
 
 ## In Progress
 - The tailored detail-page redesign, homepage scroll-motion refinement, shared-element transition, and first-viewport spacing refinement are locally verified but not yet committed or pushed.
 - The documentation-grounded evidence modules and their user-authorized original-figure galleries are implemented and locally verified, but remain uncommitted and unpublished with the other portfolio refinements.
+- The awards module is implemented and locally verified, but remains uncommitted and unpublished with the other portfolio refinements.
 - Optional manual visual review of shimmer intensity remains available.
 - Button-motion comparison is complete. No source change was requested: the current Liquid Glass control retains its restrained press effect; a more physical press/release treatment remains an optional, user-approved refinement.
 
@@ -49,12 +51,13 @@ Maintain truthful Projects content and project detail pages whose project scope,
 - `src/App.tsx` keeps the reveal duration and stagger as shared constants so its timer clears delay variables only after the CSS keyframe sequence finishes.
 - The homepage Projects module will continue using `public/data/home-work.json`; only its project data and the icon mapping may change.
 - Homepage content remains in `public/data/home-work.json`; only that data and its icon mapping changed, so the existing Projects layout and behavior are protected.
-- `ProjectDetail` now dispatches to project-specific content. ScholarWeaver links to the supplied public collaboration repository; Fubao is a private project and intentionally has no repository action.
+- `ProjectDetail` now dispatches to project-specific content. ScholarWeaver links to the supplied public collaboration repository; Xuanji and Fubao are private/material-backed cases and intentionally have no repository action.
 - ScholarWeaver is presented as a collaboration. Its public history contains 20 visible commits by `MikeHuang2000` and two by `zx`, including a merged relay branch; Dingjia is described only as its reference-example retrieval component.
-- `CaseMasthead` is a shared semantic shell; `CaseSignature` deliberately dispatches to six distinct artefact layouts. Case-local CSS variables control accent, ink, and fill colors without changing the shared evidence sections or repository-link rules.
+- `CaseMasthead` is a shared semantic shell; `CaseSignature` deliberately dispatches to seven distinct artefact layouts. Case-local CSS variables control accent, ink, and fill colors without changing the shared evidence sections or repository-link rules.
 - The user explicitly authorized the selected original project figures for this portfolio. `public/project-evidence/` contains only the six reviewed images used by the three cases; all other document media remains out of the public site.
 - `EvidenceLabel`, `SourceFigureGallery`, `PharmAgentEvidence`, `ScholarWeaverEvidence`, and `FubaoEvidence` isolate source-grounded visual proof from shared case layout. The gallery links each lazy-loaded figure at full resolution; the ScholarWeaver proof remains explicitly labelled as a web-native structure illustration rather than a benchmark screenshot.
 - `LiquidGlassButton` uses one CSS transform transition for hover, press, and release. Its current `:active` state is `translateY(1.5px) scale(0.985)`; the skin has constant inset shadows. The current cubic-bezier has no overshoot, so the suggested `scale(0.96)` plus pressed-depth and release-spring behavior is not presently implemented.
+- Awards follow the existing per-section resource pattern: `home-awards.json` has independent preload, retry, font gate, and skeleton behavior. The credential is a compact evidence card rather than a decorative trophy shelf; each record carries level, result, and evidence scope, and a project link is optional rather than inferred.
 
 ## Validation Status
 - Startup blank-state hotfix (2026-10-12) — passed. A local agent-browser probe forced `font-loading app-ready` and measured `rootVisibility: visible` with 1,183 visible characters. Fresh homepage and `?project=pharmagent` loads passed with visible roots; the detail probe measured 1,708 visible characters and a 1180×482 masthead at 119px. Browser errors were empty.
@@ -98,6 +101,7 @@ Maintain truthful Projects content and project detail pages whose project scope,
 - Evidence modules: `npm run build` — passed (`tsc --noEmit && vite build`, 1,586 modules transformed); `git diff --check` — passed.
 - Local browser checks — passed: PharmAgent desktop evidence chain has all five handoff stages; ScholarWeaver desktop route exposes the labelled Demo workflow and output-structure illustration; Fubao route exposes all four role-loop stages and the three OCR/Family/AI boundary nodes at 390px width in light theme. Browser error output was empty after the Fubao theme switch.
 - Original project-figure galleries (2026-10-12) — `npm run build` passed (`tsc --noEmit && vite build`, 1,587 modules transformed); `git diff --check` passed. Local agent-browser verified the PharmAgent and ScholarWeaver desktop galleries plus Fubao at 390px in dark and light themes; all six figure links render, the mobile gallery stacks vertically, and browser errors were empty.
+- Awards and Xuanji update (2026-10-12) — JSON validation, `npm run build`, and `git diff --check` passed (`tsc --noEmit && vite build`, 1,587 modules transformed). Local agent-browser verified the navigation order 首页 → 荣誉 → 项目 → 能力 → 关于; one `#awards` region with five cards; Xuanji, PharmAgent, and ScholarWeaver route hrefs; the seven rendered project entries after the existing near-viewport resource load; and the Xuanji case route. Dark-theme awards and Xuanji detail screenshots were reviewed.
 
 ## Known Problems
 - Font-gated no-swap loading has passed the current normal-path browser and production-build checks. A separate blocked-webfont path should be rechecked if its font-loading implementation changes.

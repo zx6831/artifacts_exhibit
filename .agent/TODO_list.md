@@ -1,6 +1,19 @@
 # TODO List
 
 ## P0 — Blocking
+### [x] Add a verified awards section before Projects
+Status: completed
+Depends on: Evidence-backed award material
+Blocked by: None
+Scope: `src/App.tsx`, `src/index.css`, `public/data/home-awards.json`
+Acceptance criteria:
+- Homepage order and navigation are 首页 → 荣誉 → 项目 → 能力 → 关于.
+- Awards use a dedicated JSON resource and render before Projects without altering private-repository boundaries.
+- Five supplied awards show their national/provincial/school level, result, and evidence scope; Xuanji, PharmAgent, and “交叉互译” link to their respective cases, while the two independent math-modeling honors remain non-link records.
+Validation:
+- `npm run build` and `git diff --check` — passed.
+- Agent-browser found one awards region with five cards, verified the navigation order, Xuanji/PharmAgent/ScholarWeaver route hrefs, seven visible project entries after resource loading, and reviewed the dark-theme awards/Xuanji detail screenshots.
+
 ### [x] Verify the startup blank-state hotfix in a local browser
 Status: completed
 Depends on: Local Vite preview

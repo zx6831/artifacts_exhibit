@@ -190,3 +190,24 @@ Scope: Homepage recognition content and future personal-achievement records.
 Evidence: User-supplied award facts support five records: three national, one provincial, and one school-level. The local Xuanji project brief supports only its project title, contest context, iDrugMap positioning, and research-task scope; it does not independently validate clinical or performance claims. Browser review confirmed five readable cards, three intentional project routes, and two intentional non-link math-modeling records.
 Correct approach: Keep each record in `public/data/home-awards.json`, include level, title, result, evidence scope, and a project route only when the user specifies an association. Treat independent awards as deliberately non-link records. For project briefs, summarize only their supported positioning and module scope; do not reproduce unverified scale, efficacy, or commercial claims.
 Related files/tests: `public/data/home-awards.json`, `public/data/home-work.json`, `public/data/home-summary.json`, `src/App.tsx`, `src/index.css`, `npm run build`, `git diff --check`, awards/Xuanji browser QA (2026-10-12).
+## Homepage Navigation and Content Integrity
+### Restore first-load hash navigation after resource and font layout settles
+Conclusion: Browser-native hash handling can run before a React homepage has rendered or sized its JSON-backed sections, leaving a direct /#section URL at the top of the page.
+Scope: First-load anchors on this portfolio homepage.
+Evidence: A fresh 390×844 browser open at /#about initially reported scrollY: 0 while #about was far below the viewport. After preloading homepage resources and restoring the section once resource/font gates were ready, the same route reported aboutTop: 90, visible About content, and no horizontal overflow.
+Correct approach: Capture the initial hash once, eagerly load the small section resources only for that path, then make one behavior: auto scroll after data and per-section text-font gates are ready. Keep ordinary in-page navigation smooth and reduced-motion aware.
+Related files/tests: src/App.tsx, local agent-browser mobile deep-link check (2026-10-12), npm run build.
+
+### Do not expose portfolio placeholders as public profile content
+Conclusion: Visible labels such as 姓名, 头像待替换, and a mock résumé download communicate unfinished work more loudly than a restrained, truthful portfolio framing.
+Scope: Public-facing Hero, identity, footer, and contact copy when approved personal materials are unavailable.
+Evidence: Initial desktop and 390px mobile screenshots exposed each placeholder in the first viewport. The replacement CASEBOOK / 2026 card uses the seven visible cases and their existing source/test/material boundaries; post-edit browser checks found no placeholder text and retained responsive balance.
+Correct approach: Replace unsupplied identity claims with a concrete explanation of the work actually present, and route secondary actions to a real contact path. Add a name, portrait, credentials, or résumé only after the user provides approved material.
+Related files/tests: src/App.tsx, public/data/home-about.json, post-edit browser checks at 1440×900 and 390×844 (2026-10-12).
+
+### Make mobile floating controls a legible layer, not competing transparent text
+Conclusion: A translucent fixed navigation that works over sparse desktop imagery can become illegible when it crosses dense mobile titles and long award cards.
+Scope: The Tubelight navigation and theme control below 560px.
+Evidence: Before the adjustment, 390px screenshots showed award heading text visibly mixing through the nav pill. With a high-opacity surface derived from existing background tokens, the same mobile award landing remained readable and retained the existing active lamp treatment.
+Correct approach: Preserve the component and its motion, but raise the surface opacity only at the constrained breakpoint; verify anchor landing below the control and both themes rather than flattening the desktop design.
+Related files/tests: src/index.css, mobile light/dark screenshots and /#awards navigation check (2026-10-12).

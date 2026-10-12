@@ -1,89 +1,59 @@
 # Session Handoff
 Created: 2026-10-12
-Branch: main
-Working tree: Dirty. Existing uncommitted tailored detail-page work, homepage scroll-motion refinement, corrected homepage summary, shared transition, layout refinement, and original-figure galleries remain. This session adds the verified awards module in `public/data/home-awards.json`, its homepage rendering, and state-record updates. Six root-file deletions and the untracked `docs/` directory pre-date this task and were not changed.
+Branch: main (matches origin/main)
+Working tree: Modified intentional source/data files and state records; no commit was made in this session.
 
 ## Session Goal
-Implement and verify no-swap text loading: hide real text behind existing skeletons until final fonts are ready, with a timeout that locks a stable fallback.
-
-Complete the approved original-figure evidence galleries and correct the project-detail first-viewport vertical rhythm without changing the Hero's internal design.
-
-Add evidence-supported awards before Projects and connect project-specific credentials to their audited cases.
+Perform a critical but minimal visual, responsive, interaction, and visible-copy audit of the portfolio while preserving its evidence-led aurora/glass language.
 
 ## Work Completed
-- Added initial `font-loading` document state in `index.html`; the React root is invisible behind the existing boot skeleton until the font gate resolves.
-- Added global and per-resource font gates in `src/App.tsx`. They request the declared Manrope, Noto Sans SC, IBM Plex Mono, and Cormorant Garamond weights, retry during Vite's delayed `@import` registration, and use a 4.5-second ceiling.
-- Added global/resource-scoped system fallback tokens in `src/index.css`, so a late remote font cannot replace text already revealed after a timeout.
-- Updated scroll reveal to wait for font readiness, mark first completion, and let its short cleanup finish across later resource-state updates. Browser checks confirmed completed work cards did not replay after skills loaded.
-- Browser checks passed for normal final-font loading, blocked-font skeleton-only startup then stable fallback, and direct project-route skeleton selection.
-
-- Copied six user-authorized original images into `public/project-evidence/`: two each for PharmAgent, ScholarWeaver, and Fubao.
-- Added shared `SourceFigureGallery` rendering in `src/App.tsx`: descriptive alt text, captioned figure purpose, native lazy loading, and a new-tab full-resolution link for each image.
-- Expanded PharmAgent with its system architecture and FastGPT orchestration canvas; ScholarWeaver with document parsing pipeline and double-pane workbench; Fubao with Family business loop and security-zone system-context diagram.
-- Added `src/index.css` gallery styling: the explanatory text and original figures form a desktop two-column pair, mobile uses a vertical stack, hover/focus states expose the original-image action, and reduced motion disables the figure zoom transition.
-- Verified the new areas in the local browser: PharmAgent and ScholarWeaver desktop galleries, plus Fubao at 390px in both dark and light themes. Browser error output was empty.
-- Updated `current_state.md`, `TODO_list.md`, and `lessons.md` to replace the old “no document image published” decision with the user's explicit authorization and verified implementation.
-- Located the layout gap: detail routes hid navigation but retained the homepage `.candidate-shell` top padding (`112px` desktop/tablet; `94px` at 520px), while `.back-link` also added a `16px` top margin.
-- Added `candidate-shell--detail` when `Shell` omits navigation, set its normal `padding-top` to `64px`, and scoped the return link's top margin to `0`. The modifier is repeated in the later 520px query so the mobile homepage rule cannot override it.
-- Left `CaseMasthead`, its title, supporting copy, tags, signature visual, card dimensions, and later sections unchanged; no transform or negative margin is used.
-- Browser geometry and screenshot review at 1440×900, 768×1024, and 390×844 moved the Hero start from 182px/182px/164px to 119px with no horizontal overflow.
-- Reproduced a separate startup blank state on port 5176: `#root` and Hero existed but were hidden, with zero visible page text. An isolated browser class probe confirmed that the `font-loading app-ready` combination hides both root and boot skeleton; making only the root visible restores page text.
-- Applied the narrow source fix in `src/index.css`: `html.font-loading #root` no longer sets `visibility:hidden`. Final post-edit browser verification passed: the forced double-class state retains a visible root, and fresh homepage/detail loads show visible content without browser errors.
-- Added a dedicated `home-awards.json` resource and rendered its credential cards before Projects. It now has five supported national/provincial/school records: Xuanji Challenge Cup third prize, Zhongqing Cup second prize, PharmAgent Challenge Cup AI+ national finalist, Guangdong math-modeling third prize, and Dingjia Cup third prize. The two math-modeling records are intentionally non-link cards.
-- Added the private/material-backed Xuanji case, “玄玑——全球新药发现智能加速平台”, as the seventh portfolio project. Its details are bounded to the supplied PDF: iDrugMap positioning plus activity prediction, virtual screening, and similarity search; it makes no independent performance, clinical, or commercial claim and exposes no repository or source figures.
-- Updated the top navigation to 首页 → 荣誉 → 项目 → 能力 → 关于. Browser QA confirmed five cards, the Xuanji/PharmAgent/ScholarWeaver route hrefs, the seven-item work list after resource load, the Xuanji route, and dark-theme award/detail presentation.
+- Audited source, state records, homepage, representative detail pages, and all seven route titles.
+- Reframed the incomplete Hero identity panel as a truthful CASEBOOK / 2026 index; removed name/avatar/biography placeholder copy.
+- Replaced both placeholder-résumé calls to action with actual in-site contact paths; updated the footer and About block to portfolio-focused, evidence-bounded copy.
+- Edited awards, skills, project-list, Fubao, and contact text for accuracy and shorter, clearer on-screen reading.
+- Added a small-screen opaque treatment to the floating Tubelight navigation and theme control. It preserves the control language while preventing text/navigation overlap on mobile cards.
+- Found and repaired first-load homepage deep links: a URL such as /#about now preloads local JSON and scrolls once after data/font layout is stable.
+- Captured post-edit screenshots in qa-screenshots/design-audit-2026-10-12/ when that directory is retained by the workspace.
 
 ## Current Stopping Point
-Font-gated loading, original-figure galleries, the first-viewport layout adjustment, the startup blank-state hotfix, and the awards module are locally verified. This turn did not commit or push; preserve the mixed worktree unless the user explicitly requests publication.
+Implementation and QA are complete. Await user review/authorization to commit or publish; do not add personal name, photo, education, experience, or résumé claims without user-supplied material.
 
 ## Uncommitted Changes
-- Font-loading session files: `index.html`, `src/App.tsx`, `src/index.css`, and all four `.agent/` records. Preserve the pre-existing unrelated changes/deletions listed below.
-
-- Modified: `.agent/TODO_list.md`, `.agent/current_state.md`, `.agent/handoff.md`, `.agent/lessons.md`, `public/data/home-summary.json`, `public/data/home-work.json`, `src/App.tsx`, `src/index.css`.
-- Added: `public/data/home-awards.json`.
-- Added: `public/project-evidence/pharmagent-system-architecture.png`, `public/project-evidence/pharmagent-fastgpt-workflow.png`, `public/project-evidence/scholarweaver-processing-pipeline.png`, `public/project-evidence/scholarweaver-translation-workbench.png`, `public/project-evidence/fubao-family-loop.png`, `public/project-evidence/fubao-system-context.png`.
-- Deleted before this task and untouched: `2842293fa2bb01d8eec6e1c9026d2402.png`, `chrome-check-process-no-panel.png`, `chrome-check-studio-light.png`, `chrome-check-studio-no-panel.png`, `chrome-check-work-no-panel.png`, `v2tproject.md`.
-- Untracked and untouched: `docs/`.
+- Modified: src/App.tsx, src/index.css.
+- Modified: public/data/home-about.json, public/data/home-awards.json, public/data/home-skills.json, public/data/home-work.json.
+- Modified state records: .agent/current_state.md, .agent/lessons.md, .agent/TODO_list.md, .agent/handoff.md.
+- At the source-only review point, git status --short --branch showed exactly the six source/data files above; verify the final status again before staging.
 
 ## Validation Results
-- Font gates: normal path reached `fontState: ready` with all requested remote families loaded; blocked-font path kept root text at `visibility:hidden` behind the boot skeleton, then reached stable `fontState: fallback` after timeout with Arial/Georgia local stacks.
-- Scroll: work cards completed once with zero remaining active entrance classes after skills loaded; skills cleanup completed after the timer fix.
-- Final `npm run build` — passed: `tsc --noEmit && vite build`; 1,587 modules transformed.
-- Final `git diff --check` — passed after the state-record update (only existing LF→CRLF working-tree warnings were emitted).
-- Local agent-browser review — passed: PharmAgent and ScholarWeaver show their two original figures and full-resolution links at desktop; Fubao at 390px stacks its gallery vertically with no visible overflow in dark and light themes. Browser errors were empty.
-- Detail-layout agent-browser review — passed: at 1440×900, 768×1024, and 390×844, the theme control ended at 60px/56px/52px, the return link began at 65px, Hero height remained 506px/442px/689px, and no horizontal overflow occurred.
-- Startup blank-state hotfix — passed: forcing `font-loading app-ready` retained `#root` visibility with 1,183 visible characters; fresh homepage and PharmAgent detail loads had visible roots, and the detail masthead remained at 119px. Browser errors were empty.
-- Awards and Xuanji update — passed: JSON parsing, `npm run build`, and `git diff --check`; browser inspection confirmed the `首页—荣誉—项目—能力—关于` order, five `#awards` cards, three project associations, two intentionally non-link math-modeling awards, seven project cards after the existing near-viewport load, and the Xuanji detail route. The dark-theme awards and Xuanji detail were visually reviewed.
+- npm run build — passed: tsc --noEmit && vite build, 1,587 modules transformed.
+- JSON parsing — passed for all modified public/data/home-*.json files.
+- git diff --check — passed before writing these state records; output had only LF→CRLF warnings.
+- Browser QA: homepage reviewed at 1440×900 (light), 768×1024 (dark), and 390×844 (light/dark); no horizontal overflow at checked widths.
+- Mobile /#about: passed after the repair with aboutTop: 90, visible About content, dark theme, and no horizontal overflow.
+- Reduced motion: passed; matchMedia reported reduced motion, Awards opacity was 1, and signal animation was none.
+- All seven direct ?project= routes: expected title, no top nav, no horizontal overflow at 1440×900.
 
 ## Failing Tests or Known Errors
-- The unrelated Fubao Flutter suite still has the recorded `younger_plans` Golden mismatch: 0.17% / 574 pixels after 86 tests. It was not run or changed by this website task.
-- The existing uncommitted source/state work and root-file deletions require explicit review before any commit.
+- No failures in this website task.
+- Existing Fubao Flutter younger_plans Golden mismatch remains unmodified: 0.17% / 574 pixels in a prior 86-test run.
 
 ## Recommended Next Steps
-1. If publication is requested, run `git diff --check`, inspect the diff, then stage only the deliberately approved source, data, asset, and state paths. Preserve the six unrelated deletions and `docs/` unless the user directs otherwise.
-2. When further awards are supplied, add only verifiable records to `public/data/home-awards.json`; each record must include its year/edition, level, result, optional user-specified project route, and evidence source.
-3. If new document media is added, use `SourceFigureGallery` and give it a concrete purpose/caption rather than creating a separate visual treatment.
-4. Preserve the breakpoint-local `.candidate-shell--detail` rule if the homepage shell spacing changes; otherwise the later 520px homepage rule will reintroduce the excess mobile whitespace.
+1. Review git diff -- src/App.tsx src/index.css public/data/home-about.json public/data/home-awards.json public/data/home-skills.json public/data/home-work.json.
+2. If approved, stage only the intentional source/data/state records, run git diff --check and npm run build, then commit.
+3. When actual personal assets are supplied, replace the casebook-only identity treatment and add a real résumé action in a separate, reviewed change.
 
 ## Important Decisions
-- The Google Fonts source and visual typography remain unchanged. The implementation changes only visibility timing: final fonts first, skeleton while pending, and a session-stable local fallback on failure.
-
-- The user explicitly authorized use of original figures; the public asset selection remains intentionally narrow at two figures per case rather than importing each document's full media collection.
-- The gallery follows the evidence chain, not the Hero, so original detail deepens the case study without displacing the page thesis.
-- Original architecture and screenshot material documents system structure or interface shape only. It must not be used to claim performance, clinical validity, or individual authorship beyond the existing bounded copy.
-- Detail spacing is route-aware structural layout: a shell modifier replaces the hidden-navigation allowance with normal padding and a scoped margin adjustment. It must not be replaced with whole-page transforms or negative margins.
-- The font-loading rule must not use `visibility:hidden` on `#root`; it creates a blank viewport when the boot skeleton is concurrently dismissed.
+- The casebook index uses only current, supported portfolio facts (07 cases and public evidence scope); it does not impersonate a completed CV.
+- The mobile navigation uses opacity rather than a new component, so the desktop Tubelight behavior and information architecture stay intact.
+- Deep-link restoration is deliberately first-load-only and uses behavior: auto; normal in-page navigation retains smooth scrolling and reduced-motion handling.
 
 ## Risks and Open Questions
-- The 4.5-second timeout is a deliberate UX compromise and needs a cold-cache/throttled visual check once the sandbox is available. The direct-route blocked-font session likely reused shared font cache, so it confirmed detail skeleton selection but not a separate direct-route fallback.
-
-- Six original PNGs add roughly 6.5 MB of source imagery. `loading="lazy"` postpones their network fetch until the gallery approaches the viewport; convert/compress only if field performance later warrants it.
-- The six pre-existing deleted files have no known owner or requested disposition and must remain untouched.
-- A future increase to the fixed top-control height should revisit the 64px detail-shell spacing.
+- The final user-supplied identity/resume material is still unavailable. Keep it omitted rather than inventing it.
+- The direct-anchor repair intentionally preloads all small homepage JSON resources only for first-load hash URLs; this trades a small one-time data request for correct deep-link placement.
 
 ## Start Here
-```powershell
-git status --short
+powershell
+git status --short --branch
 git diff --check
 npm run build
-```
+git diff -- src/App.tsx src/index.css public/data/home-about.json public/data/home-awards.json public/data/home-skills.json public/data/home-work.json

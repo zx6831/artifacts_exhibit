@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Code2, Database, Dna, Download, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Medal, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Code2, Database, Dna, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Medal, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench } from "lucide-react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -7,8 +7,6 @@ import { LiquidGlassButton } from "@/components/ui/liquid-glass-button";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 
 const profile = {
-  name: "姓名",
-  title: "大模型应用工程师",
   email: "wzx6831@gmail.com",
   github: "https://github.com/zx6831",
 };
@@ -176,7 +174,7 @@ function collectText(value: unknown): string {
 
 const staticFontCorpus = [
   collectText([profile, projects, auditedCaseStudies, navItems]),
-  "项目链接已失效 项目清单已经更新 返回项目列表重新选择 演示服务暂时不可用 项目案例仍可浏览 源码接口文档 查看项目案例 访问 GitHub 返回项目 主题 求职中 接受大模型应用工程实习 姓名 把大模型能力交付成可用系统 聚焦多智能体生成式 AI 应用 真实工作流 清晰稳定产品形态 完成交付 下载简历 头像待替换 候选人简介 教育背景 技术兴趣 求职时间 方向 意向 实习 校招 大模型应用工程师",
+  "项目链接已失效 项目清单已经更新 返回项目列表重新选择 演示服务暂时不可用 项目案例仍可浏览 源码接口文档 查看项目案例 访问 GitHub 返回项目 主题 正在求职 大模型应用工程实习 让模型能力进入可用工作流 围绕多智能体生成式 AI 应用 模型工具界面边界 可理解可核验 推进交付 浏览案例 联系我 案例档案 有来源的代表案例 项目事实为主线 源码测试项目材料",
 ].join(" ");
 
 function waitForFinalFonts(text: string, timeoutMs = fontLoadTimeoutMs): Promise<FontGateStatus> {
@@ -546,7 +544,7 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
       {showNavigation && <div className="site-top-controls__nav"><TubelightNavBar items={navItems} activeId={activeId} className="site-floating-nav" onNavigate={(id) => navigate(id)} /></div>}
       <div className="site-top-controls__theme"><LiquidGlassButton className="site-theme-toggle" variant="icon" type="button" aria-label="切换主题" aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>主题</span></LiquidGlassButton></div>
     </div>
-    <div className={`candidate-shell${showNavigation ? "" : " candidate-shell--detail"}`}>{children}<footer><span>{profile.name} · 大模型应用工程师</span><span>© {new Date().getFullYear()}</span></footer></div>
+    <div className={`candidate-shell${showNavigation ? "" : " candidate-shell--detail"}`}>{children}<footer><span>AI 应用工程 · 项目作品集</span><span>© {new Date().getFullYear()}</span></footer></div>
   </AuroraBackground>;
 }
 
@@ -896,6 +894,8 @@ function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpe
   const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache");
   const skills = useJsonResource<SkillsData>("/data/home-skills.json");
   const about = useJsonResource<AboutData>("/data/home-about.json");
+  const initialSectionId = useRef(location.hash.slice(1));
+  const restoredInitialSection = useRef(false);
   const preloadTargets = useMemo(() => [
     { selector: "#proof", load: summary.load },
     { selector: "#awards", load: awards.load },
@@ -905,6 +905,15 @@ function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpe
   ], [about.load, awards.load, skills.load, summary.load, work.load]);
 
   useNearViewportPreload(preloadTargets, 400);
+
+  useEffect(() => {
+    if (!initialSectionId.current) return;
+    summary.load();
+    awards.load();
+    work.load();
+    skills.load();
+    about.load();
+  }, [about.load, awards.load, skills.load, summary.load, work.load]);
 
   const workData = work.state.data;
   const awardsData = awards.state.data;
@@ -920,13 +929,25 @@ function Home({ onProjectOpen, transitionProjectId, fontStatus }: { onProjectOpe
 
   useScrollReveal(scrollRevealGroups, [summary.state.status, summaryFontStatus, awards.state.status, awardsFontStatus, work.state.status, workFontStatus, skills.state.status, skillsFontStatus, about.state.status, aboutFontStatus].join("|"), fontStatus !== "loading");
 
+  useEffect(() => {
+    const id = initialSectionId.current;
+    const resourcesReady = [summary, awards, work, skills, about].every((resource) => resource.state.status === "ready");
+    const textReady = [summaryFontStatus, awardsFontStatus, workFontStatus, skillsFontStatus, aboutFontStatus].every((status) => status !== "loading");
+    if (!id || restoredInitialSection.current || !resourcesReady || !textReady) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    restoredInitialSection.current = true;
+    const frame = window.requestAnimationFrame(() => target.scrollIntoView({ behavior: "auto", block: "start" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [about, aboutFontStatus, awards, awardsFontStatus, skills, skillsFontStatus, summary, summaryFontStatus, work, workFontStatus]);
+
   return <main>
-    <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 求职中 · 接受大模型应用工程实习</div><p className="mono-label">AI APPLICATION ENGINEER / 2026</p><h1><span>姓名</span>，把大模型能力<br/>交付成<span className="accent-word">可用系统。</span></h1><p className="hero-lead">聚焦 RAG、多智能体、ASR 与生成式 AI 应用，关注模型能力如何进入真实工作流，并以清晰、稳定的产品形态完成交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">查看项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>下载简历 <Download size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="avatar-mock"><UserRound size={54}/><span>头像待替换</span></div><div className="identity-copy"><strong>{profile.title}</strong><p>候选人简介待补充：教育背景、技术兴趣与求职时间。</p></div><div className="signal-line"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>方向</span><b>LLM · Agent · RAG</b><span>意向</span><b>实习 / 校招</b></div></aside></section>
+    <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 正在求职 · 大模型应用工程实习</div><p className="mono-label">AI APPLICATIONS / PORTFOLIO 2026</p><h1>让模型能力<br/>进入<span className="accent-word">可用工作流。</span></h1><p className="hero-lead">围绕 RAG、多智能体、ASR 与生成式 AI 应用，梳理模型、工具与界面的边界；以可理解、可核验的方式推进交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">浏览案例 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="#about">联系我 <Mail size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="casebook-stage"><p className="casebook-stage__eyebrow">CASEBOOK / 2026</p><div className="casebook-stage__count"><strong>07</strong><span>个有来源的代表案例</span></div><p className="casebook-stage__scope">AI · 全栈 · 视觉 · 产品工程</p></div><div className="identity-copy"><strong>以项目事实为主线</strong><p>仅呈现可公开的源码、测试记录与项目材料；未核验的信息不作结论。</p></div><div className="signal-line" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>范围</span><b>AI · 全栈 · 视觉 · 产品</b><span>依据</span><b>源码 · 测试 · 项目材料</b></div></aside></section>
     <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} fontStatus={summaryFontStatus} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{summaryData.count}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
     <section className="portfolio-section awards-section" id="awards"><ResourceBoundary state={awards.state} fontStatus={awardsFontStatus} retry={awards.retry} skeleton={<AwardsSkeleton />}>{awardsData && <><div className="section-title"><p className="mono-label">{awardsData.eyebrow}</p><h2>{awardsData.heading}</h2><p>{awardsData.description}</p></div><div className="award-ledger">{awardsData.awards.map((award) => <article className="award-certificate glass-panel" key={award.title}><div className="award-certificate__edition"><span>{award.edition}</span><Medal size={28}/></div><div className="award-certificate__main"><p className="mono-label">{award.level} · {award.category} / {award.badge}</p><h3>{award.title}</h3><strong>{award.result}</strong>{award.project && award.projectId ? <a href={`/?project=${award.projectId}`} className="award-certificate__project">关联项目 · {award.project} <ArrowUpRight size={15}/></a> : <span className="award-certificate__project award-certificate__project--static">独立竞赛荣誉</span>}</div><dl className="award-certificate__facts"><div><dt>荣誉层级</dt><dd>{award.level}</dd></div><div><dt>核验材料</dt><dd>{award.evidence}</dd></div></dl></article>)}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database; const isTransitionSource = transitionProjectId === project.id; return <a href={`/?project=${project.id}`} className={`case-row glass-panel${isTransitionSource ? " case-row--transition-source" : ""}`} key={project.id} onClick={(event) => onProjectOpen(event, project.id)}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} fontStatus={skillsFontStatus} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <><div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading.split("，")[0]}，<br/>{skillsData.heading.split("，").slice(1).join("，")}</h2></div><div className="skill-track">{skillsData.skills.map((skill) => <article key={skill.index}><span>{skill.index}</span><h3>{skill.title}</h3><p>{skill.description}</p></article>)}</div></>}</ResourceBoundary></section>
-    <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} fontStatus={aboutFontStatus} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton><LiquidGlassButton href="/resume-mock.pdf" download>简历 <Download size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
+    <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} fontStatus={aboutFontStatus} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
   </main>;
 }
 

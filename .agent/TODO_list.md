@@ -1,138 +1,87 @@
-# TODO List
+﻿# TODO List
 
 ## P0 — Blocking
 
-None.
+### [ ] Publish the mobile WebKit blank-screen fix
+Status: ready
+Depends on: Review of the local patch and a push to main
+Blocked by: No technical blocker; pushing main automatically deploys the public site
+Scope: src/App.tsx, scripts/check-webkit-navigation.py, scripts/fixtures/home-about-old.json, .agent state files
+Acceptance criteria:
+- The GitHub Pages workflow builds and deploys the new commit.
+- The live JavaScript requests /data/home-about.json?v=2.
+- The site remains visible after section navigation.
+Validation:
+- npm run build
+- git diff --check
+- Inspect the GitHub Pages workflow result and the live site
 
-## P1 — Next
-
-None for the requested redesign.
+### [ ] Confirm the deployed fix on the user's iPhone 16 Pro
+Status: blocked
+Depends on: Published fix
+Blocked by: The fix is not deployed and the physical iPhone is not available in this Windows session
+Scope: iOS Safari and iOS WeChat browser at https://206831.xyz/
+Acceptance criteria:
+- Tapping every top navigation item leaves navigation, background, and content visible.
+- Scrolling into Honours and About leaves the page visible.
+- Direct /#work and /#about links show the intended section.
+Validation:
+- Test on the physical iPhone after deployment; capture Safari Web Inspector errors if any path still blanks
 
 ## P2 — Later
 
 ### [ ] Add stronger public artefacts and measured outcomes
 Status: deferred
-Depends on: Approved screenshots, demos, videos, reports, or measured product/model results
-Blocked by: Detailed public artefacts are not available for several private/team projects
-Scope: Project cards and detail evidence galleries
+Depends on: Verified screenshots, demos, reports, or measured results from the user
+Blocked by: Several private/team project artefacts are unavailable
+Scope: Project cards and detail pages
 Acceptance criteria:
-- Each project has one useful public artefact or an explicit publication boundary.
-- Outcome claims distinguish tests/build status from product or model effectiveness.
-- Team achievements and individual ownership remain separately attributed.
+- Each project has a useful public artefact or an explicit publication boundary.
+- Outcome claims distinguish build/test evidence from effectiveness claims.
 Validation:
-- Open every linked artefact
-- Audit claims against supplied sources
-- Review at desktop and 390×844
+- Audit each claim against supplied sources and review desktop/mobile rendering
 
 ### [ ] Perform a cold-cache throttled release check
 Status: ready
-Depends on: Browser cache disable and network throttling controls
+Depends on: Browser throttling controls
 Blocked by: None
-Scope: `index.html`, `src/App.tsx`, `src/index.css`
+Scope: Homepage and one project detail
 Acceptance criteria:
-- Homepage and a project detail retain a visible, stable skeleton until final fonts or fallback fonts are ready.
-- No blank first viewport, late font reflow, or replayed entrance animation occurs.
+- A visible skeleton remains until fonts or fallback are ready.
+- No blank first viewport or replayed entrance animation occurs.
 Validation:
-- DevTools Slow 3G + Disable cache reload on `/` and `/?project=pharmagent`
-
-### [ ] Verify Safari and iOS WebKit behavior
-Status: ready
-Depends on: Safari/iOS test environment
-Blocked by: Not available in the current Windows session
-Scope: Floating navigation, backdrop filters, hash landing, PDF link, and View Transition fallback
-Acceptance criteria:
-- Core content, navigation, theme switch, project routes, and résumé remain usable.
-- Unsupported visual effects degrade without hiding content or controls.
-Validation:
-- Current Safari desktop
-- Current iOS Safari at a narrow viewport
+- DevTools Slow 3G + Disable cache on / and /?project=pharmagent
 
 ### [ ] Resolve or rebaseline Fubao younger_plans Golden mismatch
 Status: ready
-Depends on: Decision whether the current Flutter/Skia render is intended
+Depends on: Decision whether the current Flutter/Skia rendering is intended
 Blocked by: None
-Scope: Private Fubao Flutter visual test and baseline image
+Scope: Private Fubao Flutter visual baseline
 Acceptance criteria:
 - Determine whether the prior 0.17% / 574-pixel mismatch is environmental or a regression.
-- Fix or deliberately rebaseline it; Flutter tests then have no failure.
+- Fix or deliberately rebaseline the test.
 Validation:
-- `flutter test` from the Fubao app
+- flutter test from the Fubao app
 
 ## Completed
 
-### [x] Unify the structure of all five honour cards
+### [x] Prevent a stale About payload from unmounting the portfolio
 Status: completed
+Scope: src/App.tsx and WebKit regression fixture
 Acceptance criteria:
-- Every desktop/tablet card uses the same result, competition title, related-work, and source regions.
-- Independent awards occupy the same related-work slot as linked awards.
-- Mobile cards stack consistently without horizontal overflow.
+- The old payload from commit 0264661 no longer causes an uncaught page error.
+- Section navigation and scrolling retain the navigation and site content.
+- Invalid data enters a retryable section error state.
 Validation:
-- Chromium at 1440×900, 768×1024, and 390×844; all desktop/tablet cards measured 254px high
-- `npm run build` passed on 2026-10-13
-- `git diff --check` passed on 2026-10-13
+- npm run build passed on 2026-10-13.
+- WebKit touch navigation passed with fresh and stale About data.
+- WebKit scroll to awards with stale About data passed.
+- git diff --check passed after state-file updates; line-ending notices only.
 
-### [x] Add verified identity, biography, research interests, skills, and résumé
-Status: completed
+### [x] Unify all five honour-card structures and build the seven-project portfolio
+Status: completed in HEAD db4ca64
 Acceptance criteria:
-- Hero and About identify 王泽贤, education, target area, contact path, and supplied technical background.
-- Public résumé link opens a current one-page PDF.
+- Cards share the same result, title, related-work, and source regions.
+- Hero, projects, skills, honours, About, résumé, favicon, and metadata are present.
 Validation:
-- Desktop/mobile Chromium review
-- `GET /wang-zexian-resume.pdf` → HTTP 200, `application/pdf`, 182,709 bytes
-- Rendered PDF visual inspection passed
-
-### [x] Surface role, status, evidence, and stack on all seven project cards
-Status: completed
-Acceptance criteria:
-- Every card distinguishes personal ownership, participation, implementation focus, or project scope.
-- Team achievements are not presented as sole-author results.
-Validation:
-- Source audit against `docs` and repository facts
-- Desktop/mobile project-list review
-
-### [x] Put representative work before honours
-Status: completed
-Acceptance criteria:
-- Main CTA reaches projects before the full honour ledger.
-- Existing hashes and project transitions remain usable.
-Validation:
-- Desktop 1440×900 and mobile 390×844 browser review
-
-### [x] Add favicon, social card, Chinese SEO metadata, and route-aware project metadata
-Status: completed
-Acceptance criteria:
-- Homepage has canonical, OG/Twitter, author, favicon, and Person JSON-LD fields.
-- Project routes update title, description, OG/Twitter fields, and canonical URL.
-Validation:
-- Runtime head inspection on homepage and PharmAgent detail
-
-### [x] Stabilize cold and in-page section navigation after async expansion
-Status: completed
-Acceptance criteria:
-- Fresh and immediate-click `/#about` land below the floating navigation after all resources settle.
-- No horizontal overflow is introduced.
-Validation:
-- Fresh 390×844 `/#about`: target top 87.7px
-- Immediate About nav click at 390×844: target top 87.7px
-- `npm run build`
-
-### [x] Remove deployable mock résumé assets
-Status: completed
-Acceptance criteria:
-- `public/resume-mock.html` and `public/resume-mock.pdf` are absent.
-- The UI links only to the final résumé.
-Validation:
-- `git status --short`
-- Browser PDF request check
-
-### [x] Review the portfolio's structure, content completeness, and responsive presentation
-Status: completed
-Validation:
-- Chromium desktop and 390×844 review on 2026-10-13
-- `npm run build`
-
-### [x] Unify project-origin transitions and remove the transition-only halo
-Status: completed
-Validation:
-- Commit `0264661`
-- Prior Chromium desktop/mobile origin and pseudo-style probes passed
+- Prior Chromium desktop/mobile review and npm run build recorded in the 2026-10-13 handoff.

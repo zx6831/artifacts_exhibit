@@ -1,73 +1,58 @@
-# Session Handoff
+﻿# Session Handoff
 Created: 2026-10-13
-Branch: main, HEAD 0264661, aligned with origin/main
-Working tree: not clean; portfolio redesign, award-card fix, generated assets, résumé, mock-asset deletions, and state updates are uncommitted
+Branch: main, HEAD db4ca64, aligned with origin/main before this session's edits
+Working tree: not clean; this session changed src/App.tsx and the four .agent files, and added a WebKit regression script and old-data fixture
 
 ## Session Goal
-Make every honour card use the same visual structure after the user identified inconsistent layouts in a desktop screenshot.
+Diagnose and fix the iPhone 16 Pro Safari and iOS WeChat whole-page blank screen after top navigation or scrolling into Honours/About.
 
 ## Work Completed
-- Replaced the mixed two-column/last-card-wide honour grid with a uniform one-column collection of horizontal certificate cards at desktop and tablet widths.
-- Made every result pane use the same meta/result/badge rows and every content pane use the same category/title/related-work/source rows.
-- Rendered `独立竞赛荣誉` inside the related-work slot for awards without a project link.
-- Adjusted the result type scale at tablet width so `国赛决赛入围` stays on one line; all five desktop/tablet cards now measure 254px high.
-- Preserved the earlier portfolio identity, project, résumé, favicon, metadata, and hash-navigation work without altering its content.
+- Reproduced a matching whole-app WebKit crash by serving the old About JSON from commit 0264661. The browser error was: undefined is not an object (evaluating 'aboutData.research.map').
+- Added runtime validation for schema-sensitive homepage data. Invalid data now stays inside its section's retryable error UI.
+- Changed About to request /data/home-about.json?v=2 with no-store to bypass an old browser cache.
+- Prevented repeated automatic retries after an invalid response, while allowing the retry button. Handled StrictMode cleanup aborts as idle so development reload still works.
+- Added scripts/check-webkit-navigation.py and scripts/fixtures/home-about-old.json for fresh/stale mobile WebKit regression checks.
 
 ## Current Stopping Point
-The award-card correction and requested verification are complete. No commit or deployment was requested.
+Local patch and WebKit checks are complete. No commit, push, GitHub Pages deployment, or physical iPhone verification has occurred.
 
 ## Uncommitted Changes
-- Modified: `.agent/current_state.md`, `.agent/lessons.md`, `.agent/TODO_list.md`, `.agent/handoff.md`
-- Modified: `index.html`, `src/App.tsx`, `src/index.css`
-- Modified: `public/data/home-about.json`, `public/data/home-summary.json`, `public/data/home-work.json`
-- Added: `public/favicon.svg`, `public/social-card.svg`, `public/social-card.png`
-- Added: `public/wang-zexian-resume.pdf`, `scripts/generate-resume.py`
-- Deleted: `public/resume-mock.html`, `public/resume-mock.pdf`
-- Untracked and not touched in this session: `scripts/check-navigation-visibility.ps1`, `scripts/fixtures/`
+- Modified: src/App.tsx, .agent/current_state.md, .agent/lessons.md, .agent/TODO_list.md, .agent/handoff.md
+- Added: scripts/check-webkit-navigation.py, scripts/fixtures/home-about-old.json
 
 ## Validation Results
-- `npm run build` — passed; TypeScript and Vite completed, 1,588 modules transformed.
-- `git diff --check` — passed; only line-ending notices were printed.
-- Chromium 1440×900 — Hero, featured projects, compact grid, and PharmAgent detail visually passed; no horizontal overflow.
-- Chromium 390×844 — Hero, project list, About, active mobile navigation, and CTA wrapping visually passed; no horizontal overflow.
-- Fresh mobile `/#about` — target top 87.7px after four seconds.
-- Immediate homepage About click — target top 87.7px after async content expansion.
-- PharmAgent metadata — correct project title, description, and canonical URL.
-- Résumé request — HTTP 200, `application/pdf`, 182,709 bytes.
-- Résumé render — one A4 page; no clipping or overlap found.
-- Honour cards — Chromium at 1440×900, 768×1024, and 390×844; all desktop/tablet cards 254px high; mobile horizontal overflow 0 and browser errors empty.
-- Final `npm run build` — passed, 1,588 modules transformed after the award-card change.
-- Final `git diff --check` — passed; line-ending notices only.
+- npm run build — passed; TypeScript and Vite completed, 1,588 modules transformed.
+- git diff --check — passed after the .agent edits; line-ending notices only.
+- WebKit mobile touch nav, fresh data — passed: #work, target top 90px, nav visible, no page errors.
+- WebKit mobile touch nav, old About data — passed: #work, target top 90px, one retryable resource error, nav visible, no page errors.
+- WebKit direct /#about, fresh data — passed: target top 88px, no page errors.
+- WebKit scroll to awards, old About data — passed: nav and content visible, no page errors.
+- Live versioned About URL — HTTP 200.
+- Physical iPhone Safari/WeChat — not tested; requires a deployed build and the user's device.
 
 ## Failing Tests or Known Errors
-- No failure was found in the requested website scope.
-- Real Safari/iOS WebKit was not tested.
-- The prior Fubao 0.17% / 574-pixel Golden mismatch was not re-run.
+- No current local regression failure.
+- The exact cause on the user's physical iPhone is still an inference from the matching stale-data WebKit crash; Safari device logs were not captured.
 
 ## Recommended Next Steps
-1. Review the uniform honour-card layout and final copy.
-2. Commit the portfolio changes when approved, keeping unrelated untracked scripts outside that commit unless the user wants them included.
-3. Publish/deploy through the repository's existing release path.
-4. Add stronger screenshots, demos, and measured outcomes when verified artefacts become available.
-5. Run the optional cold-cache and Safari checks from `.agent/TODO_list.md`.
+1. Run git diff --check and npm run build after reviewing the .agent edits.
+2. Review and publish the patch; a push to main triggers .github/workflows/deploy-pages.yml.
+3. Inspect the Pages workflow and the live site, then ask the user to test Safari and WeChat on the iPhone 16 Pro.
+4. If blanking persists on device, capture Safari Web Inspector console/network errors and investigate WebKit-specific compositing or scroll behavior.
 
 ## Important Decisions
-- Use a routed-Z mark to connect the author's initial with agent workflow nodes.
-- Preserve the existing dark ink, ice cyan, glass, and mono evidence visual language.
-- State personal responsibility only where supplied documents or repository evidence support it.
-- Use project-scope labels for documents that describe a system without assigning an individual contributor.
-- Treat build/test counts as engineering evidence, not product-effectiveness metrics.
-- Keep award cards on one shared layout template, including the related-work slot for awards without a linked project.
+- Reject malformed data at the loading boundary before React renders nested array methods.
+- Keep a malformed response's failure local to its section and expose the existing retry action.
+- Do not claim the real-device bug is confirmed fixed until the new build is live and tested on iOS.
 
 ## Risks and Open Questions
-- `https://206831.xyz/` is encoded as the canonical domain and should be changed if the production domain changes.
-- The generated résumé contains only supplied or already verified facts; future dates, internships, grades, phone number, or measured outcomes require explicit source material.
-- Detailed source documents were present for three project groups only: PharmAgent, ScholarWeaver, and Fubao.
+- Current live JavaScript does not contain this patch.
+- Windows WebKit emulation is useful for the stale-data crash but does not fully emulate iPhone Safari or the WeChat browser.
 
 ## Start Here
 ```powershell
 git status --short --branch
 git diff --check
 npm run build
-git diff -- src/App.tsx src/index.css
+python scripts/check-webkit-navigation.py --browser webkit --target work --delay 0 --stale-about
 ```

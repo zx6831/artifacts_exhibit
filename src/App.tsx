@@ -376,13 +376,38 @@ type WorkData = { eyebrow: string; heading: string; description: string; project
 type SkillsData = { eyebrow: string; heading: string; description: string; skills: Array<{ index: string; title: string; description: string; methods: string[]; output: string; tools: string[]; cases: Array<{ id: string; label: string; context: string }> }> };
 type AboutData = { eyebrow: string; heading: string; education: string; description: string; research: string[]; skills: string[]; contactEyebrow: string; contactTitle: string; email: string; resume: string };
 
-function useJsonResource<T>(url: string, timeoutMs = 7000, initialCache: RequestCache = "force-cache") {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isWorkData(value: unknown): boolean {
+  return isRecord(value) && Array.isArray(value.projects) && value.projects.every((project: unknown) => isRecord(project) && Array.isArray(project.stack));
+}
+
+function isAwardsData(value: unknown): boolean {
+  return isRecord(value) && Array.isArray(value.awards) && value.awards.every((award: unknown) => isRecord(award) && typeof award.result === "string");
+}
+
+function isSkillsData(value: unknown): boolean {
+  return isRecord(value) && Array.isArray(value.skills) && value.skills.every((skill: unknown) =>
+    isRecord(skill) && Array.isArray(skill.methods) && Array.isArray(skill.tools)
+      && Array.isArray(skill.cases) && skill.cases.every(isRecord));
+}
+
+function isAboutData(value: unknown): boolean {
+  return isRecord(value)
+    && ["eyebrow", "heading", "education", "description", "contactEyebrow", "contactTitle", "email", "resume"].every((key) => typeof value[key] === "string")
+    && Array.isArray(value.research) && value.research.every((item: unknown) => typeof item === "string")
+    && Array.isArray(value.skills) && value.skills.every((item: unknown) => typeof item === "string");
+}
+
+function useJsonResource<T>(url: string, timeoutMs = 7000, initialCache: RequestCache = "force-cache", validate?: (value: unknown) => boolean) {
   const [state, setState] = useState<ResourceState<T>>({ status: "idle" });
   const requestRef = useRef<Promise<void> | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
   const load = useCallback((forceRefresh = false) => {
-    if (requestRef.current || (!forceRefresh && state.status === "ready")) return;
+    if (requestRef.current || (!forceRefresh && (state.status === "ready" || state.status === "error"))) return;
     const controller = new AbortController();
     let timedOut = false;
     controllerRef.current = controller;
@@ -394,14 +419,23 @@ function useJsonResource<T>(url: string, timeoutMs = 7000, initialCache: Request
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json() as Promise<T>;
       })
-      .then((data) => setState({ status: "ready", data }))
-      .catch(() => setState({ status: "error", message: timedOut ? "加载超时，请重试。" : "内容暂时无法加载。" }))
+      .then((data) => {
+        if (validate && !validate(data)) throw new Error(`Invalid data shape: ${url}`);
+        setState({ status: "ready", data });
+      })
+      .catch(() => {
+        if (controller.signal.aborted && !timedOut) {
+          setState({ status: "idle" });
+          return;
+        }
+        setState({ status: "error", message: timedOut ? "加载超时，请重试。" : "内容暂时无法加载。" });
+      })
       .finally(() => {
         window.clearTimeout(timeout);
         requestRef.current = null;
       });
     requestRef.current = request;
-  }, [initialCache, state.status, timeoutMs, url]);
+  }, [initialCache, state.status, timeoutMs, url, validate]);
 
   const retry = useCallback(() => {
     if (requestRef.current) return;
@@ -867,10 +901,10 @@ function OfflinePage() { return <main className="status-page"><div className="st
 
 function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => void; fontStatus: FontGateStatus }) {
   const summary = useJsonResource<SummaryData>("/data/home-summary.json");
-  const awards = useJsonResource<AwardsData>("/data/home-awards.json", 7000, "no-cache");
-  const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache");
-  const skills = useJsonResource<SkillsData>("/data/home-skills.json", 7000, "no-cache");
-  const about = useJsonResource<AboutData>("/data/home-about.json");
+  const awards = useJsonResource<AwardsData>("/data/home-awards.json", 7000, "no-cache", isAwardsData);
+  const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache", isWorkData);
+  const skills = useJsonResource<SkillsData>("/data/home-skills.json", 7000, "no-cache", isSkillsData);
+  const about = useJsonResource<AboutData>("/data/home-about.json?v=2", 7000, "no-store", isAboutData);
   const initialSectionId = useRef(location.hash.slice(1));
   const restoredInitialSection = useRef(false);
   const openFromHome = (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => {
@@ -940,7 +974,7 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
 
   useEffect(() => {
     const id = initialSectionId.current;
-    const resourcesReady = [summary, awards, work, skills, about].every((resource) => resource.state.status === "ready");
+    const resourcesReady = [summary, awards, work, skills, about].every((resource) => resource.state.status === "ready" || resource.state.status === "error");
     const textReady = [summaryFontStatus, awardsFontStatus, workFontStatus, skillsFontStatus, aboutFontStatus].every((status) => status !== "loading");
     if (!id || restoredInitialSection.current || !resourcesReady || !textReady) return;
     const target = document.getElementById(id);

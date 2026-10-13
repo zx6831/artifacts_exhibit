@@ -287,3 +287,11 @@ Scope: Shared project transitions from work, awards, and skills.
 Evidence: The forward and reverse CSS rules applied `0 18px 46px`; desktop and 390px mobile browser probes after removal computed `box-shadow: none` while surface animations and exact return coordinates remained intact.
 Correct approach: Let the source/target elements supply their existing visual styling; animate only the shared surface geometry and title opacity on the View Transition pseudos.
 Related files/tests: `src/index.css`, Chromium pseudo-style and scroll-position probes (2026-10-12).
+
+
+### Validate cached JSON before rendering nested fields
+Conclusion: A valid HTTP 200 response can still contain an older homepage schema and throw during React render, unmounting the entire site shell.
+Scope: Independently cached JSON resources consumed by src/App.tsx.
+Evidence: The home-about.json body from commit 0264661 lacks research and skills. Injecting it in mobile WebKit produced the page error "undefined is not an object (evaluating 'aboutData.research.map')" and removed navigation. After validation, the same fixture yields one section error with no page error; a touch tap still reaches #work at 90px.
+Correct approach: Validate fields used by array/string methods before marking a resource ready, use a versioned no-store URL when a required schema changes, and keep invalid data in a retryable section boundary. Do not automatically reload an invalid payload forever. Treat StrictMode cleanup aborts as idle rather than content failures.
+Related files/tests: src/App.tsx, scripts/check-webkit-navigation.py, scripts/fixtures/home-about-old.json, WebKit touch/scroll checks and npm run build (2026-10-13).

@@ -278,9 +278,40 @@ function useTextFontGate(text: string | undefined, parentStatus: FontGateStatus)
   return currentStatus;
 }
 
+const themePreferenceKey = "theme-preference-v2";
+
+function readThemePreference(): "system" | "light" | "dark" {
+  try {
+    const stored = localStorage.getItem(themePreferenceKey);
+    return stored === "light" || stored === "dark" ? stored : "system";
+  } catch {
+    return "system";
+  }
+}
+
 function useTheme() {
-  const [dark, setDark] = useState(() => localStorage.getItem("theme") !== "light");
-  useEffect(() => { document.documentElement.classList.toggle("dark", dark); localStorage.setItem("theme", dark ? "dark" : "light"); }, [dark]);
+  const [preference, setPreference] = useState(readThemePreference);
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const dark = preference === "system" ? systemDark : preference === "dark";
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => setSystemDark(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", dark ? "#10191b" : "#eef1ed");
+  }, [dark]);
+
+  const setDark = useCallback((nextDark: boolean) => {
+    const nextPreference = nextDark ? "dark" : "light";
+    setPreference(nextPreference);
+    try { localStorage.setItem(themePreferenceKey, nextPreference); } catch { /* Keep the selection for this visit. */ }
+  }, []);
+
   return [dark, setDark] as const;
 }
 
@@ -560,7 +591,7 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
     };
   }, []);
 
-  const navigate = (id: string) => {
+  const navigate = useCallback((id: string) => {
     const hasPageQuery = new URLSearchParams(location.search).size > 0;
     if (hasPageQuery) {
       location.href = `/#${id}`;
@@ -578,7 +609,13 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
     history.replaceState(null, "", id === "top" ? location.pathname : `#${id}`);
     window.dispatchEvent(new Event("portfolio:section-navigation"));
     target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleHeroNavigation = (event: Event) => navigate((event as CustomEvent<string>).detail);
+    window.addEventListener("portfolio:hero-navigation", handleHeroNavigation);
+    return () => window.removeEventListener("portfolio:hero-navigation", handleHeroNavigation);
+  }, [navigate]);
 
   return <AuroraBackground className="site-stage candidate-site" backgroundMedia={media} onPointerMove={canUsePointerHighlight ? move : undefined}>
     <div className={`site-top-controls candidate-old-nav${showNavigation ? "" : " site-top-controls--detail"}`}>
@@ -900,7 +937,7 @@ function UnknownProjectPage() { return <main className="status-page"><div classN
 function OfflinePage() { return <main className="status-page"><div className="status-code">503</div><p className="mono-label">DEMO SERVICE / TEMPORARILY OFFLINE</p><h1>演示服务暂时不可用</h1><p>项目案例仍可浏览；仓库中可核验的源码与接口文档不依赖在线演示服务。</p><div className="detail-actions"><LiquidGlassButton variant="primary" href="/?project=scholarweaver">查看项目案例</LiquidGlassButton><LiquidGlassButton href={profile.github}>访问 GitHub <Github size={16}/></LiquidGlassButton></div></main>; }
 
 function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => void; fontStatus: FontGateStatus }) {
-  const summary = useJsonResource<SummaryData>("/data/home-summary.json");
+  const summary = useJsonResource<SummaryData>("/data/home-summary.json?v=2", 7000, "no-store");
   const awards = useJsonResource<AwardsData>("/data/home-awards.json", 7000, "no-cache", isAwardsData);
   const work = useJsonResource<WorkData>("/data/home-work.json", 7000, "no-cache", isWorkData);
   const skills = useJsonResource<SkillsData>("/data/home-skills.json", 7000, "no-cache", isSkillsData);
@@ -910,6 +947,11 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
   const openFromHome = (event: React.MouseEvent<HTMLAnchorElement>, projectId: string) => {
     if (!event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) restoredInitialSection.current = true;
     onProjectOpen(event, projectId);
+  };
+  const navigateFromHero = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    window.dispatchEvent(new CustomEvent("portfolio:hero-navigation", { detail: id }));
   };
   const preloadTargets = useMemo(() => [
     { selector: "#proof", load: summary.load },
@@ -994,8 +1036,8 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
   }, [about, aboutFontStatus, awards, awardsFontStatus, skills, skillsFontStatus, summary, summaryFontStatus, work, workFontStatus]);
 
   return <main>
-    <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 正在求职 · 大模型应用工程实习</div><p className="hero-name">王泽贤 <span>华南理工大学 · 软件工程本科生</span></p><p className="mono-label">AI APPLICATIONS / AGENT SYSTEMS / PORTFOLIO 2026</p><h1>让模型能力<br/>进入<span className="accent-word">可用工作流。</span></h1><p className="hero-lead">关注人工智能、大语言模型、智能体系统与计算机系统技术；把模型、数据和工具组织成可理解、可验证的软件交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">浏览项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.resume} target="_blank">下载简历 <FileText size={16}/></LiquidGlassButton><LiquidGlassButton href="#about">联系我 <Mail size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="casebook-stage"><p className="casebook-stage__eyebrow">WANG ZEXIAN / SCUT</p><div className="casebook-stage__identity"><strong>WZ</strong><span>软件工程<br/>工业软件卓越班</span></div><p className="casebook-stage__scope">LLM · AGENT · SYSTEMS</p></div><div className="identity-copy"><strong>从研究问题到工程系统</strong><p>参与 AI 药物研发智能体、RISC-V 处理器设计与 AI4Finance 研究，关注专业领域中可靠的 AI 应用。</p></div><div className="signal-line" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>学校</span><b>华南理工大学软件学院</b><span>案例</span><b>07 个可追溯工程案例</b></div></aside></section>
-    <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} fontStatus={summaryFontStatus} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{summaryData.count}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
+    <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 正在求职 · 大模型应用工程实习</div><p className="hero-name">王泽贤 <span>华南理工大学 · 软件工程本科生</span></p><p className="mono-label">AI APPLICATIONS / AGENT SYSTEMS / PORTFOLIO 2026</p><h1>让模型能力<br/>进入<span className="accent-word">可用工作流。</span></h1><p className="hero-lead">关注人工智能、大语言模型、智能体系统与计算机系统技术；把模型、数据和工具组织成可理解、可验证的软件交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work" onClick={(event) => navigateFromHero(event, "work")}>浏览项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.resume} target="_blank">下载简历 <FileText size={16}/></LiquidGlassButton><LiquidGlassButton href="#about" onClick={(event) => navigateFromHero(event, "about")}>联系我 <Mail size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="casebook-stage"><p className="casebook-stage__eyebrow">WANG ZEXIAN / SCUT</p><div className="casebook-stage__identity"><strong>WZ</strong><span>软件工程<br/>工业软件卓越班</span></div><p className="casebook-stage__scope">LLM · AGENT · SYSTEMS</p></div><div className="identity-copy"><strong>从研究问题到工程系统</strong><p>参与 AI 药物研发智能体、RISC-V 处理器设计与 AI4Finance 研究，关注专业领域中可靠的 AI 应用。</p></div><div className="signal-line" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>学校</span><b>华南理工大学软件学院</b><span>案例</span><b>{String(projects.length).padStart(2, "0")} 个可追溯工程案例</b></div></aside></section>
+    <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} fontStatus={summaryFontStatus} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{String(workData?.projects.length ?? projects.length).padStart(2, "0")}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
     <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list case-list--featured">{featuredProjects.map(renderProject)}</div><div className="case-list__more-heading"><p className="mono-label">MORE ENGINEERING CASES</p><h3>更多工程案例</h3></div><div className="case-list case-list--more">{moreProjects.map(renderProject)}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} fontStatus={skillsFontStatus} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <>
       <div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading}</h2><p>{skillsData.description}</p></div>

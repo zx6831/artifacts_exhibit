@@ -1,34 +1,33 @@
 ﻿# TODO List
 
-## P0 — Blocking
+## P1 — Next
 
-### [ ] Publish the mobile WebKit blank-screen fix
+### [ ] Publish the system-theme, navigation, and seven-project changes
 Status: ready
 Depends on: Review of the local patch and a push to main
 Blocked by: No technical blocker; pushing main automatically deploys the public site
-Scope: src/App.tsx, scripts/check-webkit-navigation.py, scripts/fixtures/home-about-old.json, .agent state files
+Scope: index.html, src/App.tsx, public/data/home-summary.json, scripts/check-home-interactions.py, .agent state files
 Acceptance criteria:
 - The GitHub Pages workflow builds and deploys the new commit.
-- The live JavaScript requests /data/home-about.json?v=2.
-- The site remains visible after section navigation.
+- The live site follows system light/dark by default, highlights About after 联系我, and shows seven application projects.
 Validation:
 - npm run build
-- git diff --check
-- Inspect the GitHub Pages workflow result and the live site
-
-### [ ] Confirm the deployed fix on the user's iPhone 16 Pro
-Status: blocked
-Depends on: Published fix
-Blocked by: The fix is not deployed and the physical iPhone is not available in this Windows session
-Scope: iOS Safari and iOS WeChat browser at https://206831.xyz/
-Acceptance criteria:
-- Tapping every top navigation item leaves navigation, background, and content visible.
-- Scrolling into Honours and About leaves the page visible.
-- Direct /#work and /#about links show the intended section.
-Validation:
-- Test on the physical iPhone after deployment; capture Safari Web Inspector errors if any path still blanks
+- python scripts/check-home-interactions.py
+- Inspect GitHub Pages workflow and live site
 
 ## P2 — Later
+
+### [ ] Confirm the new theme behavior on the user's iPhone 16 Pro
+Status: blocked
+Depends on: Published changes
+Blocked by: The new build is not live and the physical iPhone is not available in this Windows session
+Scope: iOS Safari and iOS WeChat at https://206831.xyz/
+Acceptance criteria:
+- First load matches system light/dark without a mismatched skeleton flash.
+- 联系我 selects 关于 and keeps the page visible.
+- The proof strip shows 07 and the requested copy.
+Validation:
+- Physical iPhone check after deployment
 
 ### [ ] Add stronger public artefacts and measured outcomes
 Status: deferred
@@ -65,23 +64,39 @@ Validation:
 
 ## Completed
 
-### [x] Prevent a stale About payload from unmounting the portfolio
+### [x] Follow system theme by default and preserve manual choice
 Status: completed
-Scope: src/App.tsx and WebKit regression fixture
+Scope: index.html and src/App.tsx
 Acceptance criteria:
-- The old payload from commit 0264661 no longer causes an uncaught page error.
-- Section navigation and scrolling retain the navigation and site content.
-- Invalid data enters a retryable section error state.
+- New visits use the operating-system theme.
+- System changes update the page while no manual override exists.
+- An explicit manual choice survives reload and controls the boot skeleton.
 Validation:
-- npm run build passed on 2026-10-13.
-- WebKit touch navigation passed with fresh and stale About data.
-- WebKit scroll to awards with stale About data passed.
-- git diff --check passed after state-file updates; line-ending notices only.
+- python scripts/check-home-interactions.py in Chromium/WebKit light/dark
+- Pre-React Chromium probe for four system/override combinations
+- npm run build
 
-### [x] Unify all five honour-card structures and build the seven-project portfolio
-Status: completed in HEAD db4ca64
+### [x] Synchronize Hero contact navigation with the About highlight
+Status: completed
+Scope: src/App.tsx
 Acceptance criteria:
-- Cards share the same result, title, related-work, and source regions.
-- Hero, projects, skills, honours, About, résumé, favicon, and metadata are present.
+- 联系我 navigates to #about, activates 关于, and aligns the lamp with the active link.
 Validation:
-- Prior Chromium desktop/mobile review and npm run build recorded in the 2026-10-13 handoff.
+- python scripts/check-home-interactions.py: target top 88px Chromium / 90px WebKit, lamp aligned, no page errors
+
+### [x] Show seven application projects in the proof strip
+Status: completed
+Scope: src/App.tsx and public/data/home-summary.json
+Acceptance criteria:
+- Copy reads 当前作品集 / 07 / 个面向真实场景的应用项目.
+- The displayed number corresponds to the seven rendered project cards.
+Validation:
+- python scripts/check-home-interactions.py: seven cards and requested copy in Chromium/WebKit
+
+### [x] Prevent stale About data from unmounting the portfolio
+Status: completed
+Scope: commit a2bf461
+Acceptance criteria:
+- The previous mobile Safari/WeChat blank-screen path is resolved.
+Validation:
+- Local WebKit stale-data regression passed in the prior session; the user reports the production issue fixed on 2026-10-13.

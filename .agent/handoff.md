@@ -1,58 +1,54 @@
 ﻿# Session Handoff
 Created: 2026-10-13
-Branch: main, HEAD db4ca64, aligned with origin/main before this session's edits
-Working tree: not clean; this session changed src/App.tsx and the four .agent files, and added a WebKit regression script and old-data fixture
+Branch: main, HEAD a2bf461, aligned with origin/main before this session's edits
+Working tree: not clean; this session changed index.html, src/App.tsx, public/data/home-summary.json, the four .agent files, and added scripts/check-home-interactions.py
 
 ## Session Goal
-Diagnose and fix the iPhone 16 Pro Safari and iOS WeChat whole-page blank screen after top navigation or scrolling into Honours/About.
+Make the site follow the system light/dark mode by default, synchronize the Hero 联系我 action with the About navigation highlight, and show 07 application projects in the proof strip.
 
 ## Work Completed
-- Reproduced a matching whole-app WebKit crash by serving the old About JSON from commit 0264661. The browser error was: undefined is not an object (evaluating 'aboutData.research.map').
-- Added runtime validation for schema-sensitive homepage data. Invalid data now stays inside its section's retryable error UI.
-- Changed About to request /data/home-about.json?v=2 with no-store to bypass an old browser cache.
-- Prevented repeated automatic retries after an invalid response, while allowing the retry button. Handled StrictMode cleanup aborts as idle so development reload still works.
-- Added scripts/check-webkit-navigation.py and scripts/fixtures/home-about-old.json for fresh/stale mobile WebKit regression checks.
+- Added a system-default theme preference with a separate explicit-choice storage key. The page listens to operating-system theme changes until the visitor makes a manual choice, which then persists.
+- Applied the effective theme in the head before React; the boot skeleton and meta theme-color follow that same choice.
+- Routed Hero 浏览项目 and 联系我 through Shell's section navigation function. The About active link and lamp now follow the contact action.
+- Changed proof-strip copy to 当前作品集 / 07 / 个面向真实场景的应用项目. The visible number is derived from the loaded work collection, with the seven-route registry as a loading fallback; the summary URL is versioned to avoid obsolete browser cache.
+- Added a reproducible Chromium/WebKit interaction regression script.
 
 ## Current Stopping Point
-Local patch and WebKit checks are complete. No commit, push, GitHub Pages deployment, or physical iPhone verification has occurred.
+Local implementation and browser validation are complete. No commit, push, GitHub Pages deployment, or physical iPhone check for these new changes has occurred.
 
 ## Uncommitted Changes
-- Modified: src/App.tsx, .agent/current_state.md, .agent/lessons.md, .agent/TODO_list.md, .agent/handoff.md
-- Added: scripts/check-webkit-navigation.py, scripts/fixtures/home-about-old.json
+- Modified: index.html, src/App.tsx, public/data/home-summary.json, .agent/current_state.md, .agent/lessons.md, .agent/TODO_list.md, .agent/handoff.md
+- Added: scripts/check-home-interactions.py
 
 ## Validation Results
 - npm run build — passed; TypeScript and Vite completed, 1,588 modules transformed.
-- git diff --check — passed after the .agent edits; line-ending notices only.
-- WebKit mobile touch nav, fresh data — passed: #work, target top 90px, nav visible, no page errors.
-- WebKit mobile touch nav, old About data — passed: #work, target top 90px, one retryable resource error, nav visible, no page errors.
-- WebKit direct /#about, fresh data — passed: target top 88px, no page errors.
-- WebKit scroll to awards, old About data — passed: nav and content visible, no page errors.
-- Live versioned About URL — HTTP 200.
-- Physical iPhone Safari/WeChat — not tested; requires a deployed build and the user's device.
+- python scripts/check-home-interactions.py — passed for Chromium and WebKit in system light and dark. Seven cards and requested copy were visible; 联系我 selected 关于, lamp aligned, About landed at 88px in Chromium and 90px in WebKit, and page errors were empty.
+- The same script confirmed manual light persists over system dark after reload. It also seeded the legacy theme key to confirm that old automatic dark storage does not override the new default.
+- Pre-React Chromium probe — passed for system light, system dark, manual light over system dark, and manual dark over system light; the boot skeleton and meta theme-color matched the effective theme.
+- git diff --check — passed after state-file edits; line-ending notices only.
+- Physical iPhone Safari/WeChat for these new changes — not tested.
 
 ## Failing Tests or Known Errors
-- No current local regression failure.
-- The exact cause on the user's physical iPhone is still an inference from the matching stale-data WebKit crash; Safari device logs were not captured.
+- No local test failure remains.
+- The current live site does not include these uncommitted changes.
 
 ## Recommended Next Steps
-1. Run git diff --check and npm run build after reviewing the .agent edits.
-2. Review and publish the patch; a push to main triggers .github/workflows/deploy-pages.yml.
-3. Inspect the Pages workflow and the live site, then ask the user to test Safari and WeChat on the iPhone 16 Pro.
-4. If blanking persists on device, capture Safari Web Inspector console/network errors and investigate WebKit-specific compositing or scroll behavior.
+1. Review the patch and run git diff --check and npm run build.
+2. Commit and push to main when publishing; .github/workflows/deploy-pages.yml will deploy GitHub Pages.
+3. Confirm the live site and the iPhone Safari/WeChat behavior after the new build is available.
 
 ## Important Decisions
-- Reject malformed data at the loading boundary before React renders nested array methods.
-- Keep a malformed response's failure local to its section and expose the existing retry action.
-- Do not claim the real-device bug is confirmed fixed until the new build is live and tested on iOS.
+- Use theme-preference-v2 only for manual choices; ignore the old theme key to honor the new system default.
+- Keep the summary copy in JSON but compute its displayed number from the project list.
+- Preserve modifier-click behavior for Hero section links.
 
 ## Risks and Open Questions
-- Current live JavaScript does not contain this patch.
-- Windows WebKit emulation is useful for the stale-data crash but does not fully emulate iPhone Safari or the WeChat browser.
+- The new code is locally verified in Windows Chromium/WebKit emulation, not on the user's physical iPhone.
 
 ## Start Here
 ```powershell
 git status --short --branch
 git diff --check
 npm run build
-python scripts/check-webkit-navigation.py --browser webkit --target work --delay 0 --stale-about
+python scripts/check-home-interactions.py
 ```

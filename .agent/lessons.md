@@ -1,4 +1,4 @@
-# Lessons Learned
+﻿# Lessons Learned
 
 ## Award Card Layout
 ### Give optional related projects a fixed content slot
@@ -128,12 +128,12 @@ Correct approach: Each placeholder owns `position:relative`, `overflow:hidden`, 
 Related files/tests: `src/index.css`, CDP `Emulation.setEmulatedMedia` test, `npm run build`.
 
 ## Resource Loading
-### Homepage summary copy is an independent source of truth
-Conclusion: The homepage proof strip reads its count and description from `home-summary.json`, independently of the six-card `home-work.json` list.
-Scope: Portfolio count and scope wording on the homepage.
-Evidence: The visible project list had six entries while `home-summary.json` still stored `count: "03"` and LLM-only wording.
-Correct approach: Whenever the Projects list changes, update the summary count and scope language in the same scoped change, then run `npm run build` and inspect the JSON value.
-Related files/tests: `public/data/home-summary.json`, `public/data/home-work.json`, `npm run build`.
+### Derive the visible proof-strip count from the project list
+Conclusion: The proof-strip count must reflect the rendered project collection instead of remaining an independently cached literal. Its descriptive copy can stay in JSON.
+Scope: Homepage proof strip and seven-case project list.
+Evidence: The work JSON contains seven projects, while the user observed an old 03 proof-strip count. After deriving the displayed count from the loaded project list (with the seven-route registry as a loading fallback) and versioning the summary URL, Chromium and WebKit each showed 07 beside seven rendered cards.
+Correct approach: Compute the visible count from project data and change the summary URL when its wording changes, so older browser caches cannot preserve obsolete copy.
+Related files/tests: src/App.tsx, public/data/home-summary.json, scripts/check-home-interactions.py (2026-10-13).
 
 ### Project-card data must revalidate when route IDs evolve
 Conclusion: Independently cached homepage project JSON can become inconsistent with a newly deployed route registry, producing missing cards and incorrect fallback details.
@@ -295,3 +295,20 @@ Scope: Independently cached JSON resources consumed by src/App.tsx.
 Evidence: The home-about.json body from commit 0264661 lacks research and skills. Injecting it in mobile WebKit produced the page error "undefined is not an object (evaluating 'aboutData.research.map')" and removed navigation. After validation, the same fixture yields one section error with no page error; a touch tap still reaches #work at 90px.
 Correct approach: Validate fields used by array/string methods before marking a resource ready, use a versioned no-store URL when a required schema changes, and keep invalid data in a retryable section boundary. Do not automatically reload an invalid payload forever. Treat StrictMode cleanup aborts as idle rather than content failures.
 Related files/tests: src/App.tsx, scripts/check-webkit-navigation.py, scripts/fixtures/home-about-old.json, WebKit touch/scroll checks and npm run build (2026-10-13).
+
+
+## Theme and Navigation
+
+### Apply the effective theme before the boot skeleton paints
+Conclusion: A React-only theme change can leave the initial skeleton and browser theme color in the wrong mode. A legacy stored value can also defeat a new system-default requirement.
+Scope: System light/dark, explicit theme override, and startup rendering.
+Evidence: In Chromium, with React blocked, the skeleton and meta theme-color matched system light, system dark, manual light over a dark system, and manual dark over a light system. The Chromium/WebKit regression also confirmed live system changes and a persisted manual choice.
+Correct approach: Use a new explicit-preference storage key, resolve it against matchMedia in the head script, and have React listen for system changes only while preference is system.
+Related files/tests: index.html, src/App.tsx, scripts/check-home-interactions.py, pre-React Chromium probe (2026-10-13).
+
+### Route Hero section actions through the same navigation state as the floating links
+Conclusion: A native hash link can reach its target while the floating navigation's active state and lamp do not follow it.
+Scope: Hero 浏览项目 and 联系我 actions.
+Evidence: Before this change, 联系我 used a plain #about anchor while the floating links called Shell.navigate. After routing the Hero action through the same navigation function, Chromium and WebKit selected 关于, aligned the lamp with its link, and positioned About at 88px or 90px.
+Correct approach: Use one navigation function for section actions, preserving ordinary modified-click link behavior, so hash, loading, scroll, and active state update together.
+Related files/tests: src/App.tsx, scripts/check-home-interactions.py (2026-10-13).

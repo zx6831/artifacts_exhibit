@@ -21,10 +21,17 @@ def check_reveal(browser, browser_name: str, width: int, height: int) -> None:
     page.on("pageerror", lambda error: errors.append(str(error)))
     page.add_init_script("""(() => {
       window.themeRevealAnimations = [];
+      window.themeButtonAnimations = [];
       const original = Element.prototype.animate;
       Element.prototype.animate = function (frames, options) {
         if (options?.pseudoElement === '::view-transition-new(root)') {
           window.themeRevealAnimations.push({ frames, options });
+          window.themeButtonAtRevealStart = {
+            name: getComputedStyle(document.documentElement, '::view-transition-image-pair(theme-toggle)').animationName,
+            transitionName: getComputedStyle(document.querySelector('.site-theme-toggle')).viewTransitionName,
+          };
+        } else if (this.classList?.contains('site-theme-toggle')) {
+          window.themeButtonAnimations.push({ frames, options });
         }
         return original.call(this, frames, options);
       };
@@ -58,6 +65,8 @@ def check_reveal(browser, browser_name: str, width: int, height: int) -> None:
     page.wait_for_timeout(100)
     active_clip = page.evaluate("getComputedStyle(document.documentElement, '::view-transition-new(root)').clipPath")
     assert active_clip.startswith("circle("), (browser_name, width, active_clip)
+    button_animation = page.evaluate("window.themeButtonAtRevealStart")
+    assert button_animation == {"name": "theme-toggle-bounce", "transitionName": "theme-toggle"}, (browser_name, width, button_animation)
     assert page.evaluate("document.documentElement.classList.contains('dark')")
     page.wait_for_function("!document.documentElement.classList.contains('theme-reveal-transition')")
     assert page.evaluate("localStorage.getItem('theme-preference-v2')") == "dark"
@@ -71,6 +80,7 @@ def check_reveal(browser, browser_name: str, width: int, height: int) -> None:
     button.click()
     page.wait_for_function("document.documentElement.classList.contains('dark')")
     assert len(page.evaluate("window.themeRevealAnimations")) == 2
+    assert len(page.evaluate("window.themeButtonAnimations")) == 1
     assert not page.evaluate("document.documentElement.classList.contains('theme-reveal-transition')")
     assert not errors, (browser_name, width, errors)
     print(f"{browser_name} {width}x{height}: center=({x:.1f},{y:.1f}), radius={expected_radius:.1f}px", flush=True)

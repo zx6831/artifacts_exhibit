@@ -280,6 +280,10 @@ function useTextFontGate(text: string | undefined, parentStatus: FontGateStatus)
 
 const themePreferenceKey = "theme-preference-v2";
 
+function syncBrowserThemeColor(dark: boolean) {
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", dark ? "#10191b" : "#eef1ed");
+}
+
 function readThemePreference(): "system" | "light" | "dark" {
   try {
     const stored = localStorage.getItem(themePreferenceKey);
@@ -302,8 +306,9 @@ function useTheme() {
   }, []);
 
   useLayoutEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", dark ? "#10191b" : "#eef1ed");
+    const root = document.documentElement;
+    root.classList.toggle("dark", dark);
+    if (!root.classList.contains("theme-reveal-transition")) syncBrowserThemeColor(dark);
   }, [dark]);
 
   const setDark = useCallback((nextDark: boolean) => {
@@ -550,10 +555,23 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
     const nextDark = !dark;
     const transitionDocument = document as SiteViewTransitionDocument;
     const root = document.documentElement;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!transitionDocument.startViewTransition
-      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      || reducedMotion
       || root.classList.contains("project-route-transition")
       || root.classList.contains("project-return-transition")) {
+      if (!reducedMotion && typeof button.animate === "function") {
+        button.animate(
+          [
+            { transform: "scale(1)", offset: 0 },
+            { transform: "scale(.86)", offset: .24 },
+            { transform: "scale(1.07)", offset: .58 },
+            { transform: "scale(.98)", offset: .78 },
+            { transform: "scale(1)", offset: 1 },
+          ],
+          { duration: 440, easing: "cubic-bezier(.2, .7, .2, 1)" },
+        );
+      }
       setDark(nextDark);
       return;
     }
@@ -561,24 +579,58 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
     const bounds = button.getBoundingClientRect();
     const x = bounds.left + bounds.width / 2;
     const y = bounds.top + bounds.height / 2;
-    const radius = farthestViewportCornerDistance(x, y);
+    let radius = farthestViewportCornerDistance(x, y);
+    const oldCanvas = getComputedStyle(root).getPropertyValue("--color-bg").trim();
+    root.style.setProperty("--theme-canvas-old", oldCanvas);
+    root.style.setProperty("--theme-canvas-x", `${x}px`);
+    root.style.setProperty("--theme-old-color-scheme", dark ? "dark" : "light");
+    let canvasAnimation: Animation | null = null;
+    let revealAnimation: Animation | null = null;
+    const updateCanvasGeometry = () => {
+      root.style.setProperty("--theme-canvas-y", `${y + window.scrollY}px`);
+      const nextRadius = farthestViewportCornerDistance(x, y);
+      if (nextRadius === radius) return;
+      radius = nextRadius;
+      (canvasAnimation?.effect as KeyframeEffect | null)?.setKeyframes({ "--theme-canvas-radius": ["0px", `${radius}px`] });
+      (revealAnimation?.effect as KeyframeEffect | null)?.setKeyframes({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] });
+    };
+    updateCanvasGeometry();
+    window.addEventListener("scroll", updateCanvasGeometry, { passive: true });
+    window.addEventListener("resize", updateCanvasGeometry);
+    window.visualViewport?.addEventListener("resize", updateCanvasGeometry);
     themeTransitionInProgress.current = true;
     root.classList.add("theme-reveal-transition");
+    const cleanup = () => {
+      root.classList.remove("theme-reveal-transition");
+      canvasAnimation?.cancel();
+      for (const name of ["--theme-canvas-old", "--theme-canvas-new", "--theme-canvas-x", "--theme-canvas-y", "--theme-old-color-scheme"]) {
+        root.style.removeProperty(name);
+      }
+      window.removeEventListener("scroll", updateCanvasGeometry);
+      window.removeEventListener("resize", updateCanvasGeometry);
+      window.visualViewport?.removeEventListener("resize", updateCanvasGeometry);
+      syncBrowserThemeColor(root.classList.contains("dark"));
+      themeTransitionInProgress.current = false;
+    };
     try {
-      const transition = transitionDocument.startViewTransition(() => flushSync(() => setDark(nextDark)));
-      void transition.ready.then(() => {
-        root.animate(
+      const transition = transitionDocument.startViewTransition(() => {
+        flushSync(() => setDark(nextDark));
+        root.style.setProperty("--theme-canvas-new", getComputedStyle(root).getPropertyValue("--color-bg").trim());
+      });
+      const animationFinished = transition.ready.then(() => {
+        canvasAnimation = root.animate(
+          { "--theme-canvas-radius": ["0px", `${radius}px`] },
+          { duration: 680, easing: "cubic-bezier(.22, .7, .2, 1)", fill: "both" },
+        );
+        revealAnimation = root.animate(
           { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
           { duration: 680, easing: "cubic-bezier(.22, .7, .2, 1)", fill: "both", pseudoElement: "::view-transition-new(root)" },
         );
-      }).catch(() => undefined);
-      void transition.finished.catch(() => undefined).finally(() => {
-        root.classList.remove("theme-reveal-transition");
-        themeTransitionInProgress.current = false;
+        return canvasAnimation.finished;
       });
+      void Promise.allSettled([transition.finished, animationFinished]).then(cleanup);
     } catch {
-      root.classList.remove("theme-reveal-transition");
-      themeTransitionInProgress.current = false;
+      cleanup();
       setDark(nextDark);
     }
   };

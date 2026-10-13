@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@property --theme-canvas-radius {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 @layer base {
   :root {
     color-scheme: light;
@@ -125,6 +131,7 @@
 
   html {
     scroll-behavior: smooth;
+    background: var(--color-bg);
   }
 
   body {
@@ -236,10 +243,18 @@ html.font-fallback .candidate-site { --font-display:Georgia,"Times New Roman","M
 .case-masthead--transition-target{view-transition-name:project-card}
 .case-title--transition-target{view-transition-name:project-title}
 html.theme-reveal-transition .case-masthead--transition-target,html.theme-reveal-transition .case-title--transition-target{view-transition-name:none}
+html.theme-reveal-transition{color-scheme:var(--theme-old-color-scheme)}
+html.theme-reveal-transition,html.theme-reveal-transition body{background-color:var(--theme-canvas-old);background-image:radial-gradient(circle at var(--theme-canvas-x) var(--theme-canvas-y),var(--theme-canvas-new) var(--theme-canvas-radius),var(--theme-canvas-old) calc(var(--theme-canvas-radius) + 1px))}
 html.theme-reveal-transition::view-transition-image-pair(root){isolation:auto}
 html.theme-reveal-transition::view-transition-old(root),html.theme-reveal-transition::view-transition-new(root){animation:none;mix-blend-mode:normal;display:block}
 html.theme-reveal-transition::view-transition-old(root){z-index:1}
 html.theme-reveal-transition::view-transition-new(root){z-index:2}
+html.theme-reveal-transition .site-theme-toggle{view-transition-name:theme-toggle}
+@keyframes theme-toggle-bounce{0%{transform:scale(1)}24%{transform:scale(.86)}58%{transform:scale(1.07)}78%{transform:scale(.98)}100%{transform:scale(1)}}
+html.theme-reveal-transition::view-transition-group(theme-toggle){z-index:3}
+html.theme-reveal-transition::view-transition-image-pair(theme-toggle){transform-origin:center;animation:theme-toggle-bounce 440ms cubic-bezier(.2,.7,.2,1) both}
+html.theme-reveal-transition::view-transition-old(theme-toggle),html.theme-reveal-transition::view-transition-new(theme-toggle){animation:none;mix-blend-mode:normal}
+html.theme-reveal-transition::view-transition-old(theme-toggle){opacity:0}
 html.project-return-transition--resources .case-masthead--transition-target,html.project-return-transition--resources .case-masthead .case-title--transition-target{view-transition-name:none}
 html.project-return-transition--resources .detail-resources{view-transition-name:project-card}
 html.project-return-transition--resources .detail-resources h2{view-transition-name:project-title}

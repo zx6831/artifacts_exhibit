@@ -235,6 +235,11 @@ html.font-fallback .candidate-site { --font-display:Georgia,"Times New Roman","M
 .case-list { display:grid; gap:12px; }.case-row { display:grid; grid-template-columns:42px 54px 1fr auto; gap:20px; align-items:start; padding:28px; border-radius:8px; color:var(--color-text); text-decoration:none; background:var(--glass-panel-bg); transition:transform .2s,border-color .2s; }.case-row:hover{transform:translateX(5px);border-color:var(--color-line-strong)}.case-index{font:12px var(--font-utility);color:var(--color-faint)}.case-icon{display:grid;place-items:center;width:48px;height:48px;border:1px solid var(--color-line);border-radius:50%;color:var(--color-teal)}.case-row h3{max-width:780px;margin:0 0 10px;font-size:24px;line-height:1.45}.case-row>div>p:not(.mono-label){max-width:760px;margin-bottom:15px;color:var(--color-muted);font-size:14px}.tag-row{display:flex;flex-wrap:wrap;gap:7px}.tag-row span{padding:5px 9px;border:1px solid var(--color-line);border-radius:4px;color:var(--color-faint);font:10px var(--font-utility)}.case-arrow{margin-top:8px;color:var(--color-faint)}
 .case-masthead--transition-target{view-transition-name:project-card}
 .case-title--transition-target{view-transition-name:project-title}
+html.theme-reveal-transition .case-masthead--transition-target,html.theme-reveal-transition .case-title--transition-target{view-transition-name:none}
+html.theme-reveal-transition::view-transition-image-pair(root){isolation:auto}
+html.theme-reveal-transition::view-transition-old(root),html.theme-reveal-transition::view-transition-new(root){animation:none;mix-blend-mode:normal;display:block}
+html.theme-reveal-transition::view-transition-old(root){z-index:1}
+html.theme-reveal-transition::view-transition-new(root){z-index:2}
 html.project-return-transition--resources .case-masthead--transition-target,html.project-return-transition--resources .case-masthead .case-title--transition-target{view-transition-name:none}
 html.project-return-transition--resources .detail-resources{view-transition-name:project-card}
 html.project-return-transition--resources .detail-resources h2{view-transition-name:project-title}

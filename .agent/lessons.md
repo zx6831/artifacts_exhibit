@@ -312,3 +312,10 @@ Scope: Hero 浏览项目 and 联系我 actions.
 Evidence: Before this change, 联系我 used a plain #about anchor while the floating links called Shell.navigate. After routing the Hero action through the same navigation function, Chromium and WebKit selected 关于, aligned the lamp with its link, and positioned About at 88px or 90px.
 Correct approach: Use one navigation function for section actions, preserving ordinary modified-click link behavior, so hash, loading, scroll, and active state update together.
 Related files/tests: src/App.tsx, scripts/check-home-interactions.py (2026-10-13).
+
+### Clip the new root snapshot for a whole-page theme reveal
+Conclusion: A button-centered theme reveal needs the new View Transition root image clipped over the unchanged old root image. Named project-card snapshots must be disabled during this transition or they may escape the circle.
+Scope: Manual theme switching on homepage and project detail routes in browsers with same-document View Transitions.
+Evidence: Chromium and WebKit at 390×844 and 1440×900 reported an active circular clip on ::view-transition-new(root), the calculated radius matched the farthest viewport corner, and both light-to-dark and dark-to-light completed with cleanup. Reduced-motion and missing-API paths switched immediately. WebKit returned fractional button coordinates, so the regression compares geometry numerically rather than as formatted strings.
+Correct approach: Measure the button with getBoundingClientRect at click time, compute all four corner distances from window.innerWidth/innerHeight, apply the new theme in a flushSync commit with useLayoutEffect before the new snapshot, and animate only the root new pseudo-element. Remove temporary classes on transition.finished.
+Related files/tests: src/App.tsx, src/index.css, scripts/check-theme-reveal.py, npm run build (2026-10-13).

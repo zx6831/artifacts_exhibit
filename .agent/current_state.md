@@ -1,44 +1,44 @@
-﻿# Current State
+# Current State
 Last updated: 2026-10-13
-Current branch: main (HEAD a2bf461, aligned with origin/main before this session's edits)
-Current phase: System-theme, hero navigation, and portfolio-count changes validated locally; not yet published
+Current branch: main (HEAD cdc75b0, aligned with origin/main before this session's edits)
+Current phase: Button-centered theme reveal implemented and validated locally; this animation is not committed or published
 
 ## Current Objective
-Make the default website theme follow the visitor's operating system, keep the About navigation highlight in sync with the Hero contact button, and show seven application projects in the proof strip.
+Add a manual theme transition that reveals the new theme in a circle from the toggle button to the farthest viewport corner.
 
 ## Completed
-- The deployed portfolio presents 王泽贤's seven projects, skills, five honours, biography, résumé, favicon, social image, and route-aware metadata.
-- The user reports that the prior iPhone Safari/WeChat blank-screen issue is fixed; commit a2bf461 contains the stale-JSON repair.
-- Locally, a new theme preference defaults to the system appearance, reacts to system changes, and preserves an explicit manual choice. The head script, boot skeleton, browser theme color, and React UI use the same effective theme.
-- Locally, Hero section links use the same navigation path as the floating navigation, so the About highlight and lamp follow the contact action.
-- Locally, the proof strip reads the project count from the actual project list (with the seven-route registry as its loading fallback). Its copy now reads 当前作品集 / 07 / 个面向真实场景的应用项目, and the summary URL is versioned to bypass old cached copy.
+- The portfolio contains seven projects, skills, five honours, biography, résumé, favicon, social image, and route-aware metadata.
+- Commit a2bf461 addresses the old Safari/WeChat blank-screen path; the user reported it fixed.
+- Commit cdc75b0 contains the system-default theme, Hero navigation synchronization, and seven-project proof strip; local main and origin/main point to it. Production deployment was not checked in this session.
+- Locally, a theme-button click uses a root View Transition. It measures the button center and maximum distance to the four viewport corners, then expands a circular clip over the new theme for 680ms. The theme is applied during the snapshot update, and the transition class is removed when it finishes.
+- Browsers without document View Transitions and users requesting reduced motion switch immediately. System-driven changes retain the existing direct update.
 
 ## In Progress
-- The current changes are uncommitted and have not been published to https://206831.xyz/.
+- The new theme animation and its browser regression script are uncommitted. Physical iPhone Safari/WeChat verification and production release are outstanding.
 
 ## Architecture and Key Decisions
-- src/App.tsx owns theme state, section navigation, JSON resource loading, and rendering.
-- index.html applies the effective theme before React so the first skeleton paint matches the eventual page.
-- Explicit theme choices use localStorage key theme-preference-v2; the old theme key is ignored so previous automatic dark writes do not prevent the new system default.
-- public/data/home-summary.json owns proof-strip wording; the displayed number is derived from the project list.
+- src/App.tsx owns effective theme state and manual theme transitions. useLayoutEffect applies the class and theme-color during a React commit so the new snapshot has the correct theme.
+- src/index.css disables the default root crossfade during theme reveal and disables separate project-card snapshots so the whole page is covered by one circular clip.
+- index.html applies the effective theme before React; theme-preference-v2 stores only explicit choices.
+- Project route transitions remain separate and use the same browser API with different classes.
 
 ## Validation Status
 - npm run build passed on 2026-10-13: TypeScript and Vite completed, 1,588 modules transformed.
-- python scripts/check-home-interactions.py passed in Chromium and WebKit, each with light and dark system themes: seven project cards, #about highlighted with lamp aligned, About target at 88px or 90px, and no page errors.
-- The same browser regression confirmed that an explicit manual light choice persists across reload and overrides a dark system setting.
-- A pre-React Chromium probe passed for system light, system dark, manual light over dark, and manual dark over light: the boot skeleton and meta theme-color matched the effective theme.
-- git diff --check passed after the state-file updates; Git printed line-ending notices only.
+- python scripts/check-theme-reveal.py passed in Chromium and WebKit at 390×844 and 1440×900: button-center and farthest-corner geometry, active circular clip, both switch directions, cleanup, unsupported-API fallback, and reduced-motion direct switch.
+- python scripts/check-home-interactions.py passed in Chromium and WebKit with light/dark system themes: seven projects, About navigation/lamp alignment, and no page errors.
+- git diff --check passed after state-file updates; Git printed line-ending notices only.
+- Physical iPhone Safari/WeChat and live production build: not verified for this animation.
 
 ## Known Problems
-- The new changes have not been checked on a physical iPhone or published.
 - Several private/team projects still lack public screenshots, demos, measured outcomes, or individually attributed module records.
 
 ## Blockers
-- Publishing the changes requires a commit and push to main, which triggers GitHub Pages.
+- No local implementation blocker. Publishing requires committing and pushing the new patch; this session has not done that.
 
 ## Important Files
-- src/App.tsx — theme preference, Hero/floating navigation, dynamic project count.
-- index.html — pre-React theme setup and boot-skeleton colors.
-- public/data/home-summary.json — updated proof-strip wording.
-- scripts/check-home-interactions.py — Chromium/WebKit interaction regression.
+- src/App.tsx — theme state and circular View Transition geometry.
+- src/index.css — root transition compositing rules.
+- scripts/check-theme-reveal.py — animation and fallback browser regression.
+- scripts/check-home-interactions.py — existing homepage regression.
+- index.html — pre-React theme setup.
 - .github/workflows/deploy-pages.yml — production release path.

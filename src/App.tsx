@@ -301,7 +301,7 @@ function useTheme() {
     return () => query.removeEventListener("change", update);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
     document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", dark ? "#10191b" : "#eef1ed");
   }, [dark]);
@@ -313,6 +313,20 @@ function useTheme() {
   }, []);
 
   return [dark, setDark] as const;
+}
+
+type SiteViewTransition = { ready: Promise<void>; finished: Promise<unknown> };
+type SiteViewTransitionDocument = Document & { startViewTransition?: (update: () => void | Promise<void>) => SiteViewTransition };
+
+function farthestViewportCornerDistance(x: number, y: number) {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  return Math.max(
+    Math.hypot(x, y),
+    Math.hypot(width - x, y),
+    Math.hypot(x, height - y),
+    Math.hypot(width - x, height - y),
+  );
 }
 
 type ScrollRevealGroup = {
@@ -519,6 +533,7 @@ function SkillsSkeleton() { return <><div className="section-title section-title
 function AboutSkeleton() { return <div className="about-resource-content about-resource-content--skeleton"><div className="about-copy"><i/><b/><i/></div><aside className="contact-panel"><i/><b/><i/><i/></aside></div>; }
 function Shell({ children, dark, setDark, showNavigation = true }: { children: React.ReactNode; dark: boolean; setDark: (v: boolean) => void; showNavigation?: boolean }) {
   const frame = useRef<number | null>(null);
+  const themeTransitionInProgress = useRef(false);
   const [canUsePointerHighlight, setCanUsePointerHighlight] = useState(false);
   const [activeId, setActiveId] = useState(() => location.hash.slice(1) || "top");
   const pendingNavTarget = useRef<string | null>(null);
@@ -529,6 +544,44 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
     frame.current = requestAnimationFrame(() => { el.style.setProperty("--pointer-x", (((event.clientX-b.left)/b.width)*100).toFixed(1)); el.style.setProperty("--pointer-y", (((event.clientY-b.top)/b.height)*100).toFixed(1)); });
   };
   const media = useMemo(() => ({ enabled: true, poster: dark ? "/media/aurora-dark-poster.png" : "/media/aurora-light-poster.png", sources: [{ src: dark ? "/media/aurora-dark-loop.webm" : "/media/aurora-light-loop.webm", type: "video/webm" }] }), [dark]);
+
+  const toggleTheme = (button: HTMLButtonElement) => {
+    if (themeTransitionInProgress.current) return;
+    const nextDark = !dark;
+    const transitionDocument = document as SiteViewTransitionDocument;
+    const root = document.documentElement;
+    if (!transitionDocument.startViewTransition
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      || root.classList.contains("project-route-transition")
+      || root.classList.contains("project-return-transition")) {
+      setDark(nextDark);
+      return;
+    }
+
+    const bounds = button.getBoundingClientRect();
+    const x = bounds.left + bounds.width / 2;
+    const y = bounds.top + bounds.height / 2;
+    const radius = farthestViewportCornerDistance(x, y);
+    themeTransitionInProgress.current = true;
+    root.classList.add("theme-reveal-transition");
+    try {
+      const transition = transitionDocument.startViewTransition(() => flushSync(() => setDark(nextDark)));
+      void transition.ready.then(() => {
+        root.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+          { duration: 680, easing: "cubic-bezier(.22, .7, .2, 1)", fill: "both", pseudoElement: "::view-transition-new(root)" },
+        );
+      }).catch(() => undefined);
+      void transition.finished.catch(() => undefined).finally(() => {
+        root.classList.remove("theme-reveal-transition");
+        themeTransitionInProgress.current = false;
+      });
+    } catch {
+      root.classList.remove("theme-reveal-transition");
+      themeTransitionInProgress.current = false;
+      setDark(nextDark);
+    }
+  };
 
   useEffect(() => {
     const query = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -620,7 +673,7 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
   return <AuroraBackground className="site-stage candidate-site" backgroundMedia={media} onPointerMove={canUsePointerHighlight ? move : undefined}>
     <div className={`site-top-controls candidate-old-nav${showNavigation ? "" : " site-top-controls--detail"}`}>
       {showNavigation && <div className="site-top-controls__nav"><TubelightNavBar items={navItems} activeId={activeId} className="site-floating-nav" onNavigate={(id) => navigate(id)} /></div>}
-      <div className="site-top-controls__theme"><LiquidGlassButton className="site-theme-toggle" variant="icon" type="button" aria-label="切换主题" aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>主题</span></LiquidGlassButton></div>
+      <div className="site-top-controls__theme"><LiquidGlassButton className="site-theme-toggle" variant="icon" type="button" aria-label="切换主题" aria-pressed={dark} onClick={(event) => toggleTheme(event.currentTarget)}>{dark ? <Sun size={16}/> : <Moon size={16}/>}<span>主题</span></LiquidGlassButton></div>
     </div>
     <div className={`candidate-shell${showNavigation ? "" : " candidate-shell--detail"}`}>{children}<footer><span>AI 应用工程 · 项目作品集</span><span>© {new Date().getFullYear()}</span></footer></div>
   </AuroraBackground>;
@@ -1060,8 +1113,7 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
 
 type AppRoute = { hasStatus: boolean; projectId: string | null };
 type ProjectOrigin = { projectId: string; element: HTMLElement; title: HTMLElement | null; scrollY: number; radius: string; url: string };
-type ProjectViewTransition = { finished: Promise<unknown> };
-type ProjectViewTransitionDocument = Document & { startViewTransition?: (update: () => void | Promise<void>) => ProjectViewTransition };
+type ProjectViewTransitionDocument = SiteViewTransitionDocument;
 
 function readAppRoute(): AppRoute {
   const params = new URLSearchParams(location.search);

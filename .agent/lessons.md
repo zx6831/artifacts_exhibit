@@ -1,5 +1,29 @@
 # Lessons Learned
 
+## Award Card Layout
+### Give optional related projects a fixed content slot
+Conclusion: Using a shorter static paragraph for awards without an associated project, while making only the final odd card span the grid, produces visibly different card structures even when all cards share a component.
+Scope: Homepage honours list with linked and independent awards.
+Evidence: The supplied desktop screenshot showed four vertical half-width cards and one horizontal full-width card. After using one horizontal certificate grid for all five and rendering the independent-award text in the related-work slot, Chromium measured every card at 254px high at 1440px and 768px, with zero horizontal overflow at 390px.
+Correct approach: Keep the result, title, related-work, and source regions in the same order for every award; let only the link behavior differ. Use a single grid template for the collection and a single responsive stack rule.
+Related files/tests: `src/App.tsx`, `src/index.css`, Chromium 1440×900 / 768×1024 / 390×844 checks (2026-10-13), `npm run build`.
+
+## Async Section Navigation
+### Reapply section hashes after preceding resources reach stable height
+Conclusion: Native hash scrolling and an immediate smooth scroll are insufficient when async sections above the target replace short skeletons with taller content. Both fresh deep links and in-page navigation need one guarded realignment after resources and fonts stabilize.
+Scope: Direct homepage links and navigation clicks to late sections such as `/#about`.
+Evidence: Before the fix, an immediate mobile About click ended with the target 3,794px below the viewport after content expansion. After the navigation event reloads required resources and the guarded effect realigns the target, both a fresh `/#about` load and an immediate click stabilized at 87.7px on a 390×844 viewport.
+Correct approach: Store the current hash as the pending target, load every preceding async resource, wait for resource/font readiness, then perform one instant alignment that accounts for the floating navigation. Reset the guard on `hashchange` and on application-controlled section navigation.
+Related files/tests: `src/App.tsx`, fresh and immediate-click Chromium probes for `/#about` (2026-10-13), `npm run build`.
+
+## Portfolio Content Attribution
+### Separate personal responsibility from project scope
+Conclusion: A project document can verify that a system or feature exists without proving which team member owned it. Portfolio labels must reflect that distinction.
+Scope: Team projects, private projects, competition entries, and homepage case-card summaries.
+Evidence: PharmAgent's project document names 王泽贤 as the sole team member and assigns full system delivery; ScholarWeaver's document assigns him the reference translation library; Fubao's PRD and system design describe the product and architecture but do not assign an individual module.
+Correct approach: Use `个人职责` only for attributed ownership, `参与项目` when participation is known but module ownership is not, `项目范围` for system-level material, and `实现重点` for repository-backed implementation facts. Keep team awards separate from sole-author claims.
+Related files/tests: `docs/项目书+PharmAgent ： 智能药物发现与递送助手.docx`, `docs/项目书+ScholarWeaver PDF Essay Translater.docx`, Fubao PRD/system-design documents, `public/data/home-work.json`.
+
 ## Font Loading
 ### Gate real text on the exact font faces it needs
 Conclusion: `font-display: swap` alone cannot meet a no-intermediate-font requirement. Keep real text visually hidden behind an existing skeleton until `document.fonts.load()` has resolved for every required family/weight and the actual text corpus; on timeout, lock a local fallback stack so a late webfont cannot trigger a second change.

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">王泽贤 AI 应用工程作品集</title>
+  <desc id="description">大语言模型、智能体系统与计算机系统方向的个人作品集分享图</desc>
+  <defs>
+    <linearGradient id="background" x1="70" y1="20" x2="1130" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#213437"/>
+      <stop offset="0.58" stop-color="#111c1f"/>
+      <stop offset="1" stop-color="#091012"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(914 190) rotate(135) scale(460 380)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6fd6cb" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#6fd6cb" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="52" height="52" patternUnits="userSpaceOnUse">
+      <path d="M52 0H0V52" fill="none" stroke="#dce9e5" stroke-opacity=".07"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect x="64" y="60" width="1072" height="510" rx="30" fill="#eaf5f0" fill-opacity=".045" stroke="#dce9e5" stroke-opacity=".18"/>
+  <g transform="translate(820 118)">
+    <rect width="250" height="250" rx="52" fill="#0c1517" fill-opacity=".72" stroke="#86e2d5" stroke-opacity=".45"/>
+    <path d="M53 69h144L61 181h136" fill="none" stroke="#77ddcf" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="53" cy="69" r="14" fill="#edf8f3" stroke="#77ddcf" stroke-width="6"/>
+    <circle cx="125" cy="125" r="13" fill="#122124" stroke="#8ae8d7" stroke-width="7"/>
+    <circle cx="197" cy="181" r="14" fill="#edf8f3" stroke="#77ddcf" stroke-width="6"/>
+  </g>
+  <text x="104" y="130" fill="#83dfd2" font-family="Consolas, monospace" font-size="21" letter-spacing="3">AI APPLICATIONS / AGENT SYSTEMS</text>
+  <text x="98" y="248" fill="#f1f7f3" font-family="Microsoft YaHei, sans-serif" font-size="86" font-weight="700">王泽贤</text>
+  <text x="104" y="320" fill="#d3ded9" font-family="Microsoft YaHei, sans-serif" font-size="34">软件工程 · 人工智能 · 智能体系统</text>
+  <line x1="104" y1="380" x2="714" y2="380" stroke="#b4c9c2" stroke-opacity=".28"/>
+  <text x="104" y="438" fill="#aebdb8" font-family="Microsoft YaHei, sans-serif" font-size="25">让模型能力进入可用工作流</text>
+  <text x="104" y="510" fill="#72d4ca" font-family="Consolas, monospace" font-size="18" letter-spacing="2">SCUT · 07 VERIFIED ENGINEERING CASES · 2026</text>
+</svg>

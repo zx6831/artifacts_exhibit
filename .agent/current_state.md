@@ -1,46 +1,56 @@
 # Current State
-Last updated: 2026-10-12
-Current branch: main (HEAD 9ca2f47, aligned with origin/main)
-Current phase: Unified project-origin transitions and shadow cleanup implemented locally; changes uncommitted
+Last updated: 2026-10-13
+Current branch: main (HEAD 0264661, aligned with origin/main)
+Current phase: Portfolio redesign and consistent award-card layout implemented; changes are uncommitted
 
 ## Current Objective
-Every project entry in work, awards, and skills should expand into its detail and return to the exact clicked entry with stable viewport position.
+Present 王泽贤's seven-case AI application engineering portfolio as a recruiter-readable personal site with traceable role boundaries, a usable résumé, and stable desktop/mobile navigation.
 
 ## Completed
-- The seven-case React/Vite portfolio and its existing visual design remain in place.
-- Work-card, award-project, and skill-case links use one origin record: project ID, exact clicked element/title, original scroll position, radius, and URL/hash.
-- Forward View Transition captures the origin before routing and resets detail scroll instantly inside the update callback. The surface and title have separate 450ms shared transitions; the page background uses a short opacity fade.
-- Browser Back and detail top/bottom return links restore the original URL/hash and scroll. A visible detail masthead or bottom resources panel contracts into the saved origin. If no visible detail source or valid origin exists, return fades.
-- Transition snapshots no longer add a heavy external shadow around the expanding/contracting card; the underlying card styling remains unchanged.
-- Unsupported View Transition and reduced-motion paths navigate instantly.
+- Hero and About now identify 王泽贤, 华南理工大学软件学院软件工程专业（工业软件卓越班）本科生, with supplied research interests, experience summary, skills, email, GitHub, and résumé actions.
+- Homepage order is Hero → proof strip → projects → capabilities → honours → about/contact, so representative work appears before the full honours ledger.
+- All seven project cards now expose project status, personal role or project scope, evidence source, and technology stack. Team/private claims are bounded when the supplied material does not isolate personal ownership.
+- PharmAgent and ScholarWeaver role statements were verified from their project documents. Fubao is labeled as project scope because its documents do not assign an individual module to 王泽贤.
+- The site has a custom routed-Z favicon, 1200×630 social card, Chinese metadata, canonical/OG/Twitter fields, Person JSON-LD, and route-specific project title/description/canonical updates.
+- `public/wang-zexian-resume.pdf` is a generated one-page A4 résumé; obsolete public mock résumé assets were removed.
+- Direct and in-page hash navigation now reloads required async sections and recalibrates the target after content/font stabilization.
+- All five honour cards use one horizontal certificate template on desktop/tablet and one stacked template on mobile. Linked and independent awards share the same related-work slot.
 
 ## In Progress
-- No further implementation work identified. Source and state changes remain uncommitted.
+- No implementation work is in progress.
+- The current redesign and state-file changes remain uncommitted.
 
 ## Architecture and Key Decisions
-- `src/App.tsx` owns routing, origin capture, dynamic View Transition names, manual history scroll restoration, and preserved homepage DOM.
-- `src/index.css` defines surface/title transitions, root fade, and active-transition scroll override.
-- Exact award/skill project links are origins because one card may contain several project links.
-- Pre-existing unrelated scroll-reveal threshold and section-padding edits remain in the worktree.
+- `src/App.tsx` owns routing, JSON resource loading, section navigation, metadata updates, origin capture, and View Transitions.
+- Homepage copy remains in `public/data/home-*.json`; detailed case evidence remains in `src/App.tsx` and `src/case-stories.tsx`.
+- Project labels distinguish `个人职责`, `参与项目`, `项目范围`, and `实现重点` according to available evidence instead of forcing every project into a sole-author claim.
+- The visual direction remains dark ink, ice cyan, glass surfaces, mono evidence labels, and project-specific diagrams.
+- The public URL used for canonical metadata is `https://206831.xyz/`.
 
 ## Validation Status
-- `npm run build` passed on 2026-10-12 (TypeScript and Vite, 1,588 modules).
-- `git diff --check` passed; Git only reported LF→CRLF working-copy notices.
-- Chromium 1440×900: first/middle/last work projects entered at detail scrollY=0 and returned to identical list scrollY and card top.
-- Chromium 390×844: work-card bottom return restored identical coordinates; award link from `/#awards` and skill link from the list returned to the same origin coordinates. Desktop skill from `/#skills` returned via detail top link with the original hash and coordinates. Award browser Back also restored `/#awards`.
-- Desktop and 390×844 Chromium shadow probes: forward and reverse `::view-transition-image-pair(project-card)` computed `box-shadow: none`; detail started at scrollY=0 and return restored identical card coordinates.
-- Simulated reduced motion navigated instantly and preserved the saved position.
-- Real Safari/iOS WebKit was unavailable on this Windows host.
+- `npm run build` passed on 2026-10-13: TypeScript and Vite completed, 1,588 modules transformed.
+- `git diff --check` passed on 2026-10-13; only Git line-ending notices were printed.
+- Chromium desktop 1440×900 and mobile 390×844 checks passed for the Hero, project list, compact project grid, About, and PharmAgent detail; measured horizontal overflow was 0.
+- Fresh mobile `/#about` stabilized with the target at 87.7px. Immediate homepage navigation to About also stabilized at 87.7px after async sections expanded.
+- PharmAgent detail metadata resolved to its project title, description, and `https://206831.xyz/?project=pharmagent` canonical URL.
+- `GET /wang-zexian-resume.pdf` returned HTTP 200, `application/pdf`, 182,709 bytes. The rendered one-page PDF was visually checked with no clipping or overlap.
+- Award cards were checked in Chromium at 1440×900, 768×1024, and 390×844. Desktop/tablet cards measured 254px high with consistent result/title/related-work/source regions; mobile had no horizontal overflow or runtime errors.
 
 ## Known Problems
-- No observed Chromium geometry/scroll regression in tested routes.
-- Prior Fubao Flutter younger_plans Golden mismatch (0.17% / 574 pixels) was not re-run in this website task.
-- Approved personal name, portrait, and final résumé remain unavailable and omitted.
+- Real Safari/iOS WebKit remains unverified.
+- The provided `docs` directory contains detailed source groups for PharmAgent, ScholarWeaver, and Fubao only. Other project copy is limited to previously verified repository/test/material facts.
+- Several private/team projects still lack public screenshots, demos, measured product outcomes, or individually attributed module records.
+- Fubao's prior 0.17% / 574-pixel `younger_plans` Golden mismatch was not re-run in this session.
 
 ## Blockers
-- Real Safari/iOS verification requires a WebKit/iOS device or browser service.
+- None for the requested website redesign.
+- Adding stronger project-specific outcomes depends on new verified artefacts or measurements from the user.
 
 ## Important Files
-- `src/App.tsx` — route and scroll lifecycle, work/award/skill entries, detail links.
-- `src/index.css` — View Transition animations.
-- `.agent/handoff.md` — session-specific verification and next steps.
+- `src/App.tsx` — homepage, project roles, metadata, routing, and stable section navigation.
+- `src/index.css` — responsive identity, project, About, awards, and mobile navigation styles.
+- `public/data/home-about.json` — biography, education, research, skills, and contact content.
+- `public/data/home-work.json` — seven project summaries, roles, status, evidence, and stacks.
+- `public/favicon.svg`, `public/social-card.svg`, `public/social-card.png` — brand and social assets.
+- `public/wang-zexian-resume.pdf`, `scripts/generate-resume.py` — final résumé and reproducible generator.
+- `index.html` — favicon, SEO/social metadata, canonical URL, and Person JSON-LD.

@@ -8,8 +8,12 @@ import { LiquidGlassButton } from "@/components/ui/liquid-glass-button";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 
 const profile = {
+  name: "王泽贤",
+  school: "华南理工大学软件学院",
+  major: "软件工程（工业软件卓越班）",
   email: "wzx6831@gmail.com",
   github: "https://github.com/zx6831",
+  resume: "/wang-zexian-resume.pdf",
 };
 
 const projects = [
@@ -88,7 +92,7 @@ const projects = [
 const auditedCaseStudies = {
   "pharmagent": {
     position: { title: "把药物研发问题组织成可追溯的智能体链路", text: "PharmAgent 是第十九届“挑战杯”全国大学生课外学术科技作品竞赛“人工智能+”挑战赛项目；用户确认其已入围国赛决赛。项目书围绕药物—靶点信息、ADMET 性质、分子生成与递送策略，将科研检索与方案辅助拆分为可组合的知识库、插件和工作流。" },
-    facts: [["项目身份", "第十九届“挑战杯”人工智能+挑战赛国赛决赛入围作品"], ["交付形态", "FastGPT 智能体、FastAPI 本地插件与科研工作流"], ["数据与模型", "ChEMBL、openFDA、ADMETlab 3.0 与 DrugEx"], ["材料边界", "仅依据本地项目书与用户提供的竞赛状态展示；不提供代码链接"]],
+    facts: [["个人职责", "团队唯一成员；独立负责系统设计、插件开发、外部接口、知识构建与部署实施"], ["项目身份", "第十九届“挑战杯”人工智能+挑战赛国赛决赛入围作品"], ["交付形态", "FastGPT 智能体、FastAPI 本地插件与科研工作流"], ["数据与模型", "ChEMBL、openFDA、ADMETlab 3.0 与 DrugEx"]],
     flow: [["研究问题", "疾病或靶点输入"], ["知识与数据", "药物、标签与性质查询"], ["模型插件", "ADMET 解析与分子生成"], ["工作流", "检索、调用与方案编排"], ["结构化建议", "递送策略与验证框架"]],
     note: "项目书将每条建议限制在“基础分析—方案设计—可行性验证”的结构中，避免把生成内容表述为临床结论。",
     implementation: [["多源科研数据插件", "通过本地 HTTP 服务封装 ChEMBL、openFDA 与 ADMET 相关能力，让工作流可按自然语言问题选择检索与解析路径。", "证据：项目书“多源数据插件整合”与插件接口说明"], ["分子生成接口", "项目书描述以 DrugEx 的序列模型生成 SMILES，并将模型加载、参数校验和结果返回封装为 FastAPI 插件。", "证据：项目书“靶向特定疾病或靶点的新分子生成插件”"], ["可视化工作流", "FastGPT 将输入、插件调用、模型调用与结构化输出放入可配置流程，保留面向科研任务的复用边界。", "证据：项目书“工作流设计”"]],
@@ -140,9 +144,9 @@ const auditedCaseStudies = {
 
 const navItems = [
   { href: "/#top", label: "首页", id: "top", icon: House },
-  { href: "/#awards", label: "荣誉", id: "awards", icon: Medal },
   { href: "/#work", label: "项目", id: "work", icon: BriefcaseBusiness },
   { href: "/#skills", label: "能力", id: "skills", icon: Wrench },
+  { href: "/#awards", label: "荣誉", id: "awards", icon: Medal },
   { href: "/#about", label: "关于", id: "about", icon: UserRound },
 ];
 
@@ -367,9 +371,10 @@ type ResourceState<T> = { status: ResourceStatus; data?: T; message?: string };
 type PreloadTarget = { selector: string; load: () => void };
 type SummaryData = { label: string; count: string; description: string; note: string };
 type AwardsData = { eyebrow: string; heading: string; description: string; awards: Array<{ edition: string; badge: string; level: string; title: string; result: string; project?: string; projectId?: string; category: string; evidence: string }> };
-type WorkData = { eyebrow: string; heading: string; description: string; projects: Array<{ id: string; type: string; title: string; short: string; stack: string[] }> };
+type WorkProject = { id: string; featured: boolean; type: string; title: string; short: string; roleLabel: string; role: string; status: string; evidence: string; stack: string[] };
+type WorkData = { eyebrow: string; heading: string; description: string; projects: WorkProject[] };
 type SkillsData = { eyebrow: string; heading: string; description: string; skills: Array<{ index: string; title: string; description: string; methods: string[]; output: string; tools: string[]; cases: Array<{ id: string; label: string; context: string }> }> };
-type AboutData = { eyebrow: string; heading: string; description: string; contactEyebrow: string; contactTitle: string; email: string };
+type AboutData = { eyebrow: string; heading: string; education: string; description: string; research: string[]; skills: string[]; contactEyebrow: string; contactTitle: string; email: string; resume: string };
 
 function useJsonResource<T>(url: string, timeoutMs = 7000, initialCache: RequestCache = "force-cache") {
   const [state, setState] = useState<ResourceState<T>>({ status: "idle" });
@@ -537,6 +542,7 @@ function Shell({ children, dark, setDark, showNavigation = true }: { children: R
     }, 1600);
     setActiveId(id);
     history.replaceState(null, "", id === "top" ? location.pathname : `#${id}`);
+    window.dispatchEvent(new Event("portfolio:section-navigation"));
     target.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   };
 
@@ -738,7 +744,7 @@ function ScholarWeaverDetail({ project, isTransitionTarget }: { project: Project
       <aside className="glass-panel detail-facts">
         <div><span>公开仓库</span><strong>MikeHuang2000/LLMs_Database_Translater</strong></div>
         <div><span>项目属性</span><strong>荣誉关联项目“交叉互译”；华南理工大学鼎甲杯合作参赛作品；README 标记为 Demo</strong></div>
-        <div><span>可见贡献</span><strong>zx6831 的公开记录含 2 次提交与一次 relay 分支合并</strong></div>
+        <div><span>个人职责</span><strong>负责参考翻译库的搭建与维护，包括语料梳理、分类入库、准确性核验与持续迭代</strong></div>
         <div><span>运行验证</span><strong>未在此前工程审查环境启动：MinerU、模型服务与 API 配置未齐备</strong></div>
       </aside>
     </section>
@@ -764,7 +770,7 @@ function ScholarWeaverDetail({ project, isTransitionTarget }: { project: Project
     </section>
 
     <section className="detail-resources glass-panel">
-      <div><p className="mono-label">SOURCE / 项目材料</p><h2>回到合作项目的可审查材料</h2><p>该公开仓库保留安装说明、服务端、工作流和可见提交历史；Dingjia 以参考例句库形式参与其中。贡献归属按公开历史陈述，未把其他作者的实现归功于 zx6831。</p></div>
+      <div><p className="mono-label">SOURCE / 项目材料</p><h2>回到合作项目的可审查材料</h2><p>项目书明确记录王泽贤负责参考翻译库的搭建与维护；公开仓库保留安装说明、服务端、工作流和提交历史，Dingjia RAG Toolkit 提供参考例句检索能力。</p></div>
       <div className="detail-actions"><LiquidGlassButton variant="primary" href={project.repository ?? profile.github} target="_blank">查看 GitHub 仓库 <ExternalLink size={16}/></LiquidGlassButton><LiquidGlassButton href="/#work">返回项目 <ArrowUpRight size={16}/></LiquidGlassButton></div>
     </section>
   </main>;
@@ -882,12 +888,25 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
   useNearViewportPreload(preloadTargets, 400);
 
   useEffect(() => {
-    if (!initialSectionId.current) return;
-    summary.load();
-    awards.load();
-    work.load();
-    skills.load();
-    about.load();
+    const prepareSectionNavigation = () => {
+      const id = location.hash.slice(1);
+      initialSectionId.current = id;
+      restoredInitialSection.current = !id;
+      if (!id) return;
+      summary.load();
+      awards.load();
+      work.load();
+      skills.load();
+      about.load();
+    };
+
+    prepareSectionNavigation();
+    window.addEventListener("hashchange", prepareSectionNavigation);
+    window.addEventListener("portfolio:section-navigation", prepareSectionNavigation);
+    return () => {
+      window.removeEventListener("hashchange", prepareSectionNavigation);
+      window.removeEventListener("portfolio:section-navigation", prepareSectionNavigation);
+    };
   }, [about.load, awards.load, skills.load, summary.load, work.load]);
 
   const workData = work.state.data;
@@ -901,6 +920,21 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
   const skillsFontStatus = useTextFontGate(collectText(skillsData), fontStatus);
   const aboutFontStatus = useTextFontGate(collectText(aboutData), fontStatus);
   const projectIcons = { pharmagent: HeartPulse, xuanji: Dna, "sso-platform": Network, v2t: FileText, eliminate: Layers3, scholarweaver: Database, fubao: HeartPulse };
+  const featuredProjects = workData?.projects.filter((project) => project.featured) ?? [];
+  const moreProjects = workData?.projects.filter((project) => !project.featured) ?? [];
+  const renderProject = (project: WorkProject) => {
+    const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database;
+    const index = workData?.projects.findIndex((item) => item.id === project.id) ?? 0;
+    return <a href={`/?project=${project.id}`} className={`case-row glass-panel${project.featured ? " case-row--featured" : " case-row--compact"}`} key={project.id} onClick={(event) => openFromHome(event, project.id)}>
+      <span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div className="case-row__copy">
+        <div className="case-row__heading"><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3></div><span>{project.status}</span></div>
+        <p className="case-row__summary">{project.short}</p>
+        <div className="case-role"><span>{project.roleLabel}</span><strong>{project.role}</strong></div>
+        <div className="case-evidence"><GitBranch size={14} aria-hidden="true"/><span>{project.evidence}</span></div>
+        <div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div>
+      </div><ArrowUpRight className="case-arrow"/>
+    </a>;
+  };
 
   useScrollReveal(scrollRevealGroups, [summary.state.status, summaryFontStatus, awards.state.status, awardsFontStatus, work.state.status, workFontStatus, skills.state.status, skillsFontStatus, about.state.status, aboutFontStatus].join("|"), fontStatus !== "loading");
 
@@ -912,21 +946,23 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
     const target = document.getElementById(id);
     if (!target) return;
     restoredInitialSection.current = true;
-    const frame = window.requestAnimationFrame(() => target.scrollIntoView({ behavior: "auto", block: "start" }));
-    return () => window.cancelAnimationFrame(frame);
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        const top = target.getBoundingClientRect().top + window.scrollY - 88;
+        scrollImmediately(Math.max(0, top));
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
   }, [about, aboutFontStatus, awards, awardsFontStatus, skills, skillsFontStatus, summary, summaryFontStatus, work, workFontStatus]);
 
   return <main>
-    <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 正在求职 · 大模型应用工程实习</div><p className="mono-label">AI APPLICATIONS / PORTFOLIO 2026</p><h1>让模型能力<br/>进入<span className="accent-word">可用工作流。</span></h1><p className="hero-lead">围绕 RAG、多智能体、ASR 与生成式 AI 应用，梳理模型、工具与界面的边界；以可理解、可核验的方式推进交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">浏览案例 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href="#about">联系我 <Mail size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="casebook-stage"><p className="casebook-stage__eyebrow">CASEBOOK / 2026</p><div className="casebook-stage__count"><strong>07</strong><span>个有来源的代表案例</span></div><p className="casebook-stage__scope">AI · 全栈 · 视觉 · 产品工程</p></div><div className="identity-copy"><strong>以项目事实为主线</strong><p>仅呈现可公开的源码、测试记录与项目材料；未核验的信息不作结论。</p></div><div className="signal-line" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>范围</span><b>AI · 全栈 · 视觉 · 产品</b><span>依据</span><b>源码 · 测试 · 项目材料</b></div></aside></section>
+    <section className="candidate-hero" id="top"><div className="hero-main"><div className="availability"><span/> 正在求职 · 大模型应用工程实习</div><p className="hero-name">王泽贤 <span>华南理工大学 · 软件工程本科生</span></p><p className="mono-label">AI APPLICATIONS / AGENT SYSTEMS / PORTFOLIO 2026</p><h1>让模型能力<br/>进入<span className="accent-word">可用工作流。</span></h1><p className="hero-lead">关注人工智能、大语言模型、智能体系统与计算机系统技术；把模型、数据和工具组织成可理解、可验证的软件交付。</p><div className="hero-actions"><LiquidGlassButton variant="primary" href="#work">浏览项目 <ArrowUpRight size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.resume} target="_blank">下载简历 <FileText size={16}/></LiquidGlassButton><LiquidGlassButton href="#about">联系我 <Mail size={16}/></LiquidGlassButton></div></div><aside className="identity-panel glass-panel"><div className="casebook-stage"><p className="casebook-stage__eyebrow">WANG ZEXIAN / SCUT</p><div className="casebook-stage__identity"><strong>WZ</strong><span>软件工程<br/>工业软件卓越班</span></div><p className="casebook-stage__scope">LLM · AGENT · SYSTEMS</p></div><div className="identity-copy"><strong>从研究问题到工程系统</strong><p>参与 AI 药物研发智能体、RISC-V 处理器设计与 AI4Finance 研究，关注专业领域中可靠的 AI 应用。</p></div><div className="signal-line" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="identity-meta"><span>学校</span><b>华南理工大学软件学院</b><span>案例</span><b>07 个可追溯工程案例</b></div></aside></section>
     <section className="proof-strip" id="proof"><ResourceBoundary state={summary.state} fontStatus={summaryFontStatus} retry={summary.retry} skeleton={<SummarySkeleton />}>{summaryData && <div className="proof-strip__content"><span>{summaryData.label}</span><strong>{summaryData.count}</strong><p>{summaryData.description}</p><span>{summaryData.note}</span></div>}</ResourceBoundary></section>
-    <section className="portfolio-section awards-section" id="awards"><ResourceBoundary state={awards.state} fontStatus={awardsFontStatus} retry={awards.retry} skeleton={<AwardsSkeleton />}>{awardsData && <>
-      <div className="section-title"><p className="mono-label">{awardsData.eyebrow}</p><h2>{awardsData.heading}</h2><p>{awardsData.description}</p></div>
-      <div className="award-ledger">{awardsData.awards.map((award) => <article className="award-certificate glass-panel" key={award.title}>
-        <div className="award-certificate__result"><div className="award-certificate__meta"><span>{award.level}</span><span>{award.edition}</span>{award.result.startsWith("本科生组") && <span>本科生组</span>}</div><strong>{award.result.replace(/^本科生组/, "")}</strong><span className="award-certificate__badge"><Medal size={20} aria-hidden="true"/>{award.badge}</span></div>
-        <div className="award-certificate__main"><p className="mono-label">{award.category}</p><h3>{award.title}</h3>{award.project && award.projectId ? <a href={`/?project=${award.projectId}`} className="award-certificate__project" onClick={(event) => openFromHome(event, award.projectId!)}><span>关联作品<strong>{award.project}</strong></span><ArrowUpRight size={19} aria-hidden="true"/></a> : <p className="award-certificate__project award-certificate__project--static">独立竞赛荣誉</p>}<p className="award-certificate__source"><span>材料来源</span>{award.evidence}</p></div>
-      </article>)}</div>
-    </>}</ResourceBoundary></section>
-    <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list">{workData.projects.map((project, index) => { const Icon = projectIcons[project.id as keyof typeof projectIcons] ?? Database; return <a href={`/?project=${project.id}`} className="case-row glass-panel" key={project.id} onClick={(event) => openFromHome(event, project.id)}><span className="case-index">0{index + 1}</span><div className="case-icon"><Icon size={28}/></div><div><p className="mono-label">{project.type}</p><h3>{project.title}</h3><p>{project.short}</p><div className="tag-row">{project.stack.map((stack) => <span key={stack}>{stack}</span>)}</div></div><ArrowUpRight className="case-arrow"/></a>; })}</div></>}</ResourceBoundary></section>
+    <section className="portfolio-section" id="work"><ResourceBoundary state={work.state} fontStatus={workFontStatus} retry={work.retry} skeleton={<WorkSkeleton />}>{workData && <><div className="section-title"><p className="mono-label">{workData.eyebrow}</p><h2>{workData.heading}</h2><p>{workData.description}</p></div><div className="case-list case-list--featured">{featuredProjects.map(renderProject)}</div><div className="case-list__more-heading"><p className="mono-label">MORE ENGINEERING CASES</p><h3>更多工程案例</h3></div><div className="case-list case-list--more">{moreProjects.map(renderProject)}</div></>}</ResourceBoundary></section>
     <section className="portfolio-section skills-section" id="skills"><ResourceBoundary state={skills.state} fontStatus={skillsFontStatus} retry={skills.retry} skeleton={<SkillsSkeleton />}>{skillsData && <>
       <div className="section-title"><p className="mono-label">{skillsData.eyebrow}</p><h2>{skillsData.heading}</h2><p>{skillsData.description}</p></div>
       <ol className="capability-route" aria-label="能力交付顺序">{skillsData.skills.map((skill) => <li key={skill.index}><span>{skill.index}</span>{skill.title}</li>)}</ol>
@@ -935,7 +971,14 @@ function Home({ onProjectOpen, fontStatus }: { onProjectOpen: (event: React.Mous
         <div className="capability-cases"><p className="mono-label">在项目中查看</p>{skill.cases.map((item) => <a href={`/?project=${item.id}`} key={item.id} onClick={(event) => openFromHome(event, item.id)}><span><strong>{item.label}</strong><small>{item.context}</small></span><ArrowUpRight size={18} aria-hidden="true"/></a>)}</div>
       </article>)}</div>
     </>}</ResourceBoundary></section>
-    <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} fontStatus={aboutFontStatus} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p>{aboutData.description}</p></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github}>GitHub <Github size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
+    <section className="portfolio-section awards-section" id="awards"><ResourceBoundary state={awards.state} fontStatus={awardsFontStatus} retry={awards.retry} skeleton={<AwardsSkeleton />}>{awardsData && <>
+      <div className="section-title"><p className="mono-label">{awardsData.eyebrow}</p><h2>{awardsData.heading}</h2><p>{awardsData.description}</p></div>
+      <div className="award-ledger">{awardsData.awards.map((award) => <article className="award-certificate glass-panel" key={award.title}>
+        <div className="award-certificate__result"><div className="award-certificate__meta"><span>{award.level}</span><span>{award.edition}</span>{award.result.startsWith("本科生组") && <span>本科生组</span>}</div><strong>{award.result.replace(/^本科生组/, "")}</strong><span className="award-certificate__badge"><Medal size={20} aria-hidden="true"/>{award.badge}</span></div>
+        <div className="award-certificate__main"><p className="mono-label">{award.category}</p><h3>{award.title}</h3>{award.project && award.projectId ? <a href={`/?project=${award.projectId}`} className="award-certificate__project" onClick={(event) => openFromHome(event, award.projectId!)}><span>关联作品<strong>{award.project}</strong></span><ArrowUpRight size={19} aria-hidden="true"/></a> : <div className="award-certificate__project award-certificate__project--static"><span>关联作品<strong>独立竞赛荣誉</strong></span></div>}<p className="award-certificate__source"><span>材料来源</span>{award.evidence}</p></div>
+      </article>)}</div>
+    </>}</ResourceBoundary></section>
+    <section className="portfolio-section about-section" id="about"><ResourceBoundary state={about.state} fontStatus={aboutFontStatus} retry={about.retry} skeleton={<AboutSkeleton />}>{aboutData && <div className="about-resource-content"><div className="about-copy"><p className="mono-label">{aboutData.eyebrow}</p><h2>{aboutData.heading}</h2><p className="about-education">{aboutData.education}</p><p>{aboutData.description}</p><div className="about-detail-group"><p className="mono-label">RESEARCH INTERESTS</p><div className="about-chip-row">{aboutData.research.map((item) => <span key={item}>{item}</span>)}</div></div><div className="about-detail-group"><p className="mono-label">LANGUAGES / TOOLS</p><div className="about-chip-row">{aboutData.skills.map((item) => <span key={item}>{item}</span>)}</div></div></div><aside className="contact-panel glass-panel"><p className="mono-label">{aboutData.contactEyebrow}</p><h3>{aboutData.contactTitle}</h3><div className="contact-actions"><LiquidGlassButton variant="primary" href={`mailto:${aboutData.email}`}>发送邮件 <Mail size={16}/></LiquidGlassButton><LiquidGlassButton href={aboutData.resume} target="_blank">查看简历 <FileText size={16}/></LiquidGlassButton><LiquidGlassButton href={profile.github} target="_blank">GitHub <Github size={16}/></LiquidGlassButton></div><small>{aboutData.email}</small></aside></div>}</ResourceBoundary></section>
   </main>;
 }
 
@@ -977,6 +1020,21 @@ export function App() {
     document.documentElement.classList.toggle("font-fallback", fontStatus === "fallback");
     if (fontStatus !== "loading") document.documentElement.classList.add("app-ready");
   }, [fontStatus]);
+
+  useEffect(() => {
+    const activeProject = route.projectId ? projects.find((project) => project.id === route.projectId) : undefined;
+    const title = activeProject ? `${activeProject.title} | 王泽贤` : "王泽贤 · AI 应用工程作品集";
+    const description = activeProject?.short ?? "华南理工大学软件工程本科生王泽贤的个人作品集，关注大语言模型、智能体系统、人工智能与计算机系统技术。";
+    const url = `https://206831.xyz/${activeProject ? `?project=${activeProject.id}` : ""}`;
+    document.title = title;
+    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute("content", description);
+    document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute("content", title);
+    document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute("content", description);
+    document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.setAttribute("content", url);
+    document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute("content", title);
+    document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute("content", description);
+    document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", url);
+  }, [route.projectId]);
 
   useEffect(() => {
     const previousRestoration = history.scrollRestoration;

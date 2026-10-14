@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, Database, Dna, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Medal, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BriefcaseBusiness, ChevronLeft, ChevronRight, Database, Dna, ExternalLink, FileText, Github, GitBranch, HeartPulse, House, Layers3, Mail, Medal, Moon, Network, ShieldAlert, Sun, UserRound, Workflow, Wrench, X, ZoomIn, ZoomOut } from "lucide-react";
 import type { CSSProperties, PointerEvent, ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
@@ -809,17 +809,265 @@ type SourceFigure = {
 };
 
 function SourceFigureGallery({ title, description, figures }: { title: string; description: string; figures: SourceFigure[] }) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [zoom, setZoom] = useState({ scale: 1, x: 0, y: 0 });
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const activeIndexRef = useRef<number | null>(null);
+  const zoomRef = useRef(zoom);
+  const previousOverflowRef = useRef<string | null>(null);
+  const pageScrollRef = useRef({ x: 0, y: 0 });
+  const transitionPendingRef = useRef(false);
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const gestureRef = useRef({ startX: 0, startY: 0, lastX: 0, lastY: 0, pinchDistance: 0, pinchScale: 1 });
+  const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
+  const lastTouchZoomRef = useRef(0);
+
+  function updateZoom(next: { scale: number; x: number; y: number }) {
+    zoomRef.current = next;
+    setZoom(next);
+  }
+
+  function resetZoom() {
+    updateZoom({ scale: 1, x: 0, y: 0 });
+    pointersRef.current.clear();
+  }
+
+  function clampPan(scale: number, x: number, y: number) {
+    const image = imageRef.current;
+    const stage = stageRef.current;
+    if (!image || !stage || scale <= 1) return { scale: 1, x: 0, y: 0 };
+    const maxX = Math.max(0, (image.offsetWidth * scale - stage.clientWidth) / 2);
+    const maxY = Math.max(0, (image.offsetHeight * scale - stage.clientHeight) / 2);
+    return { scale, x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) };
+  }
+
+  function changeZoom(delta: number) {
+    const scale = Math.max(1, Math.min(4, zoomRef.current.scale + delta));
+    updateZoom(clampPan(scale, zoomRef.current.x, zoomRef.current.y));
+  }
+
+  function lockPageScroll() {
+    if (previousOverflowRef.current !== null) return;
+    previousOverflowRef.current = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  }
+
+  function restorePageScroll() {
+    if (previousOverflowRef.current === null) return;
+    document.body.style.overflow = previousOverflowRef.current;
+    previousOverflowRef.current = null;
+  }
+
+  function restoreSavedScroll() {
+    const root = document.documentElement;
+    const previousBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo(pageScrollRef.current.x, pageScrollRef.current.y);
+    root.style.scrollBehavior = previousBehavior;
+  }
+
+  function canUseSharedTransition() {
+    return typeof (document as SiteViewTransitionDocument).startViewTransition === "function"
+      && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function clearTransition(image: HTMLImageElement | null) {
+    if (image) image.style.viewTransitionName = "";
+    document.documentElement.classList.remove("figure-view-transition");
+    transitionPendingRef.current = false;
+  }
+
+  function openViewer(index: number) {
+    const dialog = dialogRef.current;
+    if (!dialog || dialog.open || transitionPendingRef.current) return;
+    const sourceImage = triggerRefs.current[index]?.querySelector("img") ?? null;
+    const show = () => {
+      pageScrollRef.current = { x: window.scrollX, y: window.scrollY };
+      activeIndexRef.current = index;
+      flushSync(() => setActiveIndex(index));
+      dialog.showModal();
+      lockPageScroll();
+      restoreSavedScroll();
+    };
+    resetZoom();
+    if (!canUseSharedTransition() || !sourceImage) {
+      show();
+      return;
+    }
+    sourceImage.style.viewTransitionName = "figure-image";
+    document.documentElement.classList.add("figure-view-transition");
+    transitionPendingRef.current = true;
+    try {
+      const transition = (document as SiteViewTransitionDocument).startViewTransition!(() => {
+        sourceImage.style.viewTransitionName = "";
+        show();
+      });
+      transition.finished.then(() => clearTransition(sourceImage), () => clearTransition(sourceImage));
+    } catch {
+      clearTransition(sourceImage);
+      show();
+    }
+  }
+
+  function closeViewer() {
+    const index = activeIndexRef.current;
+    const dialog = dialogRef.current;
+    if (index === null || !dialog?.open || transitionPendingRef.current) return;
+    const trigger = triggerRefs.current[index];
+    const targetImage = trigger?.querySelector("img") ?? null;
+    const bounds = trigger?.getBoundingClientRect();
+    const targetVisible = bounds && bounds.bottom > 0 && bounds.top < innerHeight && bounds.right > 0 && bounds.left < innerWidth;
+    const hide = () => {
+      dialog.close();
+      activeIndexRef.current = null;
+      flushSync(() => setActiveIndex(null));
+      restorePageScroll();
+      resetZoom();
+      trigger?.focus({ preventScroll: true });
+      restoreSavedScroll();
+    };
+    if (!canUseSharedTransition() || !targetImage || !targetVisible || zoomRef.current.scale > 1) {
+      hide();
+      return;
+    }
+    document.documentElement.classList.add("figure-view-transition");
+    transitionPendingRef.current = true;
+    try {
+      const transition = (document as SiteViewTransitionDocument).startViewTransition!(() => {
+        hide();
+        targetImage.style.viewTransitionName = "figure-image";
+      });
+      transition.finished.then(() => clearTransition(targetImage), () => clearTransition(targetImage));
+    } catch {
+      clearTransition(targetImage);
+      hide();
+    }
+  }
+
+  function goToFigure(direction: -1 | 1) {
+    const index = activeIndexRef.current;
+    if (index === null || transitionPendingRef.current) return;
+    const next = (index + direction + figures.length) % figures.length;
+    activeIndexRef.current = next;
+    resetZoom();
+    setActiveIndex(next);
+  }
+
+  function onStagePointerDown(event: PointerEvent<HTMLDivElement>) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const gesture = gestureRef.current;
+    if (pointersRef.current.size === 1) {
+      gesture.startX = gesture.lastX = event.clientX;
+      gesture.startY = gesture.lastY = event.clientY;
+    } else if (pointersRef.current.size === 2) {
+      const [first, second] = [...pointersRef.current.values()];
+      gesture.pinchDistance = Math.hypot(first.x - second.x, first.y - second.y);
+      gesture.pinchScale = zoomRef.current.scale;
+    }
+  }
+
+  function onStagePointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!pointersRef.current.has(event.pointerId)) return;
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const gesture = gestureRef.current;
+    if (pointersRef.current.size === 2) {
+      const [first, second] = [...pointersRef.current.values()];
+      const distance = Math.hypot(first.x - second.x, first.y - second.y);
+      const scale = Math.max(1, Math.min(4, gesture.pinchScale * distance / Math.max(1, gesture.pinchDistance)));
+      updateZoom(clampPan(scale, zoomRef.current.x, zoomRef.current.y));
+    } else if (zoomRef.current.scale > 1) {
+      updateZoom(clampPan(
+        zoomRef.current.scale,
+        zoomRef.current.x + event.clientX - gesture.lastX,
+        zoomRef.current.y + event.clientY - gesture.lastY,
+      ));
+    }
+    gesture.lastX = event.clientX;
+    gesture.lastY = event.clientY;
+  }
+
+  function onStagePointerUp(event: PointerEvent<HTMLDivElement>) {
+    const wasSinglePointer = pointersRef.current.size === 1;
+    pointersRef.current.delete(event.pointerId);
+    const gesture = gestureRef.current;
+    const dx = event.clientX - gesture.startX;
+    const dy = event.clientY - gesture.startY;
+    if (wasSinglePointer && zoomRef.current.scale === 1 && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.2 && figures.length > 1) {
+      goToFigure(dx < 0 ? 1 : -1);
+      lastTapRef.current.time = 0;
+    } else if (wasSinglePointer && event.pointerType === "touch" && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+      const now = Date.now();
+      const last = lastTapRef.current;
+      if (now - last.time < 320 && Math.hypot(event.clientX - last.x, event.clientY - last.y) < 35) {
+        changeZoom(zoomRef.current.scale > 1 ? 1 - zoomRef.current.scale : 1.5);
+        lastTouchZoomRef.current = now;
+        lastTapRef.current.time = 0;
+      } else {
+        lastTapRef.current = { time: now, x: event.clientX, y: event.clientY };
+      }
+    }
+    if (pointersRef.current.size === 1) {
+      const remaining = [...pointersRef.current.values()][0];
+      gesture.startX = gesture.lastX = remaining.x;
+      gesture.startY = gesture.lastY = remaining.y;
+    }
+  }
+
+  function onStagePointerCancel(event: PointerEvent<HTMLDivElement>) {
+    pointersRef.current.delete(event.pointerId);
+    lastTapRef.current.time = 0;
+  }
+
+  useEffect(() => () => {
+    restorePageScroll();
+    document.documentElement.classList.remove("figure-view-transition");
+  }, []);
+
+  const activeFigure = activeIndex === null ? null : figures[activeIndex];
   return <div className="source-figures">
     <div className="source-figures__heading"><div><p className="mono-label">DOCUMENT FIGURES</p><h3>{title}</h3></div><p>{description}</p></div>
     <div className="source-figure-grid">
-      {figures.map((figure) => <figure className="source-figure" key={figure.src}>
-        <a className="source-figure__asset" href={figure.src} target="_blank" rel="noreferrer" aria-label={`在新标签页查看原图：${figure.title}`}>
+      {figures.map((figure, index) => <figure className="source-figure" key={figure.src}>
+        <button className="source-figure__asset" type="button" ref={(element) => { triggerRefs.current[index] = element; }} onClick={() => openViewer(index)} aria-label={`查看图片：${figure.title}`}>
           <img src={figure.src} alt={figure.alt} loading="lazy" decoding="async" />
-          <span>查看原图 <ArrowUpRight size={14} aria-hidden="true" /></span>
-        </a>
+          <span>查看图片 <ArrowUpRight size={14} aria-hidden="true" /></span>
+        </button>
         <figcaption><p>{figure.kind}</p><h4>{figure.title}</h4><span>{figure.description}</span></figcaption>
       </figure>)}
     </div>
+    <dialog className="source-image-dialog" ref={dialogRef} aria-label="项目图片浏览器" onCancel={(event) => { event.preventDefault(); closeViewer(); }} onKeyDown={(event) => {
+      if (event.key === "ArrowLeft" && figures.length > 1) { event.preventDefault(); goToFigure(-1); }
+      if (event.key === "ArrowRight" && figures.length > 1) { event.preventDefault(); goToFigure(1); }
+    }}>
+      {activeFigure && <>
+        <div className="source-image-dialog__header">
+          <div><span>DOCUMENT FIGURES · {activeIndex! + 1} / {figures.length}</span><strong>{activeFigure.title}</strong></div>
+          <button type="button" className="source-image-dialog__close" autoFocus onClick={closeViewer} aria-label="关闭图片浏览器"><X size={22} aria-hidden="true" /></button>
+        </div>
+        <div className="source-image-dialog__stage" ref={stageRef} onPointerDown={onStagePointerDown} onPointerMove={onStagePointerMove} onPointerUp={onStagePointerUp} onPointerCancel={onStagePointerCancel} onDoubleClick={() => { if (Date.now() - lastTouchZoomRef.current > 400) changeZoom(zoomRef.current.scale > 1 ? 1 - zoomRef.current.scale : 1.5); }}>
+          <img ref={imageRef} src={activeFigure.src} alt={activeFigure.alt} draggable="false" style={{ transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})`, viewTransitionName: "figure-image" }} />
+        </div>
+        <div className="source-image-dialog__toolbar">
+          <div className="source-image-dialog__navigation">
+            {figures.length > 1 && <>
+              <button type="button" onClick={() => goToFigure(-1)} aria-label="上一张图片"><ChevronLeft size={20} aria-hidden="true" /></button>
+              <span>{activeIndex! + 1} / {figures.length}</span>
+              <button type="button" onClick={() => goToFigure(1)} aria-label="下一张图片"><ChevronRight size={20} aria-hidden="true" /></button>
+            </>}
+          </div>
+          <div className="source-image-dialog__tools">
+            <button type="button" onClick={() => changeZoom(-0.5)} disabled={zoom.scale <= 1} aria-label="缩小图片"><ZoomOut size={18} aria-hidden="true" /></button>
+            <span aria-live="polite">{Math.round(zoom.scale * 100)}%</span>
+            <button type="button" onClick={() => changeZoom(0.5)} disabled={zoom.scale >= 4} aria-label="放大图片"><ZoomIn size={18} aria-hidden="true" /></button>
+            <a href={activeFigure.src} target="_blank" rel="noreferrer">打开原图 <ExternalLink size={15} aria-hidden="true" /></a>
+          </div>
+        </div>
+      </>}
+    </dialog>
   </div>;
 }
 
@@ -839,7 +1087,7 @@ function PharmAgentEvidence() {
       {steps.map(([title, description], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><strong>{title}</strong><p>{description}</p></li>)}
     </ol>
     <div className="detail-callout"><GitBranch size={18}/><p>网页只保留每一步的职责与可追溯交接：外部数据、模型插件和工作流共同支撑研究辅助，而非把任何单一数据源或生成结果包装为结论。</p></div>
-    <SourceFigureGallery title="原始项目图：部署边界与智能体编排" description="两张原图分别回答“请求从哪里进入”与“工作流内部怎样调度”。点击任一图可在新标签页查看原始分辨率。" figures={[
+    <SourceFigureGallery title="原始项目图：部署边界与智能体编排" description="两张原图分别回答“请求从哪里进入”与“工作流内部怎样调度”。点击图片可在当前页面放大查看。" figures={[
       { src: "/project-evidence/pharmagent-system-architecture.png", alt: "PharmAgent 原始系统架构图，展示微信端、Giiso 私域部署、主 API、FastGPT 工作流及插件层。", kind: "系统架构原图", title: "从微信端到 ChEMBL、ADMET 与分子生成插件", description: "项目书把交互端、私域部署、主 API、FastGPT 编排层和插件层放在同一调用图中。" },
       { src: "/project-evidence/pharmagent-fastgpt-workflow.png", alt: "PharmAgent 原始 FastGPT 工作流截图，包含知识检索、分子生成和 ADMET 节点。", kind: "工作流原图", title: "知识检索、分子生成与 ADMET 的节点编排", description: "原始画布保留了插件节点及其连线，作为上方五段流程的实现层补充。" },
     ]}/>

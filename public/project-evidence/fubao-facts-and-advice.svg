@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 670" role="img" aria-labelledby="title desc">
+  <title id="title">福豹 V1.4：健康事实、事件等级与 AI 建议的分离</title>
+  <desc id="desc">产品与系统设计说明书重绘示意。经确认的健康读数形成家庭业务事实；确定性规则判定 P0 至 P3 事件等级。独立的 AgentRun 和 Attempt 只能派生受校验的正式建议，不能修改读数或事件等级。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#b66b5a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      text{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;fill:#482c2b}
+      .mono{font-family:"IBM Plex Mono",Consolas,monospace;letter-spacing:1.4px}
+      .eyebrow{font-size:17px;fill:#946f67}.title{font-size:32px;font-weight:700}.lane{font-size:23px;font-weight:700}.cardtitle{font-size:22px;font-weight:700}.body{font-size:18px;fill:#6d5551}.on-dark{fill:#fff}.on-dark-muted{fill:#f4ded6}
+    </style>
+  </defs>
+  <rect width="1200" height="670" fill="#f8f3ef"/>
+  <path d="M0 118H1200" stroke="#eadad3" stroke-width="2"/>
+  <text x="54" y="51" class="mono eyebrow">FUBAO V1.4 / DOCUMENT-DERIVED MAP</text>
+  <text x="54" y="96" class="title">先形成健康事实，再分别处理事件与建议</text>
+  <text x="996" y="51" class="mono eyebrow">03 / 03</text>
+
+  <rect x="54" y="172" width="240" height="295" rx="21" fill="#fff" stroke="#e7cec4" stroke-width="2"/>
+  <rect x="76" y="194" width="94" height="32" rx="16" fill="#f9e2d9"/>
+  <text x="89" y="216" class="mono eyebrow">FACT</text>
+  <text x="76" y="277" class="cardtitle">经确认的读数</text>
+  <text x="76" y="320" class="body">手动录入 / 授权设备</text>
+  <text x="76" y="355" class="body">用户确认后入库</text>
+  <path d="M76 385H270" stroke="#eadad3" stroke-width="2"/>
+  <text x="76" y="423" class="body">Family 授权范围内</text>
+
+  <path d="M296 253H339" stroke="#b66b5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M296 387H339" stroke="#b66b5a" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="354" y="160" width="790" height="150" rx="21" fill="#f9e6dd" stroke="#deaa9a" stroke-width="2"/>
+  <text x="380" y="196" class="mono eyebrow">TRACK A / RULES</text>
+  <text x="380" y="238" class="lane">确定性规则</text>
+  <text x="380" y="272" class="body">按事件来源、场景与条件判定；AI 不参与分级</text>
+  <path d="M807 235H847" stroke="#b66b5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="866" y="186" width="250" height="98" rx="15" fill="#6b403b"/>
+  <text x="887" y="225" class="cardtitle on-dark">P0–P3 健康事件</text>
+  <text x="887" y="258" class="body on-dark-muted">按策略通知或呈现</text>
+
+  <rect x="354" y="331" width="790" height="167" rx="21" fill="#fff" stroke="#e7cec4" stroke-width="2"/>
+  <text x="380" y="368" class="mono eyebrow">TRACK B / CONTROLLED AI</text>
+  <text x="380" y="411" class="lane">AgentRun / Attempt</text>
+  <text x="380" y="445" class="body">最小上下文 · 校验输出 · 独立生命周期</text>
+  <path d="M807 414H847" stroke="#b66b5a" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="866" y="356" width="250" height="116" rx="15" fill="#f2dfd5"/>
+  <text x="887" y="400" class="cardtitle">正式建议</text>
+  <text x="887" y="433" class="body">可追溯的派生产物</text>
+
+  <rect x="54" y="527" width="1090" height="67" rx="14" fill="#fff" stroke="#e7cec4" stroke-width="2"/>
+  <circle cx="86" cy="560" r="9" fill="#b66b5a"/>
+  <text x="110" y="568" font-size="21" font-weight="700">不可回写边界</text>
+  <text x="300" y="568" font-size="18" fill="#6d5551">Provider、通知或 AI 执行失败，不回滚既有健康事实；建议不能改写读数或事件等级。</text>
+  <text x="54" y="636" class="mono eyebrow">SOURCE: FUBAO V1.4 PRD + SYSTEM DESIGN  ·  DESIGN BASELINE, NOT LIVE MEDICAL VALIDATION</text>
+</svg>

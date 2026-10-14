@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">ScholarWeaver：参考例句检索的离线与在线双阶段</title>
+  <desc id="desc">项目书重绘示意。离线阶段将参考文档切块、用 m3e-base 生成向量并存入 FAISS；在线阶段从待翻译语句召回候选，经多信号重排形成带来源的 Top K 参考例句，作为翻译上下文。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#745a9e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      text{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;fill:#332843}
+      .mono{font-family:"IBM Plex Mono",Consolas,monospace;letter-spacing:1.4px}
+      .eyebrow{font-size:17px;fill:#7b6c91}.title{font-size:33px;font-weight:700}.lane{font-size:21px;font-weight:700}.cardtitle{font-size:23px;font-weight:700}.body{font-size:17px;fill:#665b73}.on-dark{fill:#fff}.on-dark-muted{fill:#e9def4}
+    </style>
+  </defs>
+  <rect width="1200" height="680" fill="#f5f2f7"/>
+  <path d="M0 116H1200" stroke="#ded5e8" stroke-width="2"/>
+  <text x="54" y="50" class="mono eyebrow">SCHOLARWEAVER / DOCUMENT-DERIVED MAP</text>
+  <text x="54" y="94" class="title">参考例句如何进入翻译上下文</text>
+  <text x="998" y="50" class="mono eyebrow">02 / 03</text>
+
+  <rect x="50" y="148" width="1100" height="185" rx="21" fill="#fff" stroke="#ded5e8" stroke-width="2"/>
+  <rect x="50" y="148" width="188" height="185" rx="21" fill="#ddceeb"/>
+  <path d="M218 148H238V333H218" fill="#ddceeb"/>
+  <text x="75" y="189" class="mono eyebrow">STAGE 01</text>
+  <text x="75" y="230" class="lane">离线构建</text>
+  <text x="75" y="270" class="body">为资料建立</text><text x="75" y="298" class="body">可检索索引</text>
+  <g>
+    <text x="272" y="193" class="mono eyebrow">INPUT</text><text x="272" y="236" class="cardtitle">参考文档</text><text x="272" y="273" class="body">解析与切块</text>
+    <path d="M433 237H494" stroke="#745a9e" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="515" y="193" class="mono eyebrow">EMBED</text><text x="515" y="236" class="cardtitle">m3e-base</text><text x="515" y="273" class="body">文档向量</text>
+    <path d="M677 237H738" stroke="#745a9e" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="757" y="184" width="344" height="114" rx="15" fill="#f0e9f6"/>
+    <text x="780" y="219" class="mono eyebrow">INDEX</text><text x="780" y="258" class="cardtitle">FAISS + 本地元数据</text>
+  </g>
+
+  <path d="M950 335V378H705" fill="none" stroke="#745a9e" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+  <text x="809" y="367" class="mono eyebrow">候选召回</text>
+
+  <rect x="50" y="391" width="1100" height="188" rx="21" fill="#fff" stroke="#ded5e8" stroke-width="2"/>
+  <rect x="50" y="391" width="188" height="188" rx="21" fill="#ddceeb"/>
+  <path d="M218 391H238V579H218" fill="#ddceeb"/>
+  <text x="75" y="433" class="mono eyebrow">STAGE 02</text>
+  <text x="75" y="474" class="lane">在线检索</text>
+  <text x="75" y="514" class="body">服务于当前</text><text x="75" y="542" class="body">翻译片段</text>
+  <text x="272" y="434" class="mono eyebrow">QUERY</text><text x="272" y="477" class="cardtitle">待翻译语句</text><text x="272" y="514" class="body">向量化与近邻搜索</text>
+  <path d="M451 478H505" stroke="#745a9e" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="521" y="416" width="268" height="138" rx="15" fill="#f0e9f6"/>
+  <text x="544" y="453" class="mono eyebrow">RERANK</text><text x="544" y="489" class="cardtitle">多信号重排</text><text x="544" y="523" class="body">向量 · BM25 · 实体 · MMR</text>
+  <path d="M792 478H835" stroke="#745a9e" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="851" y="416" width="251" height="138" rx="15" fill="#4a365f"/>
+  <text x="873" y="453" class="mono eyebrow on-dark-muted">TOP K</text><text x="873" y="489" class="cardtitle on-dark">参考例句</text><text x="873" y="523" class="body on-dark-muted">携来源进入翻译上下文</text>
+
+  <text x="54" y="621" font-size="20" font-weight="700">阅读边界</text>
+  <text x="175" y="621" font-size="18" fill="#665b73">图解的是项目书中的检索设计与模块交接；不表示翻译准确率或检索评测结果。</text>
+  <text x="54" y="660" class="mono eyebrow">SOURCE: SCHOLARWEAVER PROJECT BOOK  ·  ARCHITECTURE, NOT A QUALITY SCORE</text>
+</svg>

@@ -43,7 +43,7 @@ def check_viewer(browser, browser_name: str, width: int, height: int) -> None:
     original_scroll = page.evaluate("window.figureClickScroll")
     dialog = page.locator(".source-image-dialog")
     page.wait_for_function("document.querySelector('.source-image-dialog')?.open")
-    assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-system-architecture.png"
+    assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-evidence-gates.svg"
     assert dialog.get_attribute("aria-label") == "项目图片浏览器"
     assert dialog.locator(".source-image-dialog__close").evaluate("(element) => element === document.activeElement")
     if page.evaluate("Boolean(document.startViewTransition)"):
@@ -59,10 +59,10 @@ def check_viewer(browser, browser_name: str, width: int, height: int) -> None:
         page.mouse.down()
         page.mouse.move(box["x"] + box["width"] * 0.25, mid_y, steps=8)
         page.mouse.up()
-        assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-fastgpt-workflow.png"
+        assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-system-architecture.png"
         dialog.get_by_role("button", name="上一张图片").click()
     dialog.get_by_role("button", name="下一张图片").click()
-    assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-fastgpt-workflow.png"
+    assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-system-architecture.png"
     dialog.get_by_role("button", name="放大图片").click()
     assert dialog.get_by_text("150%").count() == 1
     dialog.get_by_role("button", name="缩小图片").click()
@@ -89,7 +89,7 @@ def check_viewer(browser, browser_name: str, width: int, height: int) -> None:
             dialog.get_by_role("button", name="缩小图片").click()
             assert dialog.get_by_text("100%").count() == 1
     dialog.press("ArrowLeft")
-    assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-system-architecture.png"
+    assert dialog.locator("img").get_attribute("src") == "/project-evidence/pharmagent-evidence-gates.svg"
     assert dialog.get_by_role("link", name="打开原图").get_attribute("target") == "_blank"
     before_close_scroll = page.evaluate("scrollY")
     visual_scale = page.evaluate("visualViewport.scale")
@@ -109,6 +109,7 @@ def check_viewer(browser, browser_name: str, width: int, height: int) -> None:
     page.wait_for_function("!document.documentElement.classList.contains('figure-view-transition')")
     page.keyboard.press("Escape")
     page.wait_for_function("!document.querySelector('.source-image-dialog').open")
+    page.wait_for_function("!document.documentElement.classList.contains('figure-view-transition')")
     assert trigger.evaluate("(element) => element === document.activeElement")
     page.evaluate("document.startViewTransition = undefined")
     trigger.click()
@@ -141,7 +142,8 @@ def check_other_galleries(browser) -> None:
     for project in ("scholarweaver", "fubao"):
         page.goto(f"http://127.0.0.1:5173/?project={project}", wait_until="domcontentloaded")
         images = page.locator(".source-figure__asset")
-        assert images.count() == 2, project
+        assert images.count() == 3, project
+        assert images.first.locator("img").get_attribute("src").endswith(".svg")
         images.last.click()
         dialog = page.locator(".source-image-dialog")
         page.wait_for_function("document.querySelector('.source-image-dialog')?.open")

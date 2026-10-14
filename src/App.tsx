@@ -806,6 +806,7 @@ type SourceFigure = {
   kind: string;
   title: string;
   description: string;
+  wide?: boolean;
 };
 
 function SourceFigureGallery({ title, description, figures }: { title: string; description: string; figures: SourceFigure[] }) {
@@ -1031,7 +1032,7 @@ function SourceFigureGallery({ title, description, figures }: { title: string; d
   return <div className="source-figures">
     <div className="source-figures__heading"><div><p className="mono-label">DOCUMENT FIGURES</p><h3>{title}</h3></div><p>{description}</p></div>
     <div className="source-figure-grid">
-      {figures.map((figure, index) => <figure className="source-figure" key={figure.src}>
+      {figures.map((figure, index) => <figure className={`source-figure${figure.wide ? " source-figure--wide" : ""}`} key={figure.src}>
         <button className="source-figure__asset" type="button" ref={(element) => { triggerRefs.current[index] = element; }} onClick={() => openViewer(index)} aria-label={`查看图片：${figure.title}`}>
           <img src={figure.src} alt={figure.alt} loading="lazy" decoding="async" />
           <span>查看图片 <ArrowUpRight size={14} aria-hidden="true" /></span>
@@ -1087,7 +1088,8 @@ function PharmAgentEvidence() {
       {steps.map(([title, description], index) => <li key={title}><span>{String(index + 1).padStart(2, "0")}</span><strong>{title}</strong><p>{description}</p></li>)}
     </ol>
     <div className="detail-callout"><GitBranch size={18}/><p>网页只保留每一步的职责与可追溯交接：外部数据、模型插件和工作流共同支撑研究辅助，而非把任何单一数据源或生成结果包装为结论。</p></div>
-    <SourceFigureGallery title="原始项目图：部署边界与智能体编排" description="两张原图分别回答“请求从哪里进入”与“工作流内部怎样调度”。点击图片可在当前页面放大查看。" figures={[
+    <SourceFigureGallery title="文档图解与原始项目图" description="新增图解标出数据、模型与验证之间的交接；下方两张项目书原图呈现部署边界与实际编排画布。点击可在当前页面放大。" figures={[
+      { src: "/project-evidence/pharmagent-evidence-gates.svg", alt: "PharmAgent 项目书重绘图：ChEMBL 与 openFDA 等外部研究输入，经数据质量关口进入分子生成和 ADMET 分析，形成候选递送方案；实验效果需要独立验证。", kind: "项目书重绘 · 研究关系示意", title: "从外部数据到候选方案，经过哪些证据关口", description: "项目书提出字段完整性、数值范围、跨库一致性与版本溯源等质量措施。图中模型结果只作为研究线索，递送效果仍需实验验证。", wide: true },
       { src: "/project-evidence/pharmagent-system-architecture.png", alt: "PharmAgent 原始系统架构图，展示微信端、Giiso 私域部署、主 API、FastGPT 工作流及插件层。", kind: "系统架构原图", title: "从微信端到 ChEMBL、ADMET 与分子生成插件", description: "项目书把交互端、私域部署、主 API、FastGPT 编排层和插件层放在同一调用图中。" },
       { src: "/project-evidence/pharmagent-fastgpt-workflow.png", alt: "PharmAgent 原始 FastGPT 工作流截图，包含知识检索、分子生成和 ADMET 节点。", kind: "工作流原图", title: "知识检索、分子生成与 ADMET 的节点编排", description: "原始画布保留了插件节点及其连线，作为上方五段流程的实现层补充。" },
     ]}/>
@@ -1120,7 +1122,8 @@ function ScholarWeaverEvidence() {
       </aside>
     </div>
     <div className="detail-callout"><GitBranch size={18}/><p>zx6831 的可见提交聚焦服务端到本地检索服务的联通层和端点测试；因此页面把贡献叙述限定为可见的转发与联调工作，不替代其他协作者的实现归属。</p></div>
-    <SourceFigureGallery title="原始项目图：解析管道与双栏工作台" description="原图把处理管道和用户最终看到的阅读界面并置：前者解释为何能保留结构，后者说明成果以怎样的形态交付。" figures={[
+    <SourceFigureGallery title="文档图解与原始项目图" description="新增图解聚焦参考例句如何被检索并交给翻译链；两张原图展示 PDF 处理管道与最终的阅读工作台。" figures={[
+      { src: "/project-evidence/scholarweaver-reference-retrieval.svg", alt: "ScholarWeaver 项目书重绘图：离线参考文档切块、m3e-base 向量化和 FAISS 索引；在线对待翻译语句召回、多信号重排，输出带来源的参考例句。", kind: "项目书重绘 · 检索架构示意", title: "离线建库与在线检索怎样汇合", description: "项目书将参考例句服务拆成索引构建、候选召回与重排。结果供翻译上下文使用；图中不含翻译准确率或检索评测。", wide: true },
       { src: "/project-evidence/scholarweaver-processing-pipeline.png", alt: "ScholarWeaver 项目书中的文档解析处理管道图，展示 PDF 页面、OCR、版面分析、表格结构及 JSON 或 Markdown 输出。", kind: "处理管道原图", title: "PDF 页面经 OCR、版面与表格处理后组装输出", description: "原始技术报告图直观呈现文档拆解、模型管道与结构化结果之间的关系。" },
       { src: "/project-evidence/scholarweaver-translation-workbench.png", alt: "ScholarWeaver 原始工作台截图，左侧目录，中间原文，右侧译文。", kind: "工作台截图", title: "原文、译文与文件目录同屏审阅", description: "原始界面把文件管理与双栏阅读并列，补足“审阅输出”在真实产品中的落点。" },
     ]}/>
@@ -1147,7 +1150,8 @@ function FubaoEvidence() {
       <article className="privacy-rail__node privacy-rail__node--service"><span>受控服务</span><strong>最小上下文</strong><p>AI 仅处理筛选后的请求</p></article>
     </div>
     <div className="detail-callout"><ShieldAlert size={18}/><p>健康事件等级由确定性规则形成；本地 OCR 的候选必须经用户确认，AI 不持有原图或完整档案，也不替代诊断或用药决策。</p></div>
-    <SourceFigureGallery title="原始项目图：家庭闭环与分层系统上下文" description="业务图呈现子女端与长辈端围绕 Family 协作的完整闭环；系统图则把前端、业务权威层、内部 AI 与外部依赖的边界展开。" figures={[
+    <SourceFigureGallery title="文档图解与原始项目图" description="新增图解说明健康事实、事件规则与 AI 建议的写入边界；两张 V1.4 原图保留家庭闭环与系统上下文。" figures={[
+      { src: "/project-evidence/fubao-facts-and-advice.svg", alt: "福豹 V1.4 文档重绘图：确认后的健康读数形成家庭事实，确定性规则判定 P0 至 P3 事件；独立 AgentRun 和 Attempt 生成受校验的正式建议，不能改写读数或事件等级。", kind: "V1.4 文档重绘 · 设计边界", title: "健康事实、事件等级与 AI 建议各自负责什么", description: "产品需求与系统设计把事件分级留给确定性规则，并让正式建议在独立执行流程中派生。图示为 V1.4 设计基线，不代表医疗效果或线上验证。", wide: true },
       { src: "/project-evidence/fubao-family-loop.png", alt: "福豹 V1.4 产品总体业务闭环图，围绕 Family 展示子女端和长辈端的健康共管流程。", kind: "业务闭环原图", title: "Family 连接两端角色与九个持续共管环节", description: "从创建家庭、档案和 DailyTask，到健康报告、建议与互动，原图完整呈现产品的业务叙事。" },
       { src: "/project-evidence/fubao-system-context.png", alt: "福豹系统上下文图，展示 Flutter 双角色 App、NestJS Core、Python AI Service 和外部 Provider 的安全分区。", kind: "系统上下文原图", title: "Flutter、NestJS、内部 AI 与 Provider 的分层边界", description: "图中保留客户端、业务权威层、内网 AI 和外部依赖之间的调用方向与关键安全约束。" },
     ]}/>

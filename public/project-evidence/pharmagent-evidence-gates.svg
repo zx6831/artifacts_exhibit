@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">PharmAgent：研究输入到递送方案的证据关口</title>
+  <desc id="desc">项目书重绘示意。外部数据经字段、范围与来源核对进入分子生成及 ADMET 分析，再组织为候选递送方案；实验有效性仍需独立验证。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#317d6f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <style>
+      text{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;fill:#153631}
+      .mono{font-family:"IBM Plex Mono",Consolas,monospace;letter-spacing:1.5px}
+      .small{font-size:17px;fill:#50736b}.body{font-size:20px;fill:#49655f}.title{font-size:33px;font-weight:700}.cardtitle{font-size:25px;font-weight:700}.num{font-size:15px;font-weight:700;fill:#fff}.on-dark{fill:#fff}.on-dark-muted{fill:#dbeee4}.num-dark{fill:#173e37}
+    </style>
+  </defs>
+  <rect width="1200" height="620" fill="#f2f5f0"/>
+  <path d="M0 504H1200M0 118H1200" stroke="#d9e4dc" stroke-width="2"/>
+  <text x="54" y="52" class="mono small">PHARMAGENT / DOCUMENT-DERIVED MAP</text>
+  <text x="54" y="95" class="title">研究输入到递送方案：哪里需要证据交接</text>
+  <text x="996" y="50" class="mono small">01 / 03</text>
+
+  <g>
+    <rect x="54" y="160" width="245" height="277" rx="22" fill="#ffffff" stroke="#c9ded0" stroke-width="2"/>
+    <circle cx="82" cy="190" r="16" fill="#317d6f"/><text x="77" y="196" class="num">1</text>
+    <text x="75" y="245" class="cardtitle">外部研究输入</text>
+    <text x="75" y="286" class="body">ChEMBL / openFDA</text>
+    <text x="75" y="322" class="body">靶点、药物与结构信息</text>
+    <rect x="75" y="372" width="194" height="39" rx="9" fill="#e2f2e8"/>
+    <text x="89" y="398" class="small">数据自带来源信息</text>
+  </g>
+  <path d="M301 300H339" stroke="#317d6f" stroke-width="3" marker-end="url(#arrow)"/>
+  <g>
+    <rect x="345" y="160" width="245" height="277" rx="22" fill="#e5f3ea" stroke="#84b8a6" stroke-width="2"/>
+    <circle cx="373" cy="190" r="16" fill="#317d6f"/><text x="368" y="196" class="num">2</text>
+    <text x="366" y="245" class="cardtitle">数据质量关口</text>
+    <text x="366" y="286" class="body">必填字段 · 数值范围</text>
+    <text x="366" y="322" class="body">跨库比对 · 版本溯源</text>
+    <rect x="366" y="372" width="194" height="39" rx="9" fill="#fff"/>
+    <text x="381" y="398" class="small">项目书提出的方案</text>
+  </g>
+  <path d="M592 300H630" stroke="#317d6f" stroke-width="3" marker-end="url(#arrow)"/>
+  <g>
+    <rect x="636" y="160" width="245" height="277" rx="22" fill="#ffffff" stroke="#c9ded0" stroke-width="2"/>
+    <circle cx="664" cy="190" r="16" fill="#317d6f"/><text x="659" y="196" class="num">3</text>
+    <text x="657" y="245" class="cardtitle">插件与模型分析</text>
+    <text x="657" y="286" class="body">分子生成 / 检索</text>
+    <text x="657" y="322" class="body">ADMET 性质评价</text>
+    <rect x="657" y="372" width="194" height="39" rx="9" fill="#e2f2e8"/>
+    <text x="671" y="398" class="small">输出仍是研究线索</text>
+  </g>
+  <path d="M883 300H921" stroke="#317d6f" stroke-width="3" marker-end="url(#arrow)"/>
+  <g>
+    <rect x="927" y="160" width="219" height="277" rx="22" fill="#173e37"/>
+    <circle cx="955" cy="190" r="16" fill="#81c9ae"/><text x="950" y="196" class="num num-dark">4</text>
+    <text x="948" y="245" class="cardtitle on-dark">候选方案</text>
+    <text x="948" y="286" class="body on-dark-muted">药物特性分析</text>
+    <text x="948" y="322" class="body on-dark-muted">递送设计与验证框架</text>
+    <rect x="948" y="372" width="171" height="39" rx="9" fill="#2d6456"/>
+    <text x="962" y="398" class="small on-dark">供后续验证</text>
+  </g>
+
+  <circle cx="74" cy="554" r="8" fill="#d08a4c"/>
+  <text x="95" y="560" font-size="22" font-weight="700">验证边界</text>
+  <text x="230" y="560" font-size="20" fill="#49655f">项目书描述了数据核对与模型验证方案；候选递送策略的实验效果需独立检验。</text>
+  <text x="54" y="600" class="mono small">SOURCE: PHARMAGENT PROJECT BOOK  ·  SCHEMATIC, NOT A CLINICAL RESULT</text>
+</svg>
